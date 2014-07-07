@@ -315,7 +315,7 @@ function wp_lib_create_loan( $item_id, $member_id, $loan_duration = false, $star
 	// Creates arguments for loan
 	$post = array(
 
-		'post_title'		 => "Loan of {$title} to {$member->name} on {$date}",
+		'post_title'		=> "Loan of {$title} to {$member->name} on {$date}",
 		'post_status'		=> 'publish',
 		'post_type'			=> 'wp_lib_loans',
 		'ping_status'		=> 'closed',
@@ -354,6 +354,7 @@ function wp_lib_create_loan( $item_id, $member_id, $loan_duration = false, $star
 	);
 	
 	// Saves item due date, loan holder, item id to the loan's post meta
+	add_post_meta( $loan_id, 'wp_lib_start_date', time() );
 	add_post_meta( $loan_id, 'wp_lib_due_date', $due_date );
 	add_post_meta( $loan_id, 'wp_lib_archive', $archive );
 	add_post_meta( $loan_id, 'wp_lib_item', $item_id );
@@ -387,6 +388,9 @@ function wp_lib_return_item( $item_id, $date = false, $override = false ) {
 		
 		// Sets loan status to 'closed'
 		update_post_meta( $loan_id, 'wp_lib_status', 'closed' );
+		
+		// Sets loan return meta to given/current date
+		add_post_meta( $loan_id, 'wp_lib_end_date', time() );
 		
 		// Informs user of successful item return
 		$title = get_the_title( $loan_id );
@@ -501,6 +505,11 @@ function wp_lib_format_money( $value ) {
 	return $value;
 }
 
+// Fetches date from meta then formats
+function wp_lib_process_date_column( $id, $key ) {
+	echo 'Derp';
+}
+
 // Checks for appropriate template in current theme, loads plugin's default template on failure
 function wp_lib_template( $template ) {
 	if ( get_post_type() == 'wp_lib_items' ) {
@@ -612,8 +621,7 @@ function wp_lib_no_tax_edit_description() { ?>
 
 // Clears taxonomy metadata (stored as options) on deletion
 function wp_lib_clear_tax_options( $tt_id ) {
-	update_option( "wp-lib-testing-option", $tt_id );
-	delete_option( "taxonomy_{$tt_id}" );
+	delete_option( "wp_lib_tax_{$tt_id}" );
 }
 
 // Adds plugin url to front of string (e.g. authors -> library/authors)

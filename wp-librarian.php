@@ -270,18 +270,56 @@ function wp_lib_modify_item_table( $columns ) {
 		$columns['taxonomy-wp_lib_member']
 	);
 	
-	// Adds item status column
+	// Adds item status and item condition columns
 	$new_columns = array(
-		'item_status'	=> __( 'Loan Status' ),
+		'item_status'		=> 'Loan Status',
+		'item_condition'	=> 'Item Condition',
 	);
 	$columns = array_slice( $columns, 0, 5, true ) + $new_columns + array_slice( $columns, 5, NULL, true );
 	return $columns;
 }
 
-// Adds data to custom columns 
+// Adds data to custom columns in item table
 function wp_lib_fill_item_table( $column, $post_id ) {
+	// Displays the current status of the item (On Loan/Available/Late)
 	if ( $column == 'item_status' )
 		echo wp_lib_prep_item_available( $post_id, true, true );
+	// Displays the condition of the item
+	elseif ( $column == 'item_condition' )
+		echo get_post_meta( $post_id, 'wp_lib_item_condition', true );
+}
+
+// Add custom columns to wp-admin loans table and removes unneeded ones
+function wp_lib_modify_loans_table( $columns ) {
+	// Removes 'Date' column
+	unset(
+		$columns['date']
+	);
+
+	// Adds useful loan meta to loan table
+	$new_columns = array(
+		'loan_status'		=> 'Status',
+		'loan_created'		=> 'Created',
+		'loan_expected'		=> 'Expected',
+		'loan_returned'		=> 'Returned',
+	);
+	
+	$columns = array_slice( $columns, 0, 2, true ) + $new_columns + array_slice( $columns, 2, NULL, true );
+	
+	return $columns;
+}
+
+// Adds data to custom columns in loans table
+function wp_lib_fill_loans_table( $column, $loan_id ) {
+	// Displays loan status (Open/Closed)
+	if ( $column == 'loan_status' )
+		echo get_post_meta( $loan_id, 'wp_lib_status', true );
+	elseif ( $column == 'loan_created' )
+		echo wp_lib_process_date_column( $loan_id, 'wp_lib_start_date' );
+	elseif ( $column == 'loan_expected' )
+		echo wp_lib_process_date_column( $loan_id, 'wp_lib_due_date' );
+	elseif ( $column == 'loan_returned' )
+		echo wp_lib_process_date_column( $loan_id, 'wp_lib_end_date' );
 }
 
 // Hooks meta boxes
@@ -330,6 +368,11 @@ function wp_lib_process_meta_box( $item_id, $item ) {
 			'post'		=> 'wp_lib_item_loanable',
 			'sanitize'	=> 'wp_lib_sanitize_checkbox',
 			'key'		=> 'wp_lib_item_loanable',
+		),
+		array(
+			'post'		=> 'wp_lib_item_condition',
+			'sanitize'	=> 'sanitize_html_class',
+			'key'		=> 'wp_lib_item_condition',
 		),
 	);
 	
@@ -404,6 +447,14 @@ add_action( 'delete_term_taxonomy', 'wp_lib_clear_tax_options', 1, 2 );
 // Removes meta box 'series' from item edit page
 add_action( 'admin_menu', 'wp_lib_remove_meta_boxes' );
 
+// Modifies table of library items, removing unnecessary columns and adding useful ones
+add_filter( 'manage_wp_lib_items_posts_columns', 'wp_lib_modify_item_table');
+add_action( 'manage_wp_lib_items_posts_custom_column' , 'wp_lib_fill_item_table', 10, 2 );
+
+// Modifies table of loans, removing unnecessary columns and adding useful ones
+add_filter( 'manage_wp_lib_loans_posts_columns', 'wp_lib_modify_loans_table');
+add_action( 'manage_wp_lib_loans_posts_custom_column' , 'wp_lib_fill_loans_table', 10, 2 );
+
 // Adds item status to wp-admin item table
 add_filter( 'manage_wp_lib_items_posts_columns', 'wp_lib_modify_item_table');
 add_action( 'manage_wp_lib_items_posts_custom_column' , 'wp_lib_fill_item_table', 10, 2 );
@@ -445,7 +496,7 @@ function wp_lib_member_add_form_fields() {
 
 function wp_lib_member_edit_form_fields( $term ) {
 	$the_id = $term->term_id;
-	$term_meta = get_option( "wp-lib-tax_{$the_id}" );
+	$term_meta = get_option( "wp_lib_tax_{$the_id}" );
 ?>
 	<tr class="form-field">
 		<th valign="top" scope="row">
@@ -469,7 +520,7 @@ function wp_lib_member_edit_form_fields( $term ) {
 function wp_lib_member_save_taxonomy_meta( $term_id ) {
 	if ( isset( $_POST['wp_lib_member'] ) ) {
 		$the_id = $term_id;
-		$term_meta = get_option( "wp-lib-tax_{$the_id}" );
+		$term_meta = get_option( "wp_lib_tax_{$the_id}" );
 		$raw_keys = array_keys( $_POST['wp_lib_member'] );
 		foreach ( $raw_keys as $key ) {
 			if ( isset ( $_POST['wp_lib_member'][$key] ) ) {
@@ -477,7 +528,7 @@ function wp_lib_member_save_taxonomy_meta( $term_id ) {
 			}
 		}
 		// Save the option array.
-		update_option( "taxonomy_{$the_id}", $term_meta );
+		update_option( "wp_lib_tax_{$term_id}", $term_meta );
 	}
 }
 

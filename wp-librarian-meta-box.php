@@ -13,7 +13,8 @@ function wp_lib_draw_meta_box( $item ) {
 			<td class="wp-lib-meta-input"><input type="checkbox" size="50%" name="wp_lib_item_loanable" value="true" <?php echo $loanable; ?> />Check if item is allowed to be loaned</td>
 		</tr>
 		<tr>
-			
+			<td class="wp-lib-meta-title">Condition</td>
+			<td class="wp-lib-meta-input"><input type="text" size="50%" name="wp_lib_item_condition" value="<?php echo $meta['wp_lib_item_condition'][0]; ?>" /></td>
 		</tr>
 		<div id="wp-lib-only-books">
 			<tr>
