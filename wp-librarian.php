@@ -67,8 +67,8 @@ function wp_lib_create_post_types() {
 		),
 
 		'public' => true,
-		'menu_position' => 15,
-		'supports' => array( 'title' ),
+		'show_in_menu'  => 'edit.php?post_type=wp_lib_items',
+		'supports' => array( '' ),
 		'taxonomies' => array( '' ),
 		'menu_icon' => 'dashicons-book-alt',
 		'has_archive' => true,
@@ -95,7 +95,7 @@ function wp_lib_create_post_types() {
 		),
 
 		'public' => true,
-		'menu_position' => 15,
+		'show_in_menu'  => 'edit.php?post_type=wp_lib_items',
 		'supports' => array( 'title' ),
 		'taxonomies' => array( '' ),
 		'menu_icon' => 'dashicons-book-alt',
@@ -291,13 +291,13 @@ function wp_lib_fill_item_table( $column, $post_id ) {
 
 // Add custom columns to wp-admin loans table and removes unneeded ones
 function wp_lib_modify_loans_table( $columns ) {
-	// Removes 'Date' column
-	unset(
-		$columns['date']
-	);
+	// Removes 'Date' and 'Title' columns
+	unset( $columns['date'], $columns['title'] );
 
 	// Adds useful loan meta to loan table
 	$new_columns = array(
+		'loan_item'			=> 'Item',
+		'loan_member'		=> 'Member',
 		'loan_status'		=> 'Status',
 		'loan_created'		=> 'Created',
 		'loan_expected'		=> 'Expected',
@@ -311,13 +311,60 @@ function wp_lib_modify_loans_table( $columns ) {
 
 // Adds data to custom columns in loans table
 function wp_lib_fill_loans_table( $column, $loan_id ) {
+	// Displays title of loaned item with link to view item
+	if ( $column == 'loan_item' ){
+		// Fetches item ID from loan meta
+		$item_id = get_post_meta( $loan_id, 'wp_lib_item', true );
+		
+		// Fetches item title
+		$title = get_the_title( $item_id );
+		
+		// Fetches link to item
+		$url = admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&item_id={$item_id}&item_action=manage" );
+		
+		echo "<a href=\"{$url}\">{$title}</a>";
+	}
+	// Displays member that item has been loaned to
+	elseif ( $column == 'loan_member' ) {
+		// Fetches item ID from loan meta
+		$item_id = get_post_meta( $loan_id, 'wp_lib_item', true );
+		
+		// Fetches member object from item tax and strips outer array
+		$member = get_the_terms( $item_id, 'wp_lib_member' )[0];
+		
+		// If no member is tied to the item (if it's been returned) display N/A
+		if ( !$member )
+			echo '-';
+		else {
+			// Constructs url to view/manage the member
+			$url = admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&item_member={$member->term_id}&item_action=manage-member" );
+			
+			// Displays member name with link to view member in Library Dashboard
+			echo "<a href=\"{$url}\">{$member->name}</a>";
+		}
+	}
 	// Displays loan status (Open/Closed)
-	if ( $column == 'loan_status' )
-		echo get_post_meta( $loan_id, 'wp_lib_status', true );
+	elseif ( $column == 'loan_status' ) {
+		$status = get_post_meta( $loan_id, 'wp_lib_status', true );
+		
+		if ( $status == 1 )
+			echo 'Active';
+		elseif ( $status == 2 )
+			echo 'Item Returned';
+		elseif ( $status == 3 )
+			echo 'Item Returned (Fine Unpaid)';
+		elseif ( $status == 4 )
+			echo 'Item Returned (Fine paid)';
+		else
+			echo 'Unknown';
+	}
+	// Displays date item was loaned
 	elseif ( $column == 'loan_created' )
 		echo wp_lib_process_date_column( $loan_id, 'wp_lib_start_date' );
+	// Displays date item should be returned by
 	elseif ( $column == 'loan_expected' )
 		echo wp_lib_process_date_column( $loan_id, 'wp_lib_due_date' );
+	// Displays date item was actually returned
 	elseif ( $column == 'loan_returned' )
 		echo wp_lib_process_date_column( $loan_id, 'wp_lib_end_date' );
 }
@@ -410,10 +457,10 @@ function wp_lib_remove_meta_boxes() {
 	remove_meta_box( 'tagsdiv-wp_lib_donor', 'wp_lib_items', 'side' );
 }
 
-// Registers settings page
+// Registers settings page and Management Dashboard
 function wp_lib_create_submenu_pages() {
 	add_submenu_page('edit.php?post_type=wp_lib_items', 'WP Librarian Settings', 'Settings', 'activate_plugins', 'settings', 'wp_lib_render_settings');
-	add_submenu_page('edit.php?post_type=wp_lib_items', 'Library Dashboard', 'Dashboard', 'edit_post', 'loans-returns', 'wp_lib_render_dashboard');
+	add_submenu_page('edit.php?post_type=wp_lib_items', 'Library Dashboard', 'Dashboard', 'edit_post', 'dashboard', 'wp_lib_render_dashboard');
 }
 
 // Renders settings page

@@ -99,7 +99,7 @@ function wp_lib_prep_item_available( $item_id, $no_url = false, $short = false )
 	// If user has the relevant permissions, availability will contain link to loan/return item
 	if ( wp_lib_is_librarian() && !$no_url ) {
 		// String preparation
-		$url = admin_url( "edit.php?post_type=wp_lib_items&page=loans-returns&item_id={$item_id}&item_action=manage" );
+		$url = admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&item_id={$item_id}&item_action=manage" );
 		$url = "<a href=\"{$url}\">";
 		$end = '</a>';
 	}
@@ -280,8 +280,10 @@ function wp_lib_fetch_loan( $item_id ) {
 		wp_lib_error( 402, true );
 	
 	// Checks if loan with that ID actually exists
-	if ( get_post_status( $loan_id ) == false )
+	if ( get_post_status( $loan_id ) == false ) {
+		wp_lib_clean_item( $item_id );
 		wp_lib_error( 403, true );
+	}
 		
 	return $loan_id;
 }
@@ -315,7 +317,6 @@ function wp_lib_create_loan( $item_id, $member_id, $loan_duration = false, $star
 	// Creates arguments for loan
 	$post = array(
 
-		'post_title'		=> "Loan of {$title} to {$member->name} on {$date}",
 		'post_status'		=> 'publish',
 		'post_type'			=> 'wp_lib_loans',
 		'ping_status'		=> 'closed',
@@ -358,7 +359,7 @@ function wp_lib_create_loan( $item_id, $member_id, $loan_duration = false, $star
 	add_post_meta( $loan_id, 'wp_lib_due_date', $due_date );
 	add_post_meta( $loan_id, 'wp_lib_archive', $archive );
 	add_post_meta( $loan_id, 'wp_lib_item', $item_id );
-	add_post_meta( $loan_id, 'wp_lib_status', 'open' );
+	add_post_meta( $loan_id, 'wp_lib_status', 1 );
 	
 	// Saves loan's post ID to the item's post meta
 	add_post_meta( $item_id, 'wp_lib_loan_id', $loan_id );
@@ -387,14 +388,13 @@ function wp_lib_return_item( $item_id, $date = false, $override = false ) {
 		delete_post_meta($item_id, 'wp_lib_loan_id' );
 		
 		// Sets loan status to 'closed'
-		update_post_meta( $loan_id, 'wp_lib_status', 'closed' );
+		update_post_meta( $loan_id, 'wp_lib_status', 2 );
 		
 		// Sets loan return meta to given/current date
 		add_post_meta( $loan_id, 'wp_lib_end_date', time() );
 		
 		// Informs user of successful item return
-		$title = get_the_title( $loan_id );
-		echo "{$title} has been successfully returned";
+		echo "Loan has been successfully returned";
 	}
 }
 
@@ -461,7 +461,7 @@ function wp_lib_create_fine( $item_id, $date ) {
 	add_post_meta( $loan_id, 'wp_lib_archive', $archive );
 	add_post_meta( $loan_id, 'wp_lib_item', $item_id );
 	add_post_meta( $loan_id, 'wp_lib_member', $member->term_id );
-	add_post_meta( $loan_id, 'wp_lib_status', 'unpaid' );
+	add_post_meta( $loan_id, 'wp_lib_status', 3 );
 	add_post_meta( $loan_id, 'wp_lib_fine', $fine );
 	
 	echo "Fine of {$fine} to {$member->name} for {$title} was successful!<br />";
@@ -507,9 +507,26 @@ function wp_lib_format_money( $value ) {
 
 // Fetches date from meta then formats
 function wp_lib_process_date_column( $id, $key ) {
-	echo 'Derp';
+	// Fetches date from post meta using given key
+	$date = get_post_meta( $id, $key, true );
+	
+	// If date is valid returns formatted date
+	if ( is_numeric( $date ) )
+		return date( 'd-m-y', $date );
+	// Otherwise return dash to show missing information
+	else
+		return '-';
 }
 
+// Cancels loan of item that has a since corrupted loan attached to it
+// This function should not be called under regular operation and should definitely not used to return an item
+function wp_lib_clean_item( $item_id ){
+	// Clears item's Member taxonomy
+	wp_delete_object_term_relationships( $item_id, 'wp_lib_member' );
+
+	// Removes loan ID from item meta
+	delete_post_meta($item_id, 'wp_lib_loan_id' );
+}
 // Checks for appropriate template in current theme, loads plugin's default template on failure
 function wp_lib_template( $template ) {
 	if ( get_post_type() == 'wp_lib_items' ) {
@@ -561,7 +578,7 @@ function wp_lib_error( $error_id, $die = false, $param = '' ) {
 		400 => 'Loan creation failed for unknown reason, sorry :/',
 		401 => 'Can not loan item, it is already on loan or not allowed to be loaned.<br/>This can happen if you have multiple tabs open or refresh the loan page after a loan has already been created.',
 		402 => 'Item not on loan (Loan ID not found in item meta)<br/>This can happen if you refresh the page having already returned an item',
-		403 => 'Loan not found (Loan ID found in item meta but no loan found that ID)',
+		403 => 'Loan not found (Loan ID found in item meta but no loan found that ID). The item has now been cleaned of all loan meta to attempt to resolve the issue. Refresh the page.',
 		405 => 'Loan is missing due date',
 		406 => 'Item is/was not late on given date, mate',
 		407 => 'Fine creation failed for unknown reasons, sorry :/',
