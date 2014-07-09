@@ -48,7 +48,7 @@ elseif ( $action == 'manage-member' )
 
 // When user visits page via WordPress menu, and has thus not specified a task to do
 elseif ( $action == '' )
-	wp_lib_loans_dashboard();
+	wp_lib_dashboard();
 	
 // When an unknown action has been specified, give error
 else

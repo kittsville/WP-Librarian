@@ -351,6 +351,7 @@ function wp_lib_create_loan( $item_id, $member_id, $loan_duration = false, $star
 	// Stores member/item information in case either is deleted
 	$archive = array(
 		'member-name'	=> $member->name,
+		'member-id'		=> $member->term_id,
 		'item-name'		=> $title,
 	);
 	
@@ -399,8 +400,8 @@ function wp_lib_return_item( $item_id, $date = false, $override = false ) {
 }
 
 // Allows users to view, manage or create loans from a central dashboard
-function wp_lib_loans_dashboard() {
-	require_once( plugin_dir_path(__FILE__) . '/wp-librarian-loans-dashboard.php' );
+function wp_lib_dashboard() {
+	require_once( plugin_dir_path(__FILE__) . '/wp-librarian-dashboard.php' );
 }
 
 // Fines member for returning item late
@@ -436,7 +437,7 @@ function wp_lib_create_fine( $item_id, $date ) {
 	// Creates arguments for fine
 	$post = array(
 
-		'post_title'		 => "Fine of {$fine_formatted} to {$member->name} on {$date}",
+		'post_title'		=> "Fine of {$fine_formatted} to {$member->name} on {$date}",
 		'post_status'		=> 'publish',
 		'post_type'			=> 'wp_lib_fines',
 		'ping_status'		=> 'closed',

@@ -283,7 +283,7 @@ function wp_lib_modify_item_table( $columns ) {
 function wp_lib_fill_item_table( $column, $post_id ) {
 	// Displays the current status of the item (On Loan/Available/Late)
 	if ( $column == 'item_status' )
-		echo wp_lib_prep_item_available( $post_id, true, true );
+		echo wp_lib_prep_item_available( $post_id, false, true );
 	// Displays the condition of the item
 	elseif ( $column == 'item_condition' )
 		echo get_post_meta( $post_id, 'wp_lib_item_condition', true );
@@ -326,11 +326,11 @@ function wp_lib_fill_loans_table( $column, $loan_id ) {
 	}
 	// Displays member that item has been loaned to
 	elseif ( $column == 'loan_member' ) {
-		// Fetches item ID from loan meta
-		$item_id = get_post_meta( $loan_id, 'wp_lib_item', true );
+		// Fetches member ID from loan meta
+		$member_id = get_post_meta( $loan_id, 'wp_lib_archive', true )['member-id'];
 		
-		// Fetches member object from item tax and strips outer array
-		$member = get_the_terms( $item_id, 'wp_lib_member' )[0];
+		// Fetches member object using member ID
+		$member = get_term_by( 'id', $member_id, 'wp_lib_member' );
 		
 		// If no member is tied to the item (if it's been returned) display N/A
 		if ( !$member )
@@ -393,18 +393,18 @@ function wp_lib_create_meta_box() {
 // Adds custom fields to meta box
 function wp_lib_process_meta_box( $item_id, $item ) {
 
-	/* Verify the nonce before proceeding. */
+	// Verify the nonce before proceeding
 	if ( !isset( $_POST['wp_lib_item_nonce'] ) || !wp_verify_nonce( $_POST['wp_lib_item_nonce'], "updating item {$item_id} meta" ) )
 		return $item_id;
 
-	/* Get the post type object. */
+	// Get the post type object
 	$post_type = get_post_type_object( $item->post_type );
 
-	/* Check if the current user has permission to edit the post. */
+	// Check if the current user has permission to edit the post
 	if ( !current_user_can( $post_type->cap->edit_post, $item_id ) )
 		return $item_id;
 		
-	/* Stores all meta box fields and sanitization methods */
+	// Stores all meta box fields and sanitization methods
 	$meta_array = array(
 		array(
 			'post'		=> 'wp_lib_item_isbn',
@@ -424,35 +424,35 @@ function wp_lib_process_meta_box( $item_id, $item ) {
 	);
 	
 	foreach ( $meta_array as $meta ) {
-		/* Checks if sanitizing function exists */
+		// Checks if sanitizing function exists
 		if ( !is_callable( $meta['sanitize'] ) )
 			return $item_id;
 	
-		/* Get the posted data and sanitize it for use as an HTML class. */
+		// Get the posted data and sanitize it for use as an HTML class
 		$new_meta_value = ( isset( $_POST[$meta['post']] ) ? $meta['sanitize']( $_POST[$meta['post']] ) : '' );
 
-		/* Get the meta key. */
+		// Get the meta key
 		$meta_key = $meta['key'];
 
-		/* Get the meta value of the custom field key. */
+		// Get the meta value of the custom field key
 		$meta_value = get_post_meta( $item_id, $meta_key, true );
 
-		/* If a new meta value was added and there was no previous value, add it. */
+		// If a new meta value was added and there was no previous value, add it
 		if ( $new_meta_value && '' == $meta_value )
 			add_post_meta( $item_id, $meta_key, $new_meta_value, true );
 
-		/* If the new meta value does not match the old value, update it. */
+		// If the new meta value does not match the old value, update it
 		elseif ( $new_meta_value && $new_meta_value != $meta_value )
 			update_post_meta( $item_id, $meta_key, $new_meta_value );
 
-		/* If there is no new meta value but an old value exists, delete it. */
+		// If there is no new meta value but an old value exists, delete it
 		elseif ( '' == $new_meta_value && $meta_value )
 			delete_post_meta( $item_id, $meta_key, $meta_value );
 	}
 }
 
+// Removes member/donor meta boxes from item editing page
 function wp_lib_remove_meta_boxes() {
-	remove_meta_box( 'wp_lib_seriesdiv', 'wp_lib_items', 'side' );
 	remove_meta_box( 'tagsdiv-wp_lib_member', 'wp_lib_items', 'side' );
 	remove_meta_box( 'tagsdiv-wp_lib_donor', 'wp_lib_items', 'side' );
 }
@@ -541,9 +541,13 @@ function wp_lib_member_add_form_fields() {
 <?php 
 }
 
-function wp_lib_member_edit_form_fields( $term ) {
-	$the_id = $term->term_id;
-	$term_meta = get_option( "wp_lib_tax_{$the_id}" );
+function wp_lib_member_edit_form_fields( $member ) {
+	// Fetches member ID from member object
+	$member_id = $member->term_id;
+	
+	// Uses member ID to fetch any existing meta
+	// As taxonomies don't support meta, meta is stored as an option
+	$term_meta = get_option( "wp_lib_tax_{$member_id}" );
 ?>
 	<tr class="form-field">
 		<th valign="top" scope="row">
@@ -564,6 +568,7 @@ function wp_lib_member_edit_form_fields( $term ) {
 <?php 
 }
 
+// This function is horrible and will be gone soon
 function wp_lib_member_save_taxonomy_meta( $term_id ) {
 	if ( isset( $_POST['wp_lib_member'] ) ) {
 		$the_id = $term_id;
@@ -579,11 +584,14 @@ function wp_lib_member_save_taxonomy_meta( $term_id ) {
 	}
 }
 
-/* Custom Post Types and Taxonomies */
+/* Functions to run when plugin is initialised */
+// Creates all custom post types
 add_action( 'init', 'wp_lib_create_post_types' );
+// Creates all custom taxonomies
 add_action( 'init', 'wp_lib_create_taxonomies' );
 
-/* Library Settings Page */
+
+// Adds settings and Dashboard to library menu
 add_action( 'admin_menu', 'wp_lib_create_submenu_pages');
 
 /* Metabox when creating or editing items */
