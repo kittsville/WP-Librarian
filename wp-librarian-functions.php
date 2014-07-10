@@ -528,6 +528,12 @@ function wp_lib_clean_item( $item_id ){
 	// Removes loan ID from item meta
 	delete_post_meta($item_id, 'wp_lib_loan_id' );
 }
+
+// Sanitizes phone number
+function wp_lib_sanitize_num( $number ){
+	return preg_replace('/[^0-9]/', '', $number );
+}
+
 // Checks for appropriate template in current theme, loads plugin's default template on failure
 function wp_lib_template( $template ) {
 	if ( get_post_type() == 'wp_lib_items' ) {

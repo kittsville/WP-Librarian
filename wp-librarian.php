@@ -375,7 +375,7 @@ function wp_lib_setup_meta_box() {
 	add_action( 'add_meta_boxes', 'wp_lib_create_meta_box' );
 	
 	// Saves the meta fields on the save_post hook
-	add_action( 'save_post', 'wp_lib_process_meta_box', 10, 2 );
+	add_action( 'save_post', 'wp_lib_process_item_meta_box', 10, 2 );
 }
 
 // Creates meta box below custom post type
@@ -390,8 +390,8 @@ function wp_lib_create_meta_box() {
 	);
 }
 
-// Adds custom fields to meta box
-function wp_lib_process_meta_box( $item_id, $item ) {
+// Updates item's meta values
+function wp_lib_process_item_meta_box( $item_id, $item ) {
 
 	// Verify the nonce before proceeding
 	if ( !isset( $_POST['wp_lib_item_nonce'] ) || !wp_verify_nonce( $_POST['wp_lib_item_nonce'], "updating item {$item_id} meta" ) )
@@ -451,6 +451,41 @@ function wp_lib_process_meta_box( $item_id, $item ) {
 	}
 }
 
+// Updates member's meta values
+function wp_lib_process_member_meta_box( $member_id ) {
+
+	// Stores all meta box fields and sanitization methods
+	$meta_array = array(
+		array(
+			'post'		=> 'wp_lib_member_phone',
+			'sanitize'	=> 'wp_lib_sanitize_num',
+			'key'		=> 'member_phone',
+		),
+		array(
+			'post'		=> 'wp_lib_member_mobile',
+			'sanitize'	=> 'wp_lib_sanitize_num',
+			'key'		=> 'member_mobile',
+		),
+	);
+	
+	$new_meta_array = array();
+	
+	foreach ( $meta_array as $meta ) {
+		// Checks if sanitizing function exists
+		if ( !is_callable( $meta['sanitize'] ) )
+			return $item_id;
+	
+		// Get the posted data and sanitize it for use as an HTML class
+		$new_meta_value = ( isset( $_POST[$meta['post']] ) ? $meta['sanitize']( $_POST[$meta['post']] ) : '' );
+
+		// Adds new meta value to array to be saved
+		$new_meta_array[$meta['key']] = $new_meta_value;
+	}
+	
+	// Saves meta array
+	update_option( "wp_lib_tax_{$member_id}", $new_meta_array );
+}
+
 // Removes member/donor meta boxes from item editing page
 function wp_lib_remove_meta_boxes() {
 	remove_meta_box( 'tagsdiv-wp_lib_member', 'wp_lib_items', 'side' );
@@ -485,8 +520,8 @@ add_action('wp_lib_member_add_form_fields','wp_lib_member_add_form_fields');
 add_action( 'wp_lib_member_edit_form_fields', 'wp_lib_member_edit_form_fields', 10, 2 );
 
 // Updates taxonomy metadata after update
-add_action( 'edited_wp_lib_member', 'wp_lib_member_save_taxonomy_meta', 10, 2 );  
-add_action( 'create_wp_lib_member', 'wp_lib_member_save_taxonomy_meta', 10, 2 );
+add_action( 'edited_wp_lib_member', 'wp_lib_process_member_meta_box', 10, 2 );  
+add_action( 'create_wp_lib_member', 'wp_lib_process_member_meta_box', 10, 2 );
 
 // Clears taxonomy options on taxonomy term delete
 add_action( 'delete_term_taxonomy', 'wp_lib_clear_tax_options', 1, 2 );
@@ -524,18 +559,18 @@ function wp_lib_member_add_form_fields() {
 ?>
 	<tr class="form-field">
 		<th valign="top" scope="row">
-			<label for="wp_lib_member[phone-num]">Telephone Number</label>
+			<label for="wp_lib_member_phone">Telephone Number</label>
 		</th>
 		<td>
-			<input type="tel" id="wp_lib_member[phone-num]" name="wp_lib_member[phone-num]"/>
+			<input type="tel" id="wp_lib_member_phone" name="wp_lib_member_phone"/>
 		</td>
 	</tr>
 	<tr class="form-field">
 		<th valign="top" scope="row">
-			<label for="wp_lib_member[mobile-num]">Mobile Number</label>
+			<label for="wp_lib_member_mobile">Mobile Number</label>
 		</th>
 		<td>
-			<input type="tel" id="wp_lib_member[mobile-num]" name="wp_lib_member[mobile-num]"/>
+			<input type="tel" id="wp_lib_member_mobile" name="wp_lib_member_mobile"/>
 		</td>
 	</tr>
 <?php 
@@ -547,41 +582,25 @@ function wp_lib_member_edit_form_fields( $member ) {
 	
 	// Uses member ID to fetch any existing meta
 	// As taxonomies don't support meta, meta is stored as an option
-	$term_meta = get_option( "wp_lib_tax_{$member_id}" );
+	$meta_array = get_option( "wp_lib_tax_{$member_id}" );
 ?>
 	<tr class="form-field">
 		<th valign="top" scope="row">
-			<label for="wp_lib_member[phone-num]">Telephone Number</label>
+			<label for="wp_lib_member_phone">Telephone Number</label>
 		</th>
 		<td>
-			<input type="tel" id="wp_lib_member[phone-num]" name="wp_lib_member[phone-num]" value="<?php echo esc_attr( $term_meta['phone-num'] ) ? esc_attr( $term_meta['phone-num'] ) : ''; ?>"/>
+			<input type="tel" id="wp_lib_member_phone" name="wp_lib_member_phone" value="<?php echo esc_attr( $meta_array['member_phone'] ) ? esc_attr( $meta_array['member_phone'] ) : ''; ?>"/>
 		</td>
 	</tr>
 	<tr class="form-field">
 		<th valign="top" scope="row">
-			<label for="wp_lib_member[mobile-num]">Mobile Number</label>
+			<label for="wp_lib_member_mobile">Mobile Number</label>
 		</th>
 		<td>
-			<input type="tel" id="wp_lib_member[mobile-num]" name="wp_lib_member[mobile-num]" value="<?php echo esc_attr( $term_meta['mobile-num'] ) ? esc_attr( $term_meta['mobile-num'] ) : ''; ?>"/>
+			<input type="tel" id="wp_lib_member_mobile" name="wp_lib_member_mobile" value="<?php echo esc_attr( $meta_array['member_mobile'] ) ? esc_attr( $meta_array['member_mobile'] ) : ''; ?>"/>
 		</td>
 	</tr>
 <?php 
-}
-
-// This function is horrible and will be gone soon
-function wp_lib_member_save_taxonomy_meta( $term_id ) {
-	if ( isset( $_POST['wp_lib_member'] ) ) {
-		$the_id = $term_id;
-		$term_meta = get_option( "wp_lib_tax_{$the_id}" );
-		$raw_keys = array_keys( $_POST['wp_lib_member'] );
-		foreach ( $raw_keys as $key ) {
-			if ( isset ( $_POST['wp_lib_member'][$key] ) ) {
-				$term_meta[$key] = $_POST['wp_lib_member'][$key];
-			}
-		}
-		// Save the option array.
-		update_option( "wp_lib_tax_{$term_id}", $term_meta );
-	}
 }
 
 /* Functions to run when plugin is initialised */
