@@ -351,7 +351,6 @@ function wp_lib_create_loan( $item_id, $member_id, $loan_duration = false, $star
 	// Stores member/item information in case either is deleted
 	$archive = array(
 		'member-name'	=> $member->name,
-		'member-id'		=> $member->term_id,
 		'item-name'		=> $title,
 	);
 	
@@ -359,6 +358,7 @@ function wp_lib_create_loan( $item_id, $member_id, $loan_duration = false, $star
 	add_post_meta( $loan_id, 'wp_lib_start_date', time() );
 	add_post_meta( $loan_id, 'wp_lib_due_date', $due_date );
 	add_post_meta( $loan_id, 'wp_lib_archive', $archive );
+	add_post_meta( $loan_id, 'wp_lib_member', $member->term_id );
 	add_post_meta( $loan_id, 'wp_lib_item', $item_id );
 	add_post_meta( $loan_id, 'wp_lib_status', 1 );
 	
@@ -395,7 +395,7 @@ function wp_lib_return_item( $item_id, $date = false, $override = false ) {
 		add_post_meta( $loan_id, 'wp_lib_end_date', time() );
 		
 		// Informs user of successful item return
-		echo "Loan has been successfully returned";
+		echo "Item has been successfully returned";
 	}
 }
 
@@ -405,7 +405,7 @@ function wp_lib_dashboard() {
 }
 
 // Fines member for returning item late
-function wp_lib_create_fine( $item_id, $date ) {
+function wp_lib_create_fine( $item_id, $date, $return = true ) {
 	// Fetches loan ID from item meta
 	$loan_id = wp_lib_fetch_loan( $item_id );
 	
@@ -437,7 +437,6 @@ function wp_lib_create_fine( $item_id, $date ) {
 	// Creates arguments for fine
 	$post = array(
 
-		'post_title'		=> "Fine of {$fine_formatted} to {$member->name} on {$date}",
 		'post_status'		=> 'publish',
 		'post_type'			=> 'wp_lib_fines',
 		'ping_status'		=> 'closed',
@@ -459,13 +458,17 @@ function wp_lib_create_fine( $item_id, $date ) {
 	
 	// Saves item ID, member ID, fine status and amount to post meta
 	// Also saves archive of member/item names
-	add_post_meta( $loan_id, 'wp_lib_archive', $archive );
-	add_post_meta( $loan_id, 'wp_lib_item', $item_id );
-	add_post_meta( $loan_id, 'wp_lib_member', $member->term_id );
-	add_post_meta( $loan_id, 'wp_lib_status', 3 );
-	add_post_meta( $loan_id, 'wp_lib_fine', $fine );
+	add_post_meta( $fine_id, 'wp_lib_archive', $archive );
+	add_post_meta( $fine_id, 'wp_lib_item', $item_id );
+	add_post_meta( $fine_id, 'wp_lib_member', $member->term_id );
+	add_post_meta( $fine_id, 'wp_lib_status', 1 );
+	add_post_meta( $fine_id, 'wp_lib_fine', $fine );
 	
 	echo "Fine of {$fine} to {$member->name} for {$title} was successful!<br />";
+	
+	// Return item unless otherwise specified
+	if ( $return )
+		wp_lib_return_item( $item_id, false, true );
 }
 
 // Makes string plural if needed, returns un-pluralised string otherwise
@@ -517,6 +520,32 @@ function wp_lib_process_date_column( $id, $key ) {
 	// Otherwise return dash to show missing information
 	else
 		return '-';
+}
+
+// Turns numeric loan status into readable string e.g. 1 -> 'On Loan'
+function wp_lib_format_loan_status( $status ) {
+	// Array of all possible states of the loan
+	$strings = array(
+		'',
+		'Active',
+		'Item Returned'
+	);
+	
+	// State is looked up in the array and returned
+	return $strings[$status];
+}
+
+// Turns numeric fine status into readable string e.g. 1 -> 'Unpaid'
+function wp_lib_format_fine_status( $status ) {
+	// Array of all possible states of the fine
+	$strings = array(
+		'',
+		'Unpaid',
+		'Paid'
+	);
+	
+	// State is looked up in the array and returned
+	return $strings[$status];
 }
 
 // Cancels loan of item that has a since corrupted loan attached to it

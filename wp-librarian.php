@@ -96,7 +96,7 @@ function wp_lib_create_post_types() {
 
 		'public' => true,
 		'show_in_menu'  => 'edit.php?post_type=wp_lib_items',
-		'supports' => array( 'title' ),
+		'supports' => array( '' ),
 		'taxonomies' => array( '' ),
 		'menu_icon' => 'dashicons-book-alt',
 		'has_archive' => true,
@@ -327,7 +327,7 @@ function wp_lib_fill_loans_table( $column, $loan_id ) {
 	// Displays member that item has been loaned to
 	elseif ( $column == 'loan_member' ) {
 		// Fetches member ID from loan meta
-		$member_id = get_post_meta( $loan_id, 'wp_lib_archive', true )['member-id'];
+		$member_id = get_post_meta( $loan_id, 'wp_lib_member', true );
 		
 		// Fetches member object using member ID
 		$member = get_term_by( 'id', $member_id, 'wp_lib_member' );
@@ -347,16 +347,7 @@ function wp_lib_fill_loans_table( $column, $loan_id ) {
 	elseif ( $column == 'loan_status' ) {
 		$status = get_post_meta( $loan_id, 'wp_lib_status', true );
 		
-		if ( $status == 1 )
-			echo 'Active';
-		elseif ( $status == 2 )
-			echo 'Item Returned';
-		elseif ( $status == 3 )
-			echo 'Item Returned (Fine Unpaid)';
-		elseif ( $status == 4 )
-			echo 'Item Returned (Fine paid)';
-		else
-			echo 'Unknown';
+		echo wp_lib_format_loan_status( $status );
 	}
 	// Displays date item was loaned
 	elseif ( $column == 'loan_created' )
@@ -367,6 +358,74 @@ function wp_lib_fill_loans_table( $column, $loan_id ) {
 	// Displays date item was actually returned
 	elseif ( $column == 'loan_returned' )
 		echo wp_lib_process_date_column( $loan_id, 'wp_lib_end_date' );
+}
+
+// Add custom columns to wp-admin fines table and removes unneeded ones
+function wp_lib_modify_fines_table( $columns ) {
+	// Removes 'Date' and 'Title' columns
+	unset( $columns['date'], $columns['title'] );
+
+	// Adds useful loan meta to loan table
+	$new_columns = array(
+		'fine_item'			=> 'Item',
+		'fine_member'		=> 'Member',
+		'fine_amount'		=> 'Charge',
+		'fine_status'		=> 'Status',
+	);
+	
+	$columns = array_slice( $columns, 0, 2, true ) + $new_columns + array_slice( $columns, 2, NULL, true );
+	
+	return $columns;
+}
+
+// Adds data to custom columns in fines table
+function wp_lib_fill_fines_table( $column, $fine_id ) {
+	// Displays title of item fine is for with link to view item
+	if ( $column == 'fine_item' ){
+		// Fetches item ID from loan meta
+		$item_id = get_post_meta( $fine_id, 'wp_lib_item', true );
+		
+		// Fetches item title
+		$title = get_the_title( $item_id );
+		
+		// Fetches link to item
+		$url = admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&item_id={$item_id}&item_action=manage" );
+		
+		echo "<a href=\"{$url}\">{$title}</a>";
+	}
+	// Displays member that has been fined
+	elseif ( $column == 'fine_member' ) {
+		// Fetches member ID from loan meta
+		$member_id = get_post_meta( $fine_id, 'wp_lib_member', true );
+		
+		// Fetches member object using member ID
+		$member = get_term_by( 'id', $member_id, 'wp_lib_member' );
+		
+		// If no member is tied to the item (if it's been returned) display N/A
+		if ( !$member )
+			echo '-';
+		else {
+			// Constructs url to view/manage the member
+			$url = admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&item_member={$member->term_id}&item_action=manage-member" );
+			
+			// Displays member name with link to view member in Library Dashboard
+			echo "<a href=\"{$url}\">{$member->name}</a>";
+		}
+	}
+	elseif ( $column == 'fine_amount' ) {
+		// Fetches fine amount from fine's post meta
+		$fine = get_post_meta( $fine_id, 'wp_lib_fine', true );
+		
+		// Formats fine with local currency and displays it
+		echo wp_lib_format_money( $fine );
+	}
+	elseif ( $column == 'fine_status' ) {
+		// Fetches fine status from post meta
+		$status = get_post_meta( $fine_id, 'wp_lib_status', true );
+		
+		// Gets fine status in a readable format and displays it
+		echo wp_lib_format_fine_status( $status );
+	}
 }
 
 // Hooks meta boxes
@@ -537,9 +596,9 @@ add_action( 'manage_wp_lib_items_posts_custom_column' , 'wp_lib_fill_item_table'
 add_filter( 'manage_wp_lib_loans_posts_columns', 'wp_lib_modify_loans_table');
 add_action( 'manage_wp_lib_loans_posts_custom_column' , 'wp_lib_fill_loans_table', 10, 2 );
 
-// Adds item status to wp-admin item table
-add_filter( 'manage_wp_lib_items_posts_columns', 'wp_lib_modify_item_table');
-add_action( 'manage_wp_lib_items_posts_custom_column' , 'wp_lib_fill_item_table', 10, 2 );
+// Modifies table of loans, removing unnecessary columns and adding useful ones
+add_filter( 'manage_wp_lib_fines_posts_columns', 'wp_lib_modify_fines_table');
+add_action( 'manage_wp_lib_fines_posts_custom_column' , 'wp_lib_fill_fines_table', 10, 2 );
 
 // Clears Description field on unwanted taxonomies
 add_action( 'wp_lib_member_add_form_fields', 'wp_lib_no_tax_description' );
