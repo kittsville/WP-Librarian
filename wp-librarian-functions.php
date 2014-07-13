@@ -178,11 +178,23 @@ function wp_lib_check_loan_id( $loan_id ) {
 	if ( !is_numeric( $loan_id ) )
 		wp_lib_error( 301, true, 'Loan' );
 	
-	// Checks if ID belongs to a published library item
+	// Checks if ID belongs to a published loan (a loan in any other state is not valid)
 	if ( !get_post_type( $loan_id ) == 'wp_lib_loans' || !get_post_status( $loan_id ) == 'publish' )
 		wp_lib_error( 306, true );
 
 	return $loan_id;
+}
+
+function wp_lib_check_fine_id( $fine_id ){
+	// Checks if ID is actually a number
+	if ( !is_numeric( $fine_id ) )
+		wp_lib_error( 301, true, 'Fine' );
+	
+	// Checks if ID belongs to a published loan (a loan in any other state is not valid)
+	if ( !get_post_type( $fine_id ) == 'wp_lib_fines' || !get_post_status( $fine_id ) == 'publish' )
+		wp_lib_error( 308, true );
+
+	return $fine_id;
 }
 
 // Calculates days until item needs to be returned, returns negative if item is late
@@ -320,7 +332,7 @@ function wp_lib_create_loan( $item_id, $member_id, $loan_duration = false, $star
 		'post_status'		=> 'publish',
 		'post_type'			=> 'wp_lib_loans',
 		'ping_status'		=> 'closed',
-		'tax_input'			=> [ array( 'wp_lib_member' => "{$member->name}" ) ],
+		'tax_input'			=> array( 'wp_lib_member' => "{$member->name}" ),
 	);
 	
 	// Creates the loan, a custom post type that holds useful meta about the loan
@@ -358,7 +370,6 @@ function wp_lib_create_loan( $item_id, $member_id, $loan_duration = false, $star
 	add_post_meta( $loan_id, 'wp_lib_start_date', time() );
 	add_post_meta( $loan_id, 'wp_lib_due_date', $due_date );
 	add_post_meta( $loan_id, 'wp_lib_archive', $archive );
-	add_post_meta( $loan_id, 'wp_lib_member', $member->term_id );
 	add_post_meta( $loan_id, 'wp_lib_item', $item_id );
 	add_post_meta( $loan_id, 'wp_lib_status', 1 );
 	
@@ -440,7 +451,7 @@ function wp_lib_create_fine( $item_id, $date, $return = true ) {
 		'post_status'		=> 'publish',
 		'post_type'			=> 'wp_lib_fines',
 		'ping_status'		=> 'closed',
-		'tax_input'			=> [ array( 'wp_lib_member' => "{$member->name}" ) ],
+		'tax_input'			=> array( 'wp_lib_member' => "{$member->name}" ),
 	);
 	
 	// Creates the fine, a custom post type that holds useful meta about the fine
@@ -460,10 +471,31 @@ function wp_lib_create_fine( $item_id, $date, $return = true ) {
 	// Also saves archive of member/item names
 	add_post_meta( $fine_id, 'wp_lib_archive', $archive );
 	add_post_meta( $fine_id, 'wp_lib_item', $item_id );
-	add_post_meta( $fine_id, 'wp_lib_member', $member->term_id );
 	add_post_meta( $fine_id, 'wp_lib_status', 1 );
 	add_post_meta( $fine_id, 'wp_lib_fine', $fine );
+	add_post_meta( $fine_id, 'wp_lib_loan', $loan_id );
 	
+	// Fetches member meta, saved as an option owing to WordPress limitations
+	$meta = get_option( "wp_lib_tax_{$member->term_id}", false );
+	
+	// If option did not exist, it is set as a blank array
+	if ( !$meta )
+		$meta = array();
+	
+	// Member's current total debt is fetched from member meta
+	$debt = $meta['debt'];
+	
+	// If user has never had any debt, debt key/value is initialised
+	if ( !$meta['debt'] )
+		$meta['debt'] = 0;
+	
+	// Fine is added to member's total debt
+	$meta['debt'] += $fine;
+	
+	// Member meta is saved
+	update_option( "wp_lib_tax_{$member->term_id}", $meta );
+	
+	// Debugging
 	echo "Fine of {$fine} to {$member->name} for {$title} was successful!<br />";
 	
 	// Return item unless otherwise specified
@@ -559,8 +591,9 @@ function wp_lib_clean_item( $item_id ){
 }
 
 // Sanitizes phone number
-function wp_lib_sanitize_num( $number ){
-	return preg_replace('/[^0-9]/', '', $number );
+function wp_lib_sanitize_num( $string ){
+	// Strips every character from the string that is not a number, a space, + or -
+	return preg_replace('/[^0-9|^\+|^\s|^-]/', '', $string );
 }
 
 // Checks for appropriate template in current theme, loads plugin's default template on failure
@@ -609,8 +642,9 @@ function wp_lib_error( $error_id, $die = false, $param = '' ) {
 		301 => "{$param} ID failed to validate (not an integer)",
 		304 => 'No member found with that ID',
 		305 => 'No valid item found with that ID. Check if item is a draft or in the trash.',
-		306 => 'No loan found with that ID',
+		306 => 'No valid loan found with that ID',
 		307 => 'Loan length longer than member is likely to live for',
+		308 => 'No valid fine found with that ID',
 		400 => 'Loan creation failed for unknown reason, sorry :/',
 		401 => 'Can not loan item, it is already on loan or not allowed to be loaned.<br/>This can happen if you have multiple tabs open or refresh the loan page after a loan has already been created.',
 		402 => 'Item not on loan (Loan ID not found in item meta)<br/>This can happen if you refresh the page having already returned an item',

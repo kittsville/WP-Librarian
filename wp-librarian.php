@@ -326,8 +326,8 @@ function wp_lib_fill_loans_table( $column, $loan_id ) {
 	}
 	// Displays member that item has been loaned to
 	elseif ( $column == 'loan_member' ) {
-		// Fetches member ID from loan meta
-		$member_id = get_post_meta( $loan_id, 'wp_lib_member', true );
+		// Fetches member ID from loan taxonomy
+		$member_id = get_the_terms( $loan_id, 'wp_lib_member' )[0]->term_id;
 		
 		// Fetches member object using member ID
 		$member = get_term_by( 'id', $member_id, 'wp_lib_member' );
@@ -395,8 +395,8 @@ function wp_lib_fill_fines_table( $column, $fine_id ) {
 	}
 	// Displays member that has been fined
 	elseif ( $column == 'fine_member' ) {
-		// Fetches member ID from loan meta
-		$member_id = get_post_meta( $fine_id, 'wp_lib_member', true );
+		// Fetches member ID from fine taxonomy
+		$member_id = get_the_terms( $fine_id, 'wp_lib_member' )[0]->term_id;
 		
 		// Fetches member object using member ID
 		$member = get_term_by( 'id', $member_id, 'wp_lib_member' );
@@ -423,8 +423,14 @@ function wp_lib_fill_fines_table( $column, $fine_id ) {
 		// Fetches fine status from post meta
 		$status = get_post_meta( $fine_id, 'wp_lib_status', true );
 		
+		// Composes url to manage the fine
+		$url = admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&item_fine={$fine_id}&item_action=manage-fine" );
+		
+		// Turns numerical status into readable string e.g. 1 -> 'Unpaid'
+		$status = wp_lib_format_fine_status( $status );
+		
 		// Gets fine status in a readable format and displays it
-		echo wp_lib_format_fine_status( $status );
+		echo "<a href=\"{$url}\">{$status}</a>";
 	}
 }
 
@@ -514,7 +520,7 @@ function wp_lib_process_item_meta_box( $item_id, $item ) {
 function wp_lib_process_member_meta_box( $member_id ) {
 
 	// Stores all meta box fields and sanitization methods
-	$meta_array = array(
+	$meta_index = array(
 		array(
 			'post'		=> 'wp_lib_member_phone',
 			'sanitize'	=> 'wp_lib_sanitize_num',
@@ -527,9 +533,12 @@ function wp_lib_process_member_meta_box( $member_id ) {
 		),
 	);
 	
-	$new_meta_array = array();
+	$meta_array = get_option( "wp_lib_yax_{$member_id}", false );
 	
-	foreach ( $meta_array as $meta ) {
+	if ( !$meta_array )
+		$meta_array = array();
+	
+	foreach ( $meta_index as $meta ) {
 		// Checks if sanitizing function exists
 		if ( !is_callable( $meta['sanitize'] ) )
 			return $item_id;
@@ -538,11 +547,11 @@ function wp_lib_process_member_meta_box( $member_id ) {
 		$new_meta_value = ( isset( $_POST[$meta['post']] ) ? $meta['sanitize']( $_POST[$meta['post']] ) : '' );
 
 		// Adds new meta value to array to be saved
-		$new_meta_array[$meta['key']] = $new_meta_value;
+		$meta_array[$meta['key']] = $new_meta_value;
 	}
 	
 	// Saves meta array
-	update_option( "wp_lib_tax_{$member_id}", $new_meta_array );
+	update_option( "wp_lib_tax_{$member_id}", $meta_array );
 }
 
 // Removes member/donor meta boxes from item editing page

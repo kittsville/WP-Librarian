@@ -2,6 +2,7 @@
 $action = $_GET['item_action']; // The action to be taken on the page (returning/loaning an item)
 $item_id = $_GET['item_id']; // The item's ID
 $member_id = $_GET['item_member']; // The ID of the member loaning/returning the item
+$fine_id = $GET['item_fine']; // The ID of the fine being managed
 $time = $_GET['item_time']; // The time the item was returned (if an item was returned a few days ago)
 $length = $_GET['item_loan_length']; // The length of the loan
 
@@ -14,6 +15,18 @@ if ( !$action == '' && !$action == 'manage-member' ) {
 	if ( !$time )
 		$time = false;
 }
+
+// If Item ID is given, validate
+if ( $item_id )
+	wp_lib_check_item_id( $item_id );
+	
+// If Member ID is given, validate
+if ( $member_id )
+	wp_lib_check_member_id( $member_id );
+
+// If Fine ID is given, validate
+if ( $fine_id )
+	wp_lib_check_fine_id( $fine_id );
 
 // When an item to loan has been chosen but the member to loan to hasn't
 if ( $action == 'checkout' )
@@ -45,6 +58,10 @@ elseif ( $action == 'manage' )
 // When a member is to be managed
 elseif ( $action == 'manage-member' )
 	wp_lib_manage_member( $member_id );
+	
+// When a fine is to be managed
+elseif ( $action == 'manage-fine' )
+	wp_lib_manage_fine( $fine_id );
 
 // When user visits page via WordPress menu, and has thus not specified a task to do
 elseif ( $action == '' )
@@ -158,6 +175,11 @@ function wp_lib_render_resolution( $item_id, $date ){
 		<input class="button button-primary button-large" type="submit" name="item_action" value="Return Item (with no fine)" />
 	</form>
 	<?php
+}
+
+// Shows librarian details of fine and allows fine cancellation/returning
+function wp_lib_manage_fine( $fine_id ){
+	echo "Nothing to see here yet!";
 }
 
 
