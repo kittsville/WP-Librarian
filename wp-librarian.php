@@ -443,7 +443,7 @@ function wp_lib_setup_meta_box() {
 	add_action( 'save_post', 'wp_lib_process_item_meta_box', 10, 2 );
 }
 
-// Creates meta box below custom post type
+// Creates meta box below item description
 function wp_lib_create_meta_box() {
 	add_meta_box(
 		'library_meta_box',
@@ -554,6 +554,25 @@ function wp_lib_process_member_meta_box( $member_id ) {
 	update_option( "wp_lib_tax_{$member_id}", $meta_array );
 }
 
+// Checks if a post is a loaned item before it gets trashed
+function wp_lib_check_post_pre_trash( $post_id ){
+	// Checks if post is an item
+	if ( get_post_type( $post_id ) != 'wp_lib_items' )
+		return $post_id;
+		
+	// Checks if item on loan
+	if ( !wp_lib_on_loan( $post_id ) )
+		return $post_id;
+	
+	// Put warning and exit here!
+	?>
+	<div class="error" >
+		<p>The item you are trying to trash in currently on loan! Please return the item then try again.</p>
+	</div>
+	<?php
+	exit();
+}
+
 // Removes member/donor meta boxes from item editing page
 function wp_lib_remove_meta_boxes() {
 	remove_meta_box( 'tagsdiv-wp_lib_member', 'wp_lib_items', 'side' );
@@ -571,9 +590,17 @@ function wp_lib_render_settings() {
 	require_once( plugin_dir_path(__FILE__) . '/wp-librarian-admin-settings.php' );
 }
 
-//  Render Loans/Returns Page
+// Render Loans/Returns Page
 function wp_lib_render_dashboard() {
 	require_once( plugin_dir_path(__FILE__) . '/wp-librarian-admin-loans.php' );
+}
+
+// Changes the Featured Image title, if the post type is a Library item
+function wp_lib_modify_image_box() {
+	if ( $GLOBALS['post_type'] == 'wp_lib_items' ) {
+		global $wp_meta_boxes;
+		$wp_meta_boxes['wp_lib_items']['side']['low']['postimagediv']['title'] = 'Cover Image';
+	}
 }
 
 // Adds plugin url to front of string (e.g. authors -> library/authors)
@@ -614,6 +641,13 @@ add_action( 'wp_lib_member_add_form_fields', 'wp_lib_no_tax_description' );
 add_action( 'wp_lib_donor_add_form', 'wp_lib_no_tax_description' );
 add_action( 'wp_lib_member_edit_form_fields', 'wp_lib_no_tax_edit_description' );
 add_action( 'wp_lib_donor_edit_form', 'wp_lib_no_tax_edit_description' );
+
+// Modifies title of Featured Image box on item edit page
+add_action('admin_head-post-new.php', 'wp_lib_modify_image_box' );
+add_action('admin_head-post.php', 'wp_lib_modify_image_box' );
+
+// Checks if item is on loan before it is moved to trash
+add_action('wp_trash_post', 'wp_lib_check_post_pre_trash');
 
 
 // Currently does nothing

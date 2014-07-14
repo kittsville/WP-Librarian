@@ -7,9 +7,6 @@ function wp_lib_draw_meta_box( $item ) {
 	// Fetches item meta
 	$meta = get_post_meta( $item->ID );
 	
-	// Debugging
-	wp_lib_var_dump( $meta );
-	
 	// Nonce, to verify user authenticity
 	wp_nonce_field( "updating item {$item->ID} meta", 'wp_lib_item_nonce' );
 	

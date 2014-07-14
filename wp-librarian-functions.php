@@ -165,8 +165,11 @@ function wp_lib_check_item_id( $item_id ) {
 	if ( !is_numeric( $item_id ) )
 		wp_lib_error( 301, true, 'Item' );
 		
+	// Fetches item status
+	$item_status = get_post_status( $item_id );
+		
 	// Checks if ID belongs to a published/private library item
-	if ( !get_post_type( $item_id ) == 'wp_lib_items' || !( get_post_status( $item_id ) == 'publish' || get_post_status( $item_id ) == 'private' ) )
+	if ( !get_post_type( $item_id ) == 'wp_lib_items' || !$item_status == 'publish' || !$item_status == 'private' )
 		wp_lib_error( 305, true );
 
 	return $item_id;
@@ -662,8 +665,8 @@ function wp_lib_error( $error_id, $die = false, $param = '' ) {
 	$error_text = $all_errors[$error_id];
 	
 	// Formats error
-	$formatted_error = "<strong style=\"color: red;\">Error {$error_id}: {$error_text}</strong>";
-	
+	$formatted_error = "<div class=\"error wp-lib-error\"><p><strong style=\"color: red;\">Error {$error_id}: {$error_text}</strong></p></div>";
+
 	// If error necessitates killing the script, error kills script
 	if ( $die )
 		die( $formatted_error );

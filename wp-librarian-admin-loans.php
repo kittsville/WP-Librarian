@@ -6,6 +6,10 @@ $fine_id = $GET['item_fine']; // The ID of the fine being managed
 $time = $_GET['item_time']; // The time the item was returned (if an item was returned a few days ago)
 $length = $_GET['item_loan_length']; // The length of the loan
 
+?>
+<div class="wrap">
+<?php
+
 // If an action has been specified data is sanitized
 if ( !$action == '' && !$action == 'manage-member' ) {
 	// Sanitizes item ID
@@ -81,11 +85,20 @@ function wp_lib_manage_item( $item_id ) {
 	else
 		$loan_id = false;
 	
+	// Fetches title
 	$title = get_the_title( $item_id );
-	wp_lib_render_management_header( $item_id );
 	
-	if ( $late )
-		echo '<strong style="color:red;">Item is late, please resolve issue</strong>';
+	// If item is late, display error bar
+	if ( $late ) {
+		?>
+		<div class="error wp-lib-error">
+			<p><?= $title ?> is late, please resolve this issue</p>
+		</div>
+		<?php
+	}
+	
+	// Displays the management header
+	wp_lib_render_management_header( $item_id );
 	?>
 	<form action="edit.php" method="get">
 		<input type="hidden" name="post_type" value="wp_lib_items" />
@@ -181,6 +194,5 @@ function wp_lib_render_resolution( $item_id, $date ){
 function wp_lib_manage_fine( $fine_id ){
 	echo "Nothing to see here yet!";
 }
-
-
 ?>
+</div>
