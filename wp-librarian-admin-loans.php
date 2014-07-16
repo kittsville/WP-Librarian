@@ -2,7 +2,7 @@
 $action = $_GET['item_action']; // The action to be taken on the page (returning/loaning an item)
 $item_id = $_GET['item_id']; // The item's ID
 $member_id = $_GET['item_member']; // The ID of the member loaning/returning the item
-$fine_id = $GET['item_fine']; // The ID of the fine being managed
+$fine_id = $_GET['item_fine']; // The ID of the fine being managed
 $time = $_GET['item_time']; // The time the item was returned (if an item was returned a few days ago)
 $length = $_GET['item_loan_length']; // The length of the loan
 
@@ -89,13 +89,8 @@ function wp_lib_manage_item( $item_id ) {
 	$title = get_the_title( $item_id );
 	
 	// If item is late, display error bar
-	if ( $late ) {
-		?>
-		<div class="error wp-lib-error">
-			<p><?= $title ?> is late, please resolve this issue</p>
-		</div>
-		<?php
-	}
+	if ( $late )
+		wp_lib_render_error( "{$title} is late, please resolve this issue" );
 	
 	// Displays the management header
 	wp_lib_render_management_header( $item_id );
@@ -192,7 +187,7 @@ function wp_lib_render_resolution( $item_id, $date ){
 
 // Shows librarian details of fine and allows fine cancellation/returning
 function wp_lib_manage_fine( $fine_id ){
-	echo "Nothing to see here yet!";
+	wp_lib_render_fine_management_header( $fine_id );
 }
 ?>
 </div>

@@ -566,6 +566,10 @@ function wp_lib_format_loan_status( $status ) {
 		'Item Returned'
 	);
 	
+	// If given number refers to a status that doesn't exist, throw error
+	if ( empty( $strings[$status] ) )
+		wp_lib_error( 201, true, 'Loan' );
+	
 	// State is looked up in the array and returned
 	return $strings[$status];
 }
@@ -578,6 +582,10 @@ function wp_lib_format_fine_status( $status ) {
 		'Unpaid',
 		'Paid'
 	);
+	
+	// If given number refers to a status that doesn't exist, throw error
+	if ( empty( $strings[$status] ) )
+		wp_lib_error( 201, true, 'Fine' );
 	
 	// State is looked up in the array and returned
 	return $strings[$status];
@@ -642,6 +650,7 @@ function wp_lib_error( $error_id, $die = false, $param = '' ) {
 		110 => 'DateTime neither positive or negative',
 		111 => 'Unexpected currency position',
 		200 => 'No instructions known for given action',
+		201 => "No {$param} status found for given value",
 		301 => "{$param} ID failed to validate (not an integer)",
 		304 => 'No member found with that ID',
 		305 => 'No valid item found with that ID. Check if item is a draft or in the trash.',
@@ -664,14 +673,12 @@ function wp_lib_error( $error_id, $die = false, $param = '' ) {
 	// Fetches error explanation from array
 	$error_text = $all_errors[$error_id];
 	
-	// Formats error
-	$formatted_error = "<div class=\"error wp-lib-error\"><p><strong style=\"color: red;\">Error {$error_id}: {$error_text}</strong></p></div>";
+	// Formats and renders error
+	wp_lib_render_error( "<strong style=\"color: red;\">Error {$error_id}: {$error_text}</strong>" );
 
 	// If error necessitates killing the script, error kills script
 	if ( $die )
-		die( $formatted_error );
-
-	return $formatted_error;
+		die();
 }
 
 // Dumps variables in a pretty way
@@ -716,20 +723,93 @@ function wp_lib_clear_tax_options( $tt_id ) {
 
 // Adds plugin url to front of string (e.g. authors -> library/authors)
 function wp_lib_prefix_url( $option, $slug ) {
+	// Gets main public slug ('wp-librarian' by default, usually something like 'library')
 	$main_slug = get_option( 'wp_lib_slug', 'wp-librarian' );
+	
+	// Fetches specific slug e.g. 'authors'
 	$sub_slug = get_option( $option, $slug );
-	$full_slug = $main_slug . '/' . $sub_slug;
-	return $full_slug;
+	
+	// Constructs and returns concatenation of the two slugs
+	return $main_slug . '/' . $sub_slug;
 }
 
 // Renders the header for the Item management page
 function wp_lib_render_management_header( $item_id ) {
+	// Fetches title of item e.g. 'Moby-Dick'
 	$title = get_the_title( $item_id );
+	
+	// Fetches status of item e.g. 'On Loan (2 days remaining)'
 	$status = wp_lib_prep_item_available( $item_id, true );
 	?>
+	<!-- Management Header -->
 	<h2>Managing: <?= $title ?></h2>
-	<p><strong>Status:</strong> <?= $status ?></p>
+	<p>
+		<strong>Item ID:</strong> <?= $item_id ?><br />
+		<strong>Status:</strong> <?= $status ?>
+	</p>
+	<?php
+}
+
+// Renders the header for the Fine management page
+function wp_lib_render_fine_management_header( $fine_id ) {
+	// Fetches member taxonomy as an object
+	$member = get_the_terms( $fine_id, 'wp_lib_member' )[0];
 	
+	// Fetches fine amount, unformatted ( 0.4 rather than '£0.40' )
+	$fine = get_post_meta( $fine_id, 'wp_lib_fine', true );
+	
+	// Fetches fine status, unformatted ( 1 rather than 'Unpaid' )
+	$fine_status = get_post_meta( $fine_id, 'wp_lib_status', true );
+
+	// Formats fine status
+	$formatted_status = wp_lib_format_fine_status( $fine_status );
+	
+	// Fetches item and loan IDs
+	$item_id = get_post_meta( $fine_id, 'wp_lib_item', true );
+	$loan_id = get_post_meta( $fine_id, 'wp_lib_loan', true );
+	
+	// Fetches item title
+	$title = get_the_title( $item_id );
+	
+	// If member no longer exists, fetches member name from fine meta
+	if ( !$member ) {
+		$member_string = get_post_meta( $fine_id, 'wp_lib_archive', true )['member-name'];
+		$member_deleted = true;
+		wp_lib_render_error( "The member {$member_string} has since been deleted, this limits fine management" );
+	}
+	// Otherwise member still exists and member name will be link to manage member
+	else {
+		$url = admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&item_member={$member->term_id}&item_action=manage-member" );
+		$member_string = "<a href=\"{$url}\">{$member->name}</a>";
+	}
+	
+	// If item no longer exists, fetches item title from fine meta
+	if ( !$title ) {
+		$title = get_post_meta( $fine_id, 'wp_lib_archive', true )['item-name'];
+		$item_deleted = true;
+		wp_lib_render_error( "The item {$title} has since been deleted, this limits fine management" );
+	}
+	// Otherwise item still exists and item title will include link to manage item
+	else {
+		$url = admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&item_id={$item_id}&item_action=manage" );
+		$title = "<a href=\"{$url}\">{$title}</a>";
+	}
+	?>
+	<h2>Managing: Fine #<?= $fine_id ?></h2>
+	<p>
+		<strong>Item: </strong><?= $title ?><br />
+		<strong>Member: </strong><?= $member_string ?></br>
+		<strong>Status: </strong><?= $formatted_status ?><br />
+		<strong>Created: </strong><?= get_the_date( '', $fine_id ) ?>
+	</p>
+	<?php
+}
+
+function wp_lib_render_error( $message ){
+	?>
+	<div class="wp-lib-error error">
+		<p><?= $message ?></p>
+	</div>
 	<?php
 }
 

@@ -319,6 +319,12 @@ function wp_lib_fill_loans_table( $column, $loan_id ) {
 		// Fetches item title
 		$title = get_the_title( $item_id );
 		
+		// If item has been deleted, fetch item title from loan meta
+		if ( !$title ) {
+			echo get_post_meta( $loan_id, 'wp_lib_archive', true )['item-name'] . ' (item deleted)';
+			return;
+		}
+		
 		// Fetches link to item
 		$url = admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&item_id={$item_id}&item_action=manage" );
 		
@@ -332,9 +338,10 @@ function wp_lib_fill_loans_table( $column, $loan_id ) {
 		// Fetches member object using member ID
 		$member = get_term_by( 'id', $member_id, 'wp_lib_member' );
 		
-		// If no member is tied to the item (if it's been returned) display N/A
+		// If member does not exist (has been deleted), fetch archived member data from loan
 		if ( !$member )
-			echo '-';
+			echo get_post_meta( $loan_id, 'wp_lib_archive', true )['member-name'] . ' (member deleted)';
+		// If $member isn't False, member has been found with that ID
 		else {
 			// Constructs url to view/manage the member
 			$url = admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&item_member={$member->term_id}&item_action=manage-member" );
@@ -388,6 +395,12 @@ function wp_lib_fill_fines_table( $column, $fine_id ) {
 		// Fetches item title
 		$title = get_the_title( $item_id );
 		
+		// If item has been deleted, fetch item title from fine meta
+		if ( !$title ) {
+			echo get_post_meta( $fine_id, 'wp_lib_archive', true )['item-name'] . ' (item deleted)';
+			return;
+		}
+		
 		// Fetches link to item
 		$url = admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&item_id={$item_id}&item_action=manage" );
 		
@@ -401,9 +414,9 @@ function wp_lib_fill_fines_table( $column, $fine_id ) {
 		// Fetches member object using member ID
 		$member = get_term_by( 'id', $member_id, 'wp_lib_member' );
 		
-		// If no member is tied to the item (if it's been returned) display N/A
+		// If member does not exist (has been deleted), fetch archived member data from fine
 		if ( !$member )
-			echo '-';
+			echo get_post_meta( $fine_id, 'wp_lib_archive', true )['member-name'] . ' (member deleted)';
 		else {
 			// Constructs url to view/manage the member
 			$url = admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&item_member={$member->term_id}&item_action=manage-member" );
