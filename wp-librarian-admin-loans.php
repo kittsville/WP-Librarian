@@ -10,15 +10,8 @@ $length = $_GET['item_loan_length']; // The length of the loan
 <div class="wrap">
 <?php
 
-// If an action has been specified data is sanitized
-if ( !$action == '' && !$action == 'manage-member' ) {
-	// Sanitizes item ID
-	wp_lib_check_item_id( $item_id );
-	
-	// Sets time to false if not specified
-	if ( !$time )
-		$time = false;
-}
+	/* -- GET Variable Validation -- */
+	/* Checks if the IDs belong to valid objects of their type */
 
 // If Item ID is given, validate
 if ( $item_id )
@@ -31,13 +24,16 @@ if ( $member_id )
 // If Fine ID is given, validate
 if ( $fine_id )
 	wp_lib_check_fine_id( $fine_id );
+	
+// If not given, time is set to false
+if ( !$time )
+	$time = false;
 
-// When an item to loan has been chosen but the member to loan to hasn't
-if ( $action == 'checkout' )
-	wp_lib_render_item( $item_id );
+	/* -- Item actions -- */
+	/* Used to decide what, if anything, the user is aiming to do */
 
 // Once the member and item have been chosen the item can be loaned
-elseif ( $action == 'Loan' )
+if ( $action == 'Loan' )
 	wp_lib_create_loan( $item_id, $member_id, $length );
 
 // When an item is to be returned (member need not be provided as the item/load contains that data)
@@ -45,8 +41,10 @@ elseif ( $action == 'Return' )
 	wp_lib_return_item( $item_id, $time );
 	
 // When a late item needs to be resolved
-elseif ( $action == 'Resolve' )
+elseif ( $action == 'Resolve' ) {
 	wp_lib_render_resolution( $item_id, $date );
+	exit();
+}
 	
 // If member is to be fined for late item
 elseif ( $action == 'Fine Member' )
@@ -56,25 +54,51 @@ elseif ( $action == 'Return Item (with no fine)' )
 	wp_lib_return_item( $item_id, $time, true );
 
 // When an item is to be managed (Loaned/Returned/Marked as lost)
-elseif ( $action == 'manage' )
+elseif ( $action == 'manage' ) {
 	wp_lib_manage_item( $item_id );
+	exit();
+}
 	
 // When a member is to be managed
-elseif ( $action == 'manage-member' )
+elseif ( $action == 'manage-member' ) {
 	wp_lib_manage_member( $member_id );
+	exit();
+}
 	
 // When a fine is to be managed
-elseif ( $action == 'manage-fine' )
+elseif ( $action == 'manage-fine' ) {
 	wp_lib_manage_fine( $fine_id );
+	exit();
+}
+	
+// When user wants to mark a fine as paid
+elseif ( $action == 'Pay Fine' )
+	wp_lib_charge_fine( $fine_id );
 
-// When user visits page via WordPress menu, and has thus not specified a task to do
-elseif ( $action == '' )
-	wp_lib_dashboard();
-	
-// When an unknown action has been specified, give error
-else
-	wp_lib_error( 200, true );
-	
+// When a user wants to revert a fine's status from Paid to Unpaid
+elseif ( $action == 'Revert to Unpaid' )
+	wp_lib_revert_fine( $fine_id );
+
+// When a user wants to cancel a fine
+elseif ( $action == 'Cancel Fine' )
+	wp_lib_cancel_fine( $fine_id );
+
+// If an action has been specified but it is not one of the proper actions listed above, error is thrown
+elseif ( $action != '' )
+	wp_lib_error( 200 );
+
+	/* -- Rendering the Dashboard -- */
+	/*	Now that all requested item actions have been completed, it is time to render the Library Dashboard */
+
+// All notifications/errors in the buffers are rendered and cleared and the URL is cleaned
+wp_lib_pre_dashboard();
+
+// Renders the Dashboard
+wp_lib_dashboard();
+
+	/* -- Misc Dashboard Functions -- */
+	/* Functions that render pages of the Library Dashboard */
+
 function wp_lib_manage_item( $item_id ) {
 	// Fetches loan ID and member if item is on loan
 	if ( wp_lib_on_loan( $item_id ) ) {
@@ -98,7 +122,7 @@ function wp_lib_manage_item( $item_id ) {
 	<form action="edit.php" method="get">
 		<input type="hidden" name="post_type" value="wp_lib_items" />
 		<input type="hidden" name="page" value="dashboard" />
-		<input type="hidden" name="item_id" value="<?php echo $item_id; ?>" />
+		<input type="hidden" name="item_id" value="<?= $item_id; ?>" />
 		<?php
 		if ( $late ) {
 			?>
@@ -145,6 +169,9 @@ function wp_lib_manage_item( $item_id ) {
 
 // Shows member's details and loan history
 function wp_lib_manage_member( $member_id ) {
+	// Renders management header
+	wp_lib_render_member_management_header( $member_id );
+
 	// Fetches member by ID as an object
 	$member = get_term_by( 'id', $member_id, 'wp_lib_member' );
 	
@@ -178,7 +205,7 @@ function wp_lib_render_resolution( $item_id, $date ){
 	<form action="edit.php" method="get">
 		<input type="hidden" name="post_type" value="wp_lib_items" />
 		<input type="hidden" name="page" value="dashboard" />
-		<input type="hidden" name="item_id" value="<?php echo $item_id; ?>" />
+		<input type="hidden" name="item_id" value="<?= $item_id; ?>" />
 		<input class="button button-primary button-large" type="submit" name="item_action" value="Fine Member" />
 		<input class="button button-primary button-large" type="submit" name="item_action" value="Return Item (with no fine)" />
 	</form>
@@ -188,6 +215,38 @@ function wp_lib_render_resolution( $item_id, $date ){
 // Shows librarian details of fine and allows fine cancellation/returning
 function wp_lib_manage_fine( $fine_id ){
 	wp_lib_render_fine_management_header( $fine_id );
+	
+	// Fetches fine status
+	$fine_status = get_post_meta( $fine_id, 'wp_lib_status', true );
+	?>
+	<form action="edit.php" method="get">
+		<input type="hidden" name="post_type" value="wp_lib_items" />
+		<input type="hidden" name="page" value="dashboard" />
+		<input type="hidden" name="item_fine" value="<?= $fine_id; ?>" />
+		<?php
+		// If fine is unpaid, provide options to Pay or Cancel fine
+		if ( $fine_status == 1 ) {
+			?>
+			<p>Marking a fine as paid assumes the money has been collected from the relevant member.</p>
+			<input class="button button-primary button-large" type="submit" name="item_action" value="Pay Fine" />
+			<?php
+		}
+		// If fine is paid, provide options to revert fine to being unpaid
+		elseif ( $fine_status == 2 ) {
+			?>
+			<input class="button button-primary button-large" type="submit" name="item_action" value="Revert to Unpaid" />
+			<?php
+		}
+		
+		// If fine has not been cancelled, display option to cancel fine
+		if ( $fine_status != 3 ) {
+			?>
+			<input class="button button-primary button-large" type="submit" name="item_action" value="Cancel Fine" />
+			<?php
+		}
+		?>
+	</form>
+	<?php
 }
 ?>
 </div>

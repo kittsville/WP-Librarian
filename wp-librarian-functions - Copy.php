@@ -327,6 +327,8 @@ function wp_lib_create_loan( $item_id, $member_id, $loan_duration = false, $star
 	$title = get_the_title( $item_id );
 	$date = date('d-m-y');
 	
+	echo "Loaning {$title} to {$member->name}<br />";
+	
 	// Creates arguments for loan
 	$post = array(
 
@@ -377,8 +379,7 @@ function wp_lib_create_loan( $item_id, $member_id, $loan_duration = false, $star
 	// Saves loan's post ID to the item's post meta
 	add_post_meta( $item_id, 'wp_lib_loan_id', $loan_id );
 	
-	// Notifies user of successful loan
-	$GLOBALS[ 'wp_lib_notification_buffer' ][] = "Loan of {$title} to {$member->name} was successful!";
+	echo "Loan of {$title} to {$member->name} was successful!<br />";
 	
 }
 
@@ -407,11 +408,8 @@ function wp_lib_return_item( $item_id, $date = false, $override = false ) {
 		// Sets loan return meta to given/current date
 		add_post_meta( $loan_id, 'wp_lib_end_date', time() );
 		
-		// Fetches item title
-		$title = get_the_title( $item_id );
-		
-		// Notifies user of item return
-		$GLOBALS[ 'wp_lib_notification_buffer' ][] = "Item: {$title} has been successfully returned";
+		// Informs user of successful item return
+		echo "Item has been successfully returned";
 	}
 }
 
@@ -420,23 +418,14 @@ function wp_lib_dashboard() {
 	require_once( plugin_dir_path(__FILE__) . '/wp-librarian-dashboard.php' );
 }
 
-// Outputs any buffered notifications or errors then cleans URL before displaying the Library Dashboard
-function wp_lib_pre_dashboard() {
-	// Fetches notifications and errors
-	$notifications = $GLOBALS[ 'wp_lib_notification_buffer' ];
-	$errors = $GLOBALS[ 'wp_lib_error_buffer' ];
-
-	// If an array of notifications has been given, notifications are rendered and buffer is cleared
-	if ( is_array( $notifications ) ) {
-		foreach ( $notifications as $notification ) wp_lib_render_notification( $notification );
-		unset( $GLOBALS[ 'wp_lib_notification_buffer' ] );
-	}
+// Redirects user to the Library dashboard, displaying all messages in the message array and putting all params in the get array into the URL
+function wp_lib_redirect_and_notify( $notification_array = false ) {
+	// Constructs basic URL, with no GETs (sorry /mlp/ )
+	//$url = admin_url( "edit.php?post_type=wp_lib_items&page=dashboard" );
 	
-	// If an array of errors has been given, errors are rendered and buffer is cleared
-	if ( is_array( $errors ) ) {
-		foreach ( $errors as $error ) wp_lib_render_error( $error );
-		unset( $GLOBALS[ 'wp_lib_error_buffer' ] );
-	}
+	// If an array of messages is given, messages are stored in PHP session and GET param for notifications is set to true
+	if ( $notification_array )
+		foreach ( $notification_array as $notification ) wp_lib_render_notification( $notification );
 	
 	// Cleans URL
 	?>
@@ -450,8 +439,44 @@ function wp_lib_pre_dashboard() {
 	</script>
 	<?php
 	
-	// Renders Dashboard
 	wp_lib_dashboard();
+}
+
+// Ignore me!
+function wp_lib_debug_notifications() {
+	$messages = array(
+		"Notification One",
+		"Notification Two",
+		"Notification Three",
+		"Notification Four",
+	);
+	
+	$gets = array(
+		'an-array' => array( "herp", "derp", "merp" ),
+	);
+	
+	wp_lib_render_notification( "Herp derp merp" );
+	
+	wp_lib_redirect_and_notify( false, false );
+}
+
+// Recursive function to fetch every notification from session and build an array
+function wp_lib_fetch_notifications( $array = array(), $inc = 0 ) {
+	// Checks if the notification exists in the session array
+	if ( $_COOKIE[ "wp-lib-notif-{$inc}" ] ) {
+	
+		// Fetches the notification from the session
+		$array[] = $_COOKIE[ "wp-lib-notif-{$inc}" ];
+		
+		// Clears the value from the session
+		unset( $_COOKIE[ "wp-lib-notif-{$inc}" ] );
+		
+		// Calls itself to look for the next notification
+		wp_lib_fetch_notifications( $array, ++$inc );
+	}
+	
+	// When a notification isn't found, all notifications that were found are returned
+	return $array;
 }
 
 // Fines member for returning item late
@@ -535,7 +560,7 @@ function wp_lib_create_fine( $item_id, $date, $return = true ) {
 	update_option( "wp_lib_tax_{$member->term_id}", $meta );
 	
 	// Debugging
-	$GLOBALS[ 'wp_lib_notification_buffer' ][] = "{$member->name} has been charged {$fine_formatted} for the late return of {$title}";
+	echo "Fine of {$fine} to {$member->name} for {$title} was successful!<br />";
 	
 	// Return item unless otherwise specified
 	if ( $return )
@@ -547,46 +572,16 @@ function wp_lib_charge_fine( $fine_id ) {
 	// Fetches (unformatted) fine status
 	$fine_status = get_post_meta( $fine_id, 'wp_lib_status', true );
 	
-	// Checks if fine is unpaid
-	if ( $fine_status == 1 ) {
-		// Changes fine status to paid
-		update_post_meta( $fine_id, 'wp_lib_status', 2 );
+	// Checks if fine status is unpaid, if not call error
+	if ( $fine_status != 1 )
+		wp_lib_error( 309, true );
 		
-		// Notifies user that fine has been paid
-		$GLOBALS[ 'wp_lib_notification_buffer' ][] = "Fine #{$fine_id} has been marked as paid";
-	}
-	// If fine is not unpaid, call error
-	else {
-		wp_lib_error( 309, false, 'Unpaid' );
-	}
-}
-
-// Changes fine from paid to unpaid
-function wp_lib_revert_fine( $fine_id ) {
-	// Fetches (unformatted) fine status
-	$fine_status = get_post_meta( $fine_id, 'wp_lib_status', true );
+	// Changes fine status to paid
+	update_post_meta( $fine_id, 'wp_lib_status', 2 );
 	
-	// Checks if fine status is Paid
-	if ( $fine_status == 2 ) {
-		// Changes fine status to paid
-		update_post_meta( $fine_id, 'wp_lib_status', 1 );
-		
-		// Notifies user that fine has been paid
-		$GLOBALS[ 'wp_lib_notification_buffer' ][] = "Fine #{$fine_id} has been reverted to being marked as Unpaid";
-	}
-	// If the fine is not paid, call error
-	else {
-		wp_lib_error( 309, false, 'Paid' );
-	}
-}
-
-// Cancels fine so that it is no longer is required to be paid
-function wp_lib_cancel_fine( $fine_id ) {
-	// Changes fine status to Cancelled
-	update_post_meta( $fine_id, 'wp_lib_status', 3 );
+	//wp_lib_back_to_dashboard( array( "Fine #{$fine_id} has been marked as paid", ) );
 	
-	// Notifies user that fine has been cancelled
-	$GLOBALS[ 'wp_lib_notification_buffer' ][] = "Fine #{$fine_id} has been cancelled";
+	echo "Fine has been marked as paid";
 }
 
 // Makes string plural if needed, returns un-pluralised string otherwise
@@ -741,7 +736,7 @@ function wp_lib_error( $error_id, $die = false, $param = '' ) {
 		306 => 'No valid loan found with that ID',
 		307 => 'Loan length longer than member is likely to live for',
 		308 => 'No valid fine found with that ID',
-		309 => "Fine has unexpected status. Was expecting status {$param}",
+		309 => 'Fine has unexpected status. Was expecting unpaid fine',
 		400 => 'Loan creation failed for unknown reason, sorry :/',
 		401 => 'Can not loan item, it is already on loan or not allowed to be loaned.<br/>This can happen if you have multiple tabs open or refresh the loan page after a loan has already been created.',
 		402 => 'Item not on loan (Loan ID not found in item meta)<br/>This can happen if you refresh the page having already returned an item',
@@ -835,7 +830,7 @@ function wp_lib_render_management_header( $item_id ) {
 	<?php
 }
 
-// Renders the header for the Fine management page, displaying information about the fine
+// Renders the header for the Fine management page
 function wp_lib_render_fine_management_header( $fine_id ) {
 	// Fetches member taxonomy as an object
 	$member = get_the_terms( $fine_id, 'wp_lib_member' )[0];
@@ -883,24 +878,10 @@ function wp_lib_render_fine_management_header( $fine_id ) {
 	<h2>Managing: Fine #<?= $fine_id ?></h2>
 	<p>
 		<strong>Item: </strong><?= $title ?><br />
-		<strong>Member: </strong><?= $member_string ?><br />
+		<strong>Member: </strong><?= $member_string ?></br>
 		<strong>Status: </strong><?= $formatted_status ?><br />
 		<strong>Created: </strong><?= get_the_date( '', $fine_id ) ?>
 	</p>
-	<?php
-}
-
-// Renders the header of the member management page, displaying information about the member
-function wp_lib_render_member_management_header( $member_id ) {
-	// Fetches member object using member ID
-	$member = get_term( $member_id, 'wp_lib_member' );
-	
-	wp_lib_var_dump( $member );
-	
-	
-	?>
-	<h2>Managing: <?= $member->name ?></h2>
-	<strong>Item ID: </strong><?= $member->term_id ?><br />
 	<?php
 }
 
