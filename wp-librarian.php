@@ -326,7 +326,7 @@ function wp_lib_fill_loans_table( $column, $loan_id ) {
 		}
 		
 		// Fetches link to item
-		$url = admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&item_id={$item_id}&item_action=manage" );
+		$url = wp_lib_format_manage_item( $item_id );
 		
 		echo "<a href=\"{$url}\">{$title}</a>";
 	}
@@ -344,7 +344,7 @@ function wp_lib_fill_loans_table( $column, $loan_id ) {
 		// If $member isn't False, member has been found with that ID
 		else {
 			// Constructs url to view/manage the member
-			$url = admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&item_member={$member->term_id}&item_action=manage-member" );
+			$url = wp_lib_format_manage_member( $member->term_id );
 			
 			// Displays member name with link to view member in Library Dashboard
 			echo "<a href=\"{$url}\">{$member->name}</a>";
@@ -352,9 +352,27 @@ function wp_lib_fill_loans_table( $column, $loan_id ) {
 	}
 	// Displays loan status (Open/Closed)
 	elseif ( $column == 'loan_status' ) {
+		// Fetches status from loan meta
 		$status = get_post_meta( $loan_id, 'wp_lib_status', true );
 		
-		echo wp_lib_format_loan_status( $status );
+		// Formats status
+		$status_formatted = wp_lib_format_loan_status( $status );
+		
+		// If loan status indicates a fine was charged
+		if ( $status == 4 ){
+			// Fetches fine ID from loan meta
+			$fine_id = get_post_meta( $loan_id, 'wp_lib_fine', true );
+			
+			// Composes url to manage fine
+			$url = wp_lib_format_manage_fine( $fine_id );
+			
+			// Creates and displays hyperlink
+			echo "<a href=\"{$url}\">{$status_formatted}</a>";
+		}
+		else {
+			// Otherwise displays status (no hyperlink)
+			echo $status_formatted;
+		}
 	}
 	// Displays date item was loaned
 	elseif ( $column == 'loan_created' )
@@ -402,7 +420,7 @@ function wp_lib_fill_fines_table( $column, $fine_id ) {
 		}
 		
 		// Fetches link to item
-		$url = admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&item_id={$item_id}&item_action=manage" );
+		$url = wp_lib_format_manage_item( $item_id );
 		
 		echo "<a href=\"{$url}\">{$title}</a>";
 	}
@@ -419,7 +437,7 @@ function wp_lib_fill_fines_table( $column, $fine_id ) {
 			echo get_post_meta( $fine_id, 'wp_lib_archive', true )['member-name'] . ' (member deleted)';
 		else {
 			// Constructs url to view/manage the member
-			$url = admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&item_member={$member->term_id}&item_action=manage-member" );
+			$url = wp_lib_format_manage_member( $member->term_id );
 			
 			// Displays member name with link to view member in Library Dashboard
 			echo "<a href=\"{$url}\">{$member->name}</a>";
@@ -437,7 +455,7 @@ function wp_lib_fill_fines_table( $column, $fine_id ) {
 		$status = get_post_meta( $fine_id, 'wp_lib_status', true );
 		
 		// Composes url to manage the fine
-		$url = admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&item_fine={$fine_id}&item_action=manage-fine" );
+		$url = wp_lib_format_manage_fine( $fine_id );
 		
 		// Turns numerical status into readable string e.g. 1 -> 'Unpaid'
 		$status = wp_lib_format_fine_status( $status );

@@ -99,7 +99,7 @@ function wp_lib_prep_item_available( $item_id, $no_url = false, $short = false )
 	// If user has the relevant permissions, availability will contain link to loan/return item
 	if ( wp_lib_is_librarian() && !$no_url ) {
 		// String preparation
-		$url = admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&item_id={$item_id}&item_action=manage" );
+		$url = wp_lib_format_manage_item( $item_id );
 		$url = "<a href=\"{$url}\">";
 		$end = '</a>';
 	}
@@ -391,8 +391,14 @@ function wp_lib_return_item( $item_id, $date = false, $override = false ) {
 	// Fetches loan ID using item ID
 	$loan_id = wp_lib_fetch_loan( $item_id );
 	
-	// If item is late, render resolution page
-	if ( wp_lib_item_late( $loan_id, $date ) && !$override )
+	// Fetches if item is late or not
+	$late = wp_lib_item_late( $loan_id, $date );
+	
+	// Fetches if a fine has been charged
+	$fined = get_post_meta( $loan_id, 'wp_lib_fine', true );
+	
+	// If item is late, a fine hasn't been charged and the override hasn't been used then render the resolution page
+	if ( $late && !$override && !$fined )
 		wp_lib_render_resolution( $item_id, $date );
 	else {
 		// Clears item's Member taxonomy
@@ -401,17 +407,30 @@ function wp_lib_return_item( $item_id, $date = false, $override = false ) {
 		// Removes loan ID from item meta
 		delete_post_meta($item_id, 'wp_lib_loan_id' );
 		
-		// Sets loan status to 'closed'
-		update_post_meta( $loan_id, 'wp_lib_status', 2 );
+		// Loan status is set according to if:
+		// Item was returned late and a fine was charged
+		if ( $fined )
+			update_post_meta( $loan_id, 'wp_lib_status', 4 );
+		// Item was returned late but a fine was not charged
+		elseif ( $late )
+			update_post_meta( $loan_id, 'wp_lib_status', 3 );
+		// Item was returned on time
+		else
+			update_post_meta( $loan_id, 'wp_lib_status', 2 );
+			
+		// If is being returned today, loan end date is set to current time
+		if ( !$date )
+			add_post_meta( $loan_id, 'wp_lib_end_date', time() );
+		// Otherwise loan end date is set to given Unix timestamp
+		else
+			add_post_meta( $loan_id, 'wp_lib_end_date', $date );
 		
-		// Sets loan return meta to given/current date
-		add_post_meta( $loan_id, 'wp_lib_end_date', time() );
 		
 		// Fetches item title
 		$title = get_the_title( $item_id );
 		
 		// Notifies user of item return
-		$GLOBALS[ 'wp_lib_notification_buffer' ][] = "Item: {$title} has been successfully returned";
+		$GLOBALS[ 'wp_lib_notification_buffer' ][] = "{$title} has been successfully returned";
 	}
 }
 
@@ -514,6 +533,9 @@ function wp_lib_create_fine( $item_id, $date, $return = true ) {
 	add_post_meta( $fine_id, 'wp_lib_fine', $fine );
 	add_post_meta( $fine_id, 'wp_lib_loan', $loan_id );
 	
+	// Saves fine ID to loan meta
+	add_post_meta( $loan_id, 'wp_lib_fine', $fine_id );
+	
 	// Fetches member meta, saved as an option owing to WordPress limitations
 	$meta = get_option( "wp_lib_tax_{$member->term_id}", false );
 	
@@ -539,7 +561,7 @@ function wp_lib_create_fine( $item_id, $date, $return = true ) {
 	
 	// Return item unless otherwise specified
 	if ( $return )
-		wp_lib_return_item( $item_id, false, true );
+		wp_lib_return_item( $item_id, false );
 }
 
 // Changes fine from unpaid to paid
@@ -644,9 +666,11 @@ function wp_lib_process_date_column( $id, $key ) {
 function wp_lib_format_loan_status( $status ) {
 	// Array of all possible states of the loan
 	$strings = array(
-		'',
-		'Active',
-		'Item Returned'
+		0	=> '',
+		1	=> 'On Loan',
+		2	=> 'Returned',
+		3	=> 'Returned Late',
+		4	=> 'Returned Late (with fine)',
 	);
 	
 	// If given number refers to a status that doesn't exist, throw error
@@ -659,6 +683,7 @@ function wp_lib_format_loan_status( $status ) {
 
 // Turns numeric fine status into readable string e.g. 1 -> 'Unpaid'
 function wp_lib_format_fine_status( $status ) {
+
 	// Array of all possible states of the fine
 	$strings = array(
 		0	=> '',
@@ -673,6 +698,21 @@ function wp_lib_format_fine_status( $status ) {
 	
 	// State is looked up in the array and returned
 	return $strings[$status];
+}
+
+// Formats a URL to manage the member with the given ID
+function wp_lib_format_manage_member( $member_id ) {
+	return admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&item_member={$member_id}&item_action=manage-member" );
+}
+
+// Formats a URL to manage the item with the given ID
+function wp_lib_format_manage_item( $item_id ) {
+	return admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&item_id={$item_id}&item_action=manage" );
+}
+
+// Formats a URL to manage the fine with the given ID
+function wp_lib_format_manage_fine( $fine_id ) {
+	return admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&item_fine={$fine_id}&item_action=manage-fine" );
 }
 
 // Cancels loan of item that has a since corrupted loan attached to it
@@ -840,8 +880,8 @@ function wp_lib_render_fine_management_header( $fine_id ) {
 	// Fetches member taxonomy as an object
 	$member = get_the_terms( $fine_id, 'wp_lib_member' )[0];
 	
-	// Fetches fine amount, unformatted ( 0.4 rather than '£0.40' )
-	$fine = get_post_meta( $fine_id, 'wp_lib_fine', true );
+	// Fetches and formats fine amount ( e.g. £0.40 )
+	$fine_formatted = wp_lib_format_money( get_post_meta( $fine_id, 'wp_lib_fine', true ) );
 	
 	// Fetches fine status, unformatted ( 1 rather than 'Unpaid' )
 	$fine_status = get_post_meta( $fine_id, 'wp_lib_status', true );
@@ -864,7 +904,7 @@ function wp_lib_render_fine_management_header( $fine_id ) {
 	}
 	// Otherwise member still exists and member name will be link to manage member
 	else {
-		$url = admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&item_member={$member->term_id}&item_action=manage-member" );
+		$url = wp_lib_format_manage_member( $member->term_id );
 		$member_string = "<a href=\"{$url}\">{$member->name}</a>";
 	}
 	
@@ -876,7 +916,7 @@ function wp_lib_render_fine_management_header( $fine_id ) {
 	}
 	// Otherwise item still exists and item title will include link to manage item
 	else {
-		$url = admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&item_id={$item_id}&item_action=manage" );
+		$url = wp_lib_format_manage_item( $item_id );
 		$title = "<a href=\"{$url}\">{$title}</a>";
 	}
 	?>
@@ -884,6 +924,7 @@ function wp_lib_render_fine_management_header( $fine_id ) {
 	<p>
 		<strong>Item: </strong><?= $title ?><br />
 		<strong>Member: </strong><?= $member_string ?><br />
+		<strong>Amount: </strong><?= $fine_formatted ?><br />
 		<strong>Status: </strong><?= $formatted_status ?><br />
 		<strong>Created: </strong><?= get_the_date( '', $fine_id ) ?>
 	</p>
@@ -895,12 +936,9 @@ function wp_lib_render_member_management_header( $member_id ) {
 	// Fetches member object using member ID
 	$member = get_term( $member_id, 'wp_lib_member' );
 	
-	wp_lib_var_dump( $member );
-	
-	
 	?>
 	<h2>Managing: <?= $member->name ?></h2>
-	<strong>Item ID: </strong><?= $member->term_id ?><br />
+	<strong>Member ID: </strong><?= $member->term_id ?><br />
 	<?php
 }
 

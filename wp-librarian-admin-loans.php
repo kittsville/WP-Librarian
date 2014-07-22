@@ -172,10 +172,7 @@ function wp_lib_manage_member( $member_id ) {
 	// Renders management header
 	wp_lib_render_member_management_header( $member_id );
 
-	// Fetches member by ID as an object
-	$member = get_term_by( 'id', $member_id, 'wp_lib_member' );
-	
-	echo 'Member: ' . $member->name;
+	echo "<p>Nothing much to see here yet!</p>";
 }
 
 // Informs librarian of details of item lateness and provides options to resolve the issue
