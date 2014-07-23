@@ -702,17 +702,17 @@ function wp_lib_format_fine_status( $status ) {
 
 // Formats a URL to manage the member with the given ID
 function wp_lib_format_manage_member( $member_id ) {
-	return admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&item_member={$member_id}&item_action=manage-member" );
+	return admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&member_id={$member_id}&item_action=manage-member" );
 }
 
 // Formats a URL to manage the item with the given ID
 function wp_lib_format_manage_item( $item_id ) {
-	return admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&item_id={$item_id}&item_action=manage" );
+	return admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&item_id={$item_id}&item_action=manage-item" );
 }
 
 // Formats a URL to manage the fine with the given ID
 function wp_lib_format_manage_fine( $fine_id ) {
-	return admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&item_fine={$fine_id}&item_action=manage-fine" );
+	return admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&fine_id={$fine_id}&item_action=manage-fine" );
 }
 
 // Cancels loan of item that has a since corrupted loan attached to it
@@ -775,6 +775,7 @@ function wp_lib_error( $error_id, $die = false, $param = '' ) {
 		111 => 'Unexpected currency position',
 		200 => 'No instructions known for given action',
 		201 => "No {$param} status found for given value",
+		202 => 'Loans do not have a management page',
 		301 => "{$param} ID failed to validate (not an integer)",
 		304 => 'No member found with that ID',
 		305 => 'No valid item found with that ID. Check if item is a draft or in the trash.',

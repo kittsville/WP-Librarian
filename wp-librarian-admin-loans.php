@@ -1,10 +1,10 @@
 <?php
 $action = $_GET['item_action']; // The action to be taken on the page (returning/loaning an item)
 $item_id = $_GET['item_id']; // The item's ID
-$member_id = $_GET['item_member']; // The ID of the member loaning/returning the item
-$fine_id = $_GET['item_fine']; // The ID of the fine being managed
+$member_id = $_GET['member_id']; // The ID of the member loaning/returning the item
+$fine_id = $_GET['fine_id']; // The ID of the fine being managed
 $time = $_GET['item_time']; // The time the item was returned (if an item was returned a few days ago)
-$length = $_GET['item_loan_length']; // The length of the loan
+$length = $_GET['loan_length']; // The length of the loan
 
 ?>
 <div class="wrap">
@@ -31,62 +31,77 @@ if ( !$time )
 
 	/* -- Item actions -- */
 	/* Used to decide what, if anything, the user is aiming to do */
-
-// Once the member and item have been chosen the item can be loaned
-if ( $action == 'Loan' )
-	wp_lib_create_loan( $item_id, $member_id, $length );
-
-// When an item is to be returned (member need not be provided as the item/load contains that data)
-elseif ( $action == 'Return' )
-	wp_lib_return_item( $item_id, $time );
 	
-// When a late item needs to be resolved
-elseif ( $action == 'Resolve' ) {
-	wp_lib_render_resolution( $item_id, $date );
-	exit();
+switch ( $action ) {
+	// Once the member and item have been chosen the item can be loaned
+	case 'Loan':
+		wp_lib_create_loan( $item_id, $member_id, $length );
+	break;
+	
+	// When an item is to be returned (member need not be provided as the item/load contains that data)
+	case 'Return':
+		wp_lib_return_item( $item_id, $time );
+	break;
+	
+	// When a late item needs to be resolved
+	case 'Resolve':
+		wp_lib_render_resolution( $item_id, $date );
+		exit();
+	break;
+	
+	// If member is to be fined for late item
+	case 'Fine Member':
+		wp_lib_create_fine( $item_id, $date );
+	break;
+	
+	// If an item is late but will be returned with no fine
+	case 'Return Item (with no fine)':
+		wp_lib_return_item( $item_id, $time, true );
+	break;
+	
+	// When an item is to be managed (Loaned/Returned/Marked as lost)
+	case 'manage-item':
+		wp_lib_manage_item( $item_id );
+		exit();
+	break;
+	
+	// When a member is to be managed
+	case 'manage-member':
+		wp_lib_manage_member( $member_id );
+		exit();
+	break;
+	
+	// When a fine is to be managed
+	case 'manage-fine':
+		wp_lib_manage_fine( $fine_id );
+		exit();
+	break;
+	
+	// When a user thinks they can manage fines
+	case 'manage-loan':
+		wp_lib_error( 202 );
+	break;
+	
+	// When user wants to mark a fine as paid
+	case 'Pay Fine':
+		wp_lib_charge_fine( $fine_id );
+	break;
+	
+	// When a user wants to revert a fine's status from Paid to Unpaid
+	case 'Revert to Unpaid':
+		wp_lib_revert_fine( $fine_id );
+	break;
+	
+	// When a user wants to cancel a fine
+	case 'Cancel Fine':
+		wp_lib_cancel_fine( $fine_id );
+	break;
+	
+	// If an action has been specified but it is not one of the proper actions listed above, error is thrown
+	default:
+		wp_lib_error( 200 );
 }
 	
-// If member is to be fined for late item
-elseif ( $action == 'Fine Member' )
-	wp_lib_create_fine( $item_id, $date );
-	
-elseif ( $action == 'Return Item (with no fine)' )
-	wp_lib_return_item( $item_id, $time, true );
-
-// When an item is to be managed (Loaned/Returned/Marked as lost)
-elseif ( $action == 'manage' ) {
-	wp_lib_manage_item( $item_id );
-	exit();
-}
-	
-// When a member is to be managed
-elseif ( $action == 'manage-member' ) {
-	wp_lib_manage_member( $member_id );
-	exit();
-}
-	
-// When a fine is to be managed
-elseif ( $action == 'manage-fine' ) {
-	wp_lib_manage_fine( $fine_id );
-	exit();
-}
-	
-// When user wants to mark a fine as paid
-elseif ( $action == 'Pay Fine' )
-	wp_lib_charge_fine( $fine_id );
-
-// When a user wants to revert a fine's status from Paid to Unpaid
-elseif ( $action == 'Revert to Unpaid' )
-	wp_lib_revert_fine( $fine_id );
-
-// When a user wants to cancel a fine
-elseif ( $action == 'Cancel Fine' )
-	wp_lib_cancel_fine( $fine_id );
-
-// If an action has been specified but it is not one of the proper actions listed above, error is thrown
-elseif ( $action != '' )
-	wp_lib_error( 200 );
-
 	/* -- Rendering the Dashboard -- */
 	/*	Now that all requested item actions have been completed, it is time to render the Library Dashboard */
 
@@ -140,7 +155,7 @@ function wp_lib_manage_item( $item_id ) {
 			$members = get_terms( 'wp_lib_member', 'hide_empty=0' );
 			?>
 			<h4>Loan item:</h4>
-			<select name='item_member' id='item_member'>
+			<select name='member_id' id='member_id'>
 				<option class='member-option' value=''>None</option>
 				<?php
 				foreach ($members as $member) {
@@ -148,7 +163,7 @@ function wp_lib_manage_item( $item_id ) {
 				}
 			   ?>
 			</select>
-			<select name='item_loan_length' id='item_loan_length'>
+			<select name='loan_length' id='loan_length'>
 				<option class='loan-length-option' value=''>Default</option>
 				<?php
 				// Temporary code to render days to loan for option
@@ -219,7 +234,7 @@ function wp_lib_manage_fine( $fine_id ){
 	<form action="edit.php" method="get">
 		<input type="hidden" name="post_type" value="wp_lib_items" />
 		<input type="hidden" name="page" value="dashboard" />
-		<input type="hidden" name="item_fine" value="<?= $fine_id; ?>" />
+		<input type="hidden" name="fine_id" value="<?= $fine_id; ?>" />
 		<?php
 		// If fine is unpaid, provide options to Pay or Cancel fine
 		if ( $fine_status == 1 ) {
