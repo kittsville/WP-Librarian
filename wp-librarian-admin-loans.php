@@ -1,5 +1,6 @@
 <?php
-$action = $_GET['item_action']; // The action to be taken on the page (returning/loaning an item)
+$action = $_GET['item_action']; // The action to be performed (e.g. loan an item)
+$page = $_GET['item_page']; // The requested page ( e.g. fine management page )
 $item_id = $_GET['item_id']; // The item's ID
 $member_id = $_GET['member_id']; // The ID of the member loaning/returning the item
 $fine_id = $_GET['fine_id']; // The ID of the fine being managed
@@ -7,7 +8,7 @@ $time = $_GET['item_time']; // The time the item was returned (if an item was re
 $length = $_GET['loan_length']; // The length of the loan
 
 ?>
-<div class="wrap">
+<div class="wrap wp-lib-domain">
 <?php
 
 	/* -- GET Variable Validation -- */
@@ -25,7 +26,7 @@ if ( $member_id )
 if ( $fine_id )
 	wp_lib_check_fine_id( $fine_id );
 	
-// If not given, time is set to false
+// If time is not given, it is set to false
 if ( !$time )
 	$time = false;
 
@@ -34,28 +35,28 @@ if ( !$time )
 	
 switch ( $action ) {
 	// Once the member and item have been chosen the item can be loaned
-	case 'Loan':
+	case 'loan':
 		wp_lib_create_loan( $item_id, $member_id, $length );
 	break;
 	
 	// When an item is to be returned (member need not be provided as the item/load contains that data)
-	case 'Return':
+	case 'return':
 		wp_lib_return_item( $item_id, $time );
 	break;
 	
 	// When a late item needs to be resolved
-	case 'Resolve':
+	case 'resolve':
 		wp_lib_render_resolution( $item_id, $date );
 		exit();
 	break;
 	
 	// If member is to be fined for late item
-	case 'Fine Member':
+	case 'fine':
 		wp_lib_create_fine( $item_id, $date );
 	break;
 	
 	// If an item is late but will be returned with no fine
-	case 'Return Item (with no fine)':
+	case 'no-fine':
 		wp_lib_return_item( $item_id, $time, true );
 	break;
 	
@@ -83,22 +84,22 @@ switch ( $action ) {
 	break;
 	
 	// When user wants to mark a fine as paid
-	case 'Pay Fine':
+	case 'resolve-fine':
 		wp_lib_charge_fine( $fine_id );
 	break;
 	
 	// When a user wants to revert a fine's status from Paid to Unpaid
-	case 'Revert to Unpaid':
+	case 'revert-fine':
 		wp_lib_revert_fine( $fine_id );
 	break;
 	
 	// When a user wants to cancel a fine
-	case 'Cancel Fine':
+	case 'cancel-fine':
 		wp_lib_cancel_fine( $fine_id );
 	break;
 	
 	// If an action has been specified but it is not one of the proper actions listed above, error is thrown
-	default:
+	case !'':
 		wp_lib_error( 200 );
 }
 	
@@ -123,6 +124,7 @@ function wp_lib_manage_item( $item_id ) {
 	}
 	else
 		$loan_id = false;
+		$loanable = wp_lib_loanable( $item_id );
 	
 	// Fetches title
 	$title = get_the_title( $item_id );
@@ -139,42 +141,65 @@ function wp_lib_manage_item( $item_id ) {
 		<input type="hidden" name="page" value="dashboard" />
 		<input type="hidden" name="item_id" value="<?= $item_id; ?>" />
 		<?php
-		if ( $late ) {
+		// If item is current on loan
+		if ( $loan_id ) {
+			// If item is also late
+			if ( $late ){
+				?>
+				<button class="button button-primary button-large" name="item_action" value="resolve">Resolve</button>
+				<?php
+			// If item is not late
+			} else {
+				?>
+				<button class="button button-primary button-large" name="item_action" value="return">Return</button>
+				<?php
+			}
+			// Regardless of if item is late, user is allowed to return item at a previous date
 			?>
-			<input type="submit" name="item_action" value="Resolve" class="button button-primary button-large" />
-			<input type="submit" name="item_action" value="Return at a Past Date" class="button button-primary button-large" />
+			<button class="button button-primary button-large" name="item_action" value="return-past">Return at a Past Date</button>
 			<?php
 		}
-		elseif ( $loan_id ) {
-			?>
-			<input type="submit" name="item_action" value="Return" class="button button-primary button-large" />
-			<input type="submit" name="item_action" value="Return at a Past Date" class="button button-primary button-large" />
-			<?php
-		}
-		else {
+		// If item is not in loan and is allowed to be loaned
+		elseif ( $loanable ) {
 			$members = get_terms( 'wp_lib_member', 'hide_empty=0' );
 			?>
 			<h4>Loan item:</h4>
-			<select name='member_id' id='member_id'>
-				<option class='member-option' value=''>None</option>
-				<?php
-				foreach ($members as $member) {
-					echo "<option class=\"member-option\" value=\"{$member->term_id}\">{$member->name}</option>";
-				}
-			   ?>
-			</select>
-			<select name='loan_length' id='loan_length'>
-				<option class='loan-length-option' value=''>Default</option>
-				<?php
-				// Temporary code to render days to loan for option
-				$inc = -3;
-				while ( $inc < 12 ) {
-					++$inc;
-					echo "<option class=\"loan-length-option\" value=\"{$inc}\">{$inc} Days</option>";
-				}
-				?>
-			</select>
-			<input type="submit" name="item_action" value="Loan" class="button button-primary button-large" />	
+			<div class="member-select manage-item">
+				<label for="member-select">
+					<strong>Member:</strong>
+				</label>
+				<select name='member_id' class='member-select'>
+					<option class='member-option' value=''>None</option>
+					<?php
+					foreach ($members as $member) {
+						echo "<option class=\"member-option\" value=\"{$member->term_id}\">{$member->name}</option>";
+					}
+				   ?>
+				</select>
+			</div>
+			
+			<div class="loan-start manage-item">
+				<label for="loan-start">
+					<strong>Start Date:</strong>
+				</label>
+				<input type="date" name="date" id="loan-start-date" class="loan-date" value="" />
+			</div>
+			
+			<div class="loan-end manage-item">
+				<label for="loan-end">
+					<strong>End Date:</strong>
+				</label>
+				<input type="date" name="date" id="loan-end-date" class="loan-date" value="" />
+			</div>
+			
+			<script>
+				jQuery(document).ready(function(){
+					jQuery('#date').datepicker({
+						dateFormat: 'yy-mm-dd'
+					});
+				});
+			</script>
+			<button name="item_action" value="loan" class="button button-primary button-large">Loan</button>
 			<?php
 		}
 		?>
@@ -218,8 +243,8 @@ function wp_lib_render_resolution( $item_id, $date ){
 		<input type="hidden" name="post_type" value="wp_lib_items" />
 		<input type="hidden" name="page" value="dashboard" />
 		<input type="hidden" name="item_id" value="<?= $item_id; ?>" />
-		<input class="button button-primary button-large" type="submit" name="item_action" value="Fine Member" />
-		<input class="button button-primary button-large" type="submit" name="item_action" value="Return Item (with no fine)" />
+		<button class="button button-primary button-large" name="item_action" value="fine">Fine</button>
+		<button class="button button-primary button-large" name="item_action" value="no-fine">Return Without Fine</button>
 	</form>
 	<?php
 }
@@ -240,20 +265,20 @@ function wp_lib_manage_fine( $fine_id ){
 		if ( $fine_status == 1 ) {
 			?>
 			<p>Marking a fine as paid assumes the money has been collected from the relevant member.</p>
-			<input class="button button-primary button-large" type="submit" name="item_action" value="Pay Fine" />
+			<button class="button button-primary button-large" name="item_action" value="resolve-fine">Pay Fine</button>
 			<?php
 		}
 		// If fine is paid, provide options to revert fine to being unpaid
 		elseif ( $fine_status == 2 ) {
 			?>
-			<input class="button button-primary button-large" type="submit" name="item_action" value="Revert to Unpaid" />
+			<button class="button button-primary button-large" name="item_action" value="revert-fine">Revert to Unpaid</button>
 			<?php
 		}
 		
 		// If fine has not been cancelled, display option to cancel fine
 		if ( $fine_status != 3 ) {
 			?>
-			<input class="button button-primary button-large" type="submit" name="item_action" value="Cancel Fine" />
+			<button class="button button-primary button-large" name="item_action" value="cancel-fine">Cancel Fine</button>
 			<?php
 		}
 		?>

@@ -3,6 +3,22 @@ Name: WP-Librarian Template Styles
 Author: Kit Maywood
 Version: 1
 */
-.wp-lib-item-cover {
+
+.wp-lib-item-left {
+	float: left;
+	width: 700px;
+	
+}
+
+.wp-lib-item-right {
 	float: right;
+	display:inline;
+}
+
+.wp_lib_items {
+
+}
+
+.wp_lib_items:last-of-type {
+	border-bottom: none;
 }

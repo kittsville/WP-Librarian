@@ -604,16 +604,30 @@ function wp_lib_check_post_pre_trash( $post_id ){
 	exit();
 }
 
-// Removes member/donor meta boxes from item editing page
+// Removes unneeded meta boxes from item editing page
 function wp_lib_remove_meta_boxes() {
+	// Removes 'Member' taxonomy box
 	remove_meta_box( 'tagsdiv-wp_lib_member', 'wp_lib_items', 'side' );
+	
+	// Removes 'Donor' taxonomy box
 	remove_meta_box( 'tagsdiv-wp_lib_donor', 'wp_lib_items', 'side' );
 }
 
 // Registers settings page and Management Dashboard
 function wp_lib_create_submenu_pages() {
+	// Adds settings page to Library submenu of wp-admin menu
 	add_submenu_page('edit.php?post_type=wp_lib_items', 'WP Librarian Settings', 'Settings', 'activate_plugins', 'settings', 'wp_lib_render_settings');
-	add_submenu_page('edit.php?post_type=wp_lib_items', 'Library Dashboard', 'Dashboard', 'edit_post', 'dashboard', 'wp_lib_render_dashboard');
+	
+	// Registers Library Dashboard and saves handle to variable
+	$page = add_submenu_page('edit.php?post_type=wp_lib_items', 'Library Dashboard', 'Dashboard', 'edit_post', 'dashboard', 'wp_lib_render_dashboard');
+	
+	// Hooks Dashboard css loading to Dashboard page hook
+	add_action( 'admin_print_styles-' . $page, 'wp_lib_enqueue_dashboard_styles' );
+}
+
+// Enqueues CSS files used in the Library Dashboard
+function wp_lib_enqueue_dashboard_styles() {
+	wp_enqueue_style( 'wp_lib_dashboard' );
 }
 
 // Renders settings page
@@ -632,6 +646,11 @@ function wp_lib_modify_image_box() {
 		global $wp_meta_boxes;
 		$wp_meta_boxes['wp_lib_items']['side']['low']['postimagediv']['title'] = 'Cover Image';
 	}
+}
+
+// Registers css and scripts needed for wp-admin
+function wp_lib_admin_init(){
+	wp_register_style( 'wp_lib_dashboard', plugins_url('/css/admin-dashboard.css', __FILE__) );
 }
 
 // Adds plugin url to front of string (e.g. authors -> library/authors)
@@ -679,6 +698,9 @@ add_action('admin_head-post.php', 'wp_lib_modify_image_box' );
 
 // Checks if item is on loan before it is moved to trash
 add_action('wp_trash_post', 'wp_lib_check_post_pre_trash');
+
+// Does everything needed at admin initialisation
+add_action( 'admin_init', 'wp_lib_admin_init' );
 
 
 // Currently does nothing

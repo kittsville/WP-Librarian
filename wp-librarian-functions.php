@@ -773,6 +773,7 @@ function wp_lib_error( $error_id, $die = false, $param = '' ) {
 		902 => 'Error encountered while processing error (error does not exist)',
 		110 => 'DateTime neither positive or negative',
 		111 => 'Unexpected currency position',
+		112 => 'Insufficient permission',
 		200 => 'No instructions known for given action',
 		201 => "No {$param} status found for given value",
 		202 => 'Loans do not have a management page',

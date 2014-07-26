@@ -1,5 +1,9 @@
 <?php
 
+if ( !current_user_can( 'manage_options' ) ) {
+	wp_lib_error( 112, true );
+}
+
 wp_enqueue_style( 'wp_lib_admin_settings' );
 
 ?>
