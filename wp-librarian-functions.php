@@ -69,17 +69,30 @@ function wp_lib_is_librarian() {
 
 // Creates "Available" or "Unavailable" string depending on if item if available to loan
 function wp_lib_prep_item_available( $item_id, $no_url = false, $short = false ) {
+	// Checks if the current user was the permissions of a Librarian
+	$librarian = wp_lib_is_librarian();
+	
+	// Fetches if item is allowed to be loaned
+	$loan_allowed = wp_lib_loan_allowed( $item_id );
+	
+	// Fetches if item is currently on loan
+	$on_loan = wp_lib_on_loan( $item_id );
+	
 	// If item can be loaned and is available, url is made to take user to loans Dashboard to loan item
-	if ( wp_lib_loanable( $item_id ) ) {
+	if ( $loan_allowed && !$on_loan )
 		$status = 'Available';
-	}
 	
 	// If item is on loan link is composed to return item
-	elseif ( wp_lib_on_loan( $item_id ) ) {
+	elseif ( $on_loan ) {
+		// Sets item status accordingly
 		$status = 'On Loan';
-		if ( wp_lib_is_librarian() ) {
+		
+		// Checks if user has permission to see full details of current loan
+		if ( $librarian ) {
+			// If user wants full item status, member that item is loaned to is fetched
 			if ( !$short ) {
-				$details = ' to ' . array_values( get_the_terms( $item_id, 'wp_lib_member' ) )[0]->name;
+				$loan_id = wp_lib_fetch_loan( $item_id );
+				$details = ' to ' . array_values( get_the_terms( $loan_id, 'wp_lib_member' ) )[0]->name;
 			}
 			$args = array(
 			'due'	=> 'due in \d day\p',
@@ -97,7 +110,7 @@ function wp_lib_prep_item_available( $item_id, $no_url = false, $short = false )
 	}
 	
 	// If user has the relevant permissions, availability will contain link to loan/return item
-	if ( wp_lib_is_librarian() && !$no_url ) {
+	if ( $librarian && !$no_url ) {
 		// String preparation
 		$url = wp_lib_format_manage_item( $item_id );
 		$url = "<a href=\"{$url}\">";
@@ -112,15 +125,35 @@ function wp_lib_prep_item_available( $item_id, $no_url = false, $short = false )
 	return $url . $status . $details . $end;
 }
 
-// Checks if item is currently on loan, returns true if so
-function wp_lib_on_loan( $item_id ) {
-	// Fetches all members assigned to item
-	$loan_already = get_the_terms( $item_id, 'wp_lib_member' );
+// Checks if item will be on loan between given dates. Given no dates, checks if item is currently on loan
+function wp_lib_on_loan( $item_id, $start_date = false, $end_date = false ){
+	// If dates weren't given then the schedule doesn't need to be checked
+	// The simpler method of checking the item for an assigned member can be used
+	if ( !( $start_date || $end_date ) ) {
+		// Fetches all members assigned to item
+		$loan_already = get_the_terms( $item_id, 'wp_lib_member' );
+
+		// If wp_lib_member is not assigned and thus returns false, then item is not on loan
+		$loan_already = ( $loan_already == false ? false : true );
+		
+		return $loan_already;	
+	}
 	
-	// If wp_lib_member is not assigned and returns false, then item is not on loan
-	$loan_already = ( $loan_already == false ? false : true );
+	// Fetches all loans assigned to item
+	$loans = wp_lib_fetch_loan_index( $item_id );
+
+	// If item has no loans, it'll be available regardless of date
+	if ( !$loans )
+		return false;
+		
+	// Interates through 
 	
-	return $loan_already;
+	// Else check if existing loans will conflict, if not then it is available
+	elseif ( wp_lib_recursive_scheduling_engine( $start_date, $end_date, $loans ) )
+		return false;
+	
+	// Else loan exists during this time and item will conflict
+	return true;
 }
 
 // Checks if item is allowed to be loaned
@@ -135,12 +168,70 @@ function wp_lib_loan_allowed( $item_id ) {
 	return $loan_allowed;
 }
 
-// Checks if item is allowed to be loaned and not currently on loan
-function wp_lib_loanable( $item_id ) {
-	if ( wp_lib_loan_allowed( $item_id ) && !wp_lib_on_loan( $item_id ) )
+// Checks if item is allowed to be loaned and not on loan between given dates
+function wp_lib_loanable( $item_id, $start_date = false, $end_date = false ) {
+	if ( wp_lib_loan_allowed( $item_id ) && !wp_lib_on_loan( $item_id, $start_date, $end_date ) )
 		return true;
 	else
 		return false;
+}
+
+// If a date is false, sets to current date
+function wp_lib_prep_date( &$date ) {
+	if ( !$date )
+		$date = time();
+}
+
+// Looks in the gaps between ranges (loan dates) to see if the proposed loan would fit there.
+// Returns array key where loan would fit between two loans, or start/end if loan is after/before all loans
+function wp_lib_recursive_scheduling_engine( $proposed_start, $proposed_end, $loans, $current = 0 ) {
+	// Creates key for previous and next loans, regardless of if they exist
+	$previous = $current - 1;
+	$next = $current + 1;
+
+	// Checks if a loan exists before current loan, if so then there is a gap to be checked for suitability
+	if ( $loans[$previous] ) {
+		// If the proposed loan starts after the $previous loan ends and ends before the $current loan starts, then the proposed loan would work
+		if ( $proposed_start > $loans[$previous]['end'] && $proposed_end < $loans[$current]['start'] )
+			return $current;
+	}
+	// Otherwise $current loan is earliest loan, so if proposed loan ends before $current loan starts, proposed loan would work
+	elseif ( $proposed_end < $loans[$current]['start'] )
+		return 'start';
+	
+	// Checks if a loan exists after the $current loan, if so then function calls itself on the next loan
+	if ( $loans[$next] )
+		return wp_lib_recursive_scheduling_engine( $proposed_start, $proposed_end, $loans, $next );
+	
+	// Otherwise $current loan is last loan, so if proposed loan starts after $current loan ends, proposed loan would work
+	elseif ( $proposed_start > $loans[$current]['end'] )
+		return 'end';
+	
+	// If this statement is reached, all loans have been checked and no viable gap has been found, so proposed loan will not work
+	return false;
+}
+
+// Fetches loan index from item meta and handles errors
+function wp_lib_fetch_loan_index( $item_id ) {
+	// Fetches loans
+	$loans = get_post_meta( $item_id, 'wp_lib_loan_index', true );
+	
+	// If item has no loans, changes to blank array to avoid errors
+	if ( $loans == '' )
+		$loans = array();
+		
+	return $loans;
+}
+
+// Searches loan index for loan ID, returns position of loan in array
+function wp_lib_fetch_loan_position( $loan_index, $loan_id ) {
+	// Iterates through array, checking each loan's ID for a match
+	foreach ( $loan_index as $key => $loan ) {
+		if ( $loan['loan_id'] == $loan_id )
+			return $key;	
+	}
+	// If the whole index has been searched and the value has not been found, returns false
+	return false;
 }
 
 // Validates member ID
@@ -202,19 +293,16 @@ function wp_lib_check_fine_id( $fine_id ){
 
 // Calculates days until item needs to be returned, returns negative if item is late
 function wp_lib_cherry_pie( $loan_id, $date ) {
-	// If no date is given, use current date
-	if ( $date == false )
-		$date = new DateTime();
-
 	// Fetches item due date from loan meta
-	$due_date = get_post_meta( $loan_id, 'wp_lib_due_date', true );
-
+	$due_date = get_post_meta( $loan_id, 'wp_lib_end_date', true );
+	
 	// If loan doesn't have a due date, error is thrown
 	if ( $due_date == '' )
 		wp_lib_error( 405, true );
 
-	// Converts string to DateTime object
+	// Converts strings to DateTime objects
 	$due_date = DateTime::createFromFormat( 'U', $due_date);
+	$date = DateTime::createFromFormat( 'U', $date);
 	
 	// Difference between loan's due date and given or current date is calculated
 	$diff = $date->diff( $due_date, false );
@@ -240,6 +328,9 @@ function wp_lib_cherry_pie( $loan_id, $date ) {
 
 // Function checks if item is late and returns true if so
 function wp_lib_item_late( $loan_id, $date = false ) {
+	// Sets date to current time if unspecified
+	wp_lib_prep_date( $date );
+
 	// Fetches number of days late
 	$late = wp_lib_cherry_pie( $loan_id, $date );
 	
@@ -254,6 +345,9 @@ function wp_lib_item_late( $loan_id, $date = false ) {
 // Array is expected, containing late/due/today key/values with \d and \p for due and plural values
 // e.g. 'this item is \d day\p late' --> 'this item is 4 days late'
 function wp_lib_prep_item_due( $item_id, $date = false, $array ) {
+	// Sets date to current time if unspecified
+	wp_lib_prep_date( $date );
+
 	// If item isn't on loan, return an empty string
 	if ( !wp_lib_on_loan( $item_id ) )
 		return '';
@@ -286,12 +380,31 @@ function wp_lib_prep_item_due( $item_id, $date = false, $array ) {
 }
 
 // Given item ID, fetches current loan and returns loan ID
-function wp_lib_fetch_loan( $item_id ) {
-	// Fetches loan ID from item metadata
-	$loan_id = get_post_meta( $item_id, 'wp_lib_loan_id', true );
+function wp_lib_fetch_loan( $item_id, $date = false ) {
+	// If a date hasn't been given, assume loan is in progress
+	if ( !$date ) {
+		// Fetches loan ID from item metadata
+		$loan_id = get_post_meta( $item_id, 'wp_lib_loan_id', true );
+
+	} else {
+		// Fetches item loan index
+		$loans = get_post_meta( $item_id, 'wp_lib_loan_index' );
+		
+		// If $loans is empty or the given date is after the last loan ends, call error
+		if ( !$loans || end( $loans )['end'] <= $date )
+			wp_lib_error( 302, true );
+			
+		// Searches loan index for loan that matches $date
+		foreach ( $loans as $loan ) {
+			if ( $loan['start'] <= $date && $date <= $loan['end'] ) {
+				$loan_id = $loan['loan_id'];
+				break;
+			}
+		}
+	}
 	
 	// Validates loan ID
-	if ( $loan_id == '' )
+	if ( !is_numeric( $loan_id ) )
 		wp_lib_error( 402, true );
 	
 	// Checks if loan with that ID actually exists
@@ -303,32 +416,73 @@ function wp_lib_fetch_loan( $item_id ) {
 	return $loan_id;
 }
 
-// Creates an item loan and attaches the member to the item so it can not be re-loaned
-// If $start_date is not set loan is from current date
-// If $loan_duration is not set loan will be the default length (option 'wp_lib_loan_length')
-function wp_lib_create_loan( $item_id, $member_id, $loan_duration = false, $start_date = false ) {
+// Loans item to member
+function wp_lib_loan_item( $item_id, $member_id, $loan_length = false ) {
 	// Checks if $item_id is valid
 	wp_lib_check_item_id( $item_id );
-
-	// Checks if item can actually be loaned
-	if ( !wp_lib_loanable( $item_id ) )
-		wp_lib_error( 401, true );
 	
 	// Checks if given member ID is valid
 	wp_lib_check_member_id( $member_id );
 	
-	// As member ID is valid, member is fetched
+	// Sets start date to current date
+	$start_date = time();
+	
+	// If loan length wasn't given, use default loan length
+	if ( !$loan_length )
+		$loan_length = get_option( 'wp_lib_loan_length', 12 );
+
+	// Sets end date to current date + loan length
+	$end_date = $start_date + ( $loan_length * 24 * 60 * 60);
+	
+	// Schedules loan
+	wp_lib_schedule_loan( $item_id, $member_id, $start_date, $end_date );
+	
+	// Passes item to member
+	wp_lib_give_item( $item_id, $loan_id, $member_id );
+	
+	// Fetches item title
+	$title = get_the_title( $item_id );
+	
+	// Fetches member object
+	$member = get_term_by( 'id', absint( $member_id ), 'wp_lib_member' );
+	
+	// Notifies user of successful loan
+	$GLOBALS[ 'wp_lib_notification_buffer' ][] = "Loan of {$title} to {$member->name} was successful!";
+}
+
+// Schedules a loan, without actually giving the item to the member
+// If $start_date is not set loan is from current date
+// If $end_date is not set loan will be the default length (option 'wp_lib_loan_length')
+function wp_lib_schedule_loan( $item_id, $member_id, $start_date, $end_date ) {
+	// Checks if $item_id is valid
+	wp_lib_check_item_id( $item_id );
+	
+	// Checks if given member ID is valid
+	wp_lib_check_member_id( $member_id );
+
+	// Checks if item can actually be loaned
+	if ( !wp_lib_loanable( $item_id, $start_date, $end_date ) )
+		wp_lib_error( 401, true );
+		
+	// Fetches item's loans index
+	$loan_index = wp_lib_fetch_loan_index( $item_id );
+	
+	// If item has previous loans, proposed loan must be checked for conflicts
+	if ( $loan_index ) {
+		// Runs scheduling engine to check if space exists for loan
+		// Note that $result will be used once the loan has been created, to index the loan in item meta
+		$result = wp_lib_recursive_scheduling_engine( $start_date, $end_date, $loan_index );
+		
+		// If scheduling engine returns false, there is a conflict
+		if ( !$result )
+			wp_lib_error( 401, true );
+	}
+
+	// Fetches member object
 	$member = get_term_by( 'id', absint( $member_id ), 'wp_lib_member' );
 		
-	// Assigns the member to the item, so that it can not be loaned twice
-	wp_set_post_terms( $item_id, $member->name, 'wp_lib_member' );
-	
-	// Gets the item's name and the current date
-	$title = get_the_title( $item_id );
-	$date = date('d-m-y');
-	
 	// Creates arguments for loan
-	$post = array(
+	$args = array(
 
 		'post_status'		=> 'publish',
 		'post_type'			=> 'wp_lib_loans',
@@ -337,29 +491,47 @@ function wp_lib_create_loan( $item_id, $member_id, $loan_duration = false, $star
 	);
 	
 	// Creates the loan, a custom post type that holds useful meta about the loan
-	$loan_id = wp_insert_post( $post, true );
+	$loan_id = wp_insert_post( $args, true );
 	
-	// If post was not successfully created, item is unassigned to member and function is killed with error message and sad face
-	if ( !is_numeric( $loan_id ) ) {
-		wp_delete_object_term_relationships( $item_id, 'wp_lib_member' );
+	// If loan was not successfully created, call error
+	if ( !is_numeric( $loan_id ) )
 		wp_lib_error( 400, die );
+	
+	// Creates item's loan index entry
+	$loan_args = array(
+		'start'		=> $start_date,
+		'end'		=> $end_date,
+		'loan_id'	=> $loan_id	
+	);
+	
+	/* Analyses scheduling result to see where in ordered array the new loan should go */
+	
+	// If loan belongs at start of index
+	if ( $result == 'start' )
+		array_unshift( $loan_index, $loan_args );
+	// If loan belongs at end of index
+	elseif ( $result == 'end' )
+		$loan_index[] = $loan_args;
+	// If loan belongs at a specified position in the array
+	elseif ( is_numeric( $result ) ) {
+		// Loan index is split and the new entry is added at the correct position
+		$loan_index = array_merge(
+			array_slice( $loan_index, 0, $result ),
+			array( $loan_args ),
+			array_slice( $loan_index, $result, null )
+		);
 	}
-
-	// Creates item due date. Adds days to current date using either the specified loan duration or the default loan length
-	// || $loan_duration < 1
-	if ( !is_numeric( $loan_duration ) ) {
-		// If loan length was not provided or is invalid, default is used
-		$length = get_option( 'wp_lib_loan_length', 12 );
-		$due_date = time() + ($length * 24 * 60 * 60);
-		
-	} elseif ( $loan_duration > 25550 ) {
-		// If loan length is longer than 70 years, error is thrown
-		wp_lib_error( 307, true );
-		
-	} else {
-		// Otherwise loan duration is suitable and is used
-		$due_date = time() + ($loan_duration * 24 * 60 * 60);
+	// Otherwise loan index contains no previous loans
+	else {
+		// Initialises loan index as an array and adds loan
+		$loan_index = array( $loan_args );
 	}
+	
+	// Saves updated loan index to item meta
+	update_post_meta( $item_id, 'wp_lib_loan_index', $loan_index );
+	
+	// Gets the item's title
+	$title = get_the_title( $item_id );
 	
 	// Stores member/item information in case either is deleted
 	$archive = array(
@@ -368,28 +540,44 @@ function wp_lib_create_loan( $item_id, $member_id, $loan_duration = false, $star
 	);
 	
 	// Saves item due date, loan holder, item id to the loan's post meta
-	add_post_meta( $loan_id, 'wp_lib_start_date', time() );
-	add_post_meta( $loan_id, 'wp_lib_due_date', $due_date );
+	add_post_meta( $loan_id, 'wp_lib_start_date', $start_date );
+	add_post_meta( $loan_id, 'wp_lib_end_date', $end_date );
 	add_post_meta( $loan_id, 'wp_lib_archive', $archive );
 	add_post_meta( $loan_id, 'wp_lib_item', $item_id );
-	add_post_meta( $loan_id, 'wp_lib_status', 1 );
-	
-	// Saves loan's post ID to the item's post meta
-	add_post_meta( $item_id, 'wp_lib_loan_id', $loan_id );
-	
-	// Notifies user of successful loan
-	$GLOBALS[ 'wp_lib_notification_buffer' ][] = "Loan of {$title} to {$member->name} was successful!";
+	add_post_meta( $loan_id, 'wp_lib_status', 5 );
 	
 }
 
-// Returns a loaned item, allowing it to be re-loaned
-function wp_lib_return_item( $item_id, $date = false, $override = false ) {
-	// Sanitizes $date
-	if ( !is_numeric( $date ) )
-		$date = false;
+// Represents the physical passing of the item from Library to Member. Item is registered as outside the library and relevant meta is updated
+function wp_lib_give_item( $item_id, $loan_id, $member_id ) {
+
+	// Fetches member object
+	$member = get_term_by( 'id', absint( $member_id ), 'wp_lib_member' );
+
+	// Assigns the member to the item, to signify their current position of the Library item
+	wp_set_post_terms( $item_id, $member->name, 'wp_lib_member' );
+	
+	// Updates loan status from 'Scheduled' to 'On Loan'
+	update_post_meta( $loan_id, 'wp_lib_status', 1 );	
+	
+	// Saves loan ID to the item's meta
+	add_post_meta( $item_id, 'wp_lib_loan_id', $loan_id );
+	
+	// Sets date item was loaned
+	add_post_meta( $loan_id, 'wp_lib_loaned_date', time() );
+}
+
+// Returns a loaned item, allowing it to be re-loaned. The opposite of wp_lib_give_item
+function wp_lib_return_item( $item_id, $date = false, $no_fine = false ) {
+	// Sets date to current date, if unspecified
+	wp_lib_prep_date( $date );
 	
 	// Fetches loan ID using item ID
 	$loan_id = wp_lib_fetch_loan( $item_id );
+	
+	// Checks if item as actually on loan
+	if ( get_post_meta( $loan_id, 'wp_lib_status', true ) != 1 )
+		wp_lib_error( 409, true );
 	
 	// Fetches if item is late or not
 	$late = wp_lib_item_late( $loan_id, $date );
@@ -397,40 +585,55 @@ function wp_lib_return_item( $item_id, $date = false, $override = false ) {
 	// Fetches if a fine has been charged
 	$fined = get_post_meta( $loan_id, 'wp_lib_fine', true );
 	
-	// If item is late, a fine hasn't been charged and the override hasn't been used then render the resolution page
-	if ( $late && !$override && !$fined )
+	// If item is late, a fine hasn't been charged and $no_fine isn't true, render fine resolution page
+	if ( $late && !$no_fine && !$fined )
 		wp_lib_render_resolution( $item_id, $date );
 	else {
+		// Fetches loan index from item meta
+		$loan_index = wp_lib_fetch_loan_index( $item_id );
+		
+		// Locates position of current loan in item's loan index
+		$key = wp_lib_fetch_loan_position( $loan_index, $loan_id );
+		
+		// If key was not found, call error
+		if ( !$key )
+			wp_lib_error( 203, true );
+			
+		// Loan index is updated with item's actual return date 
+		$loan_index[$key]['end'] = $date;
+		
+		// Updated loan index is saved to item meta
+		update_post_meta( $item_id, 'wp_lib_loan_index', $loan_index );
+	
 		// Clears item's Member taxonomy
 		wp_delete_object_term_relationships( $item_id, 'wp_lib_member' );
-		
+
 		// Removes loan ID from item meta
 		delete_post_meta($item_id, 'wp_lib_loan_id' );
-		
+	
 		// Loan status is set according to if:
 		// Item was returned late and a fine was charged
 		if ( $fined )
-			update_post_meta( $loan_id, 'wp_lib_status', 4 );
+			$status = 4;
 		// Item was returned late but a fine was not charged
 		elseif ( $late )
-			update_post_meta( $loan_id, 'wp_lib_status', 3 );
+			$status = 3;
 		// Item was returned on time
 		else
-			update_post_meta( $loan_id, 'wp_lib_status', 2 );
-			
-		// If is being returned today, loan end date is set to current time
-		if ( !$date )
-			add_post_meta( $loan_id, 'wp_lib_end_date', time() );
-		// Otherwise loan end date is set to given Unix timestamp
-		else
-			add_post_meta( $loan_id, 'wp_lib_end_date', $date );
+			$status = 2;
 		
+		// Sets loan status
+		update_post_meta( $loan_id, 'wp_lib_status', $status );
+
+		// Loan returned date set
+		// Note: The returned date is when the item is returned, the end date is when it is due back
+		add_post_meta( $loan_id, 'wp_lib_returned_date', $date );
 		
 		// Fetches item title
 		$title = get_the_title( $item_id );
 		
 		// Notifies user of item return
-		$GLOBALS[ 'wp_lib_notification_buffer' ][] = "{$title} has been successfully returned";
+		$GLOBALS[ 'wp_lib_notification_buffer' ][] = "{$title} has been returned successfully";
 	}
 }
 
@@ -474,7 +677,10 @@ function wp_lib_pre_dashboard() {
 }
 
 // Fines member for returning item late
-function wp_lib_create_fine( $item_id, $date, $return = true ) {
+function wp_lib_create_fine( $item_id, $date = false, $return = true ) {
+	// Sets date to current time if unspecified
+	wp_lib_prep_date( $date );
+
 	// Fetches loan ID from item meta
 	$loan_id = wp_lib_fetch_loan( $item_id );
 	
@@ -486,7 +692,7 @@ function wp_lib_create_fine( $item_id, $date, $return = true ) {
 	$daily_fine = get_option( 'wp_lib_fine_daily' );
 	
 	// Fetches days item is late
-	$days_late = -wp_lib_cherry_pie( $loan_id, false );
+	$days_late = -wp_lib_cherry_pie( $loan_id, $date );
 	
 	// Calculates fine based off days late * charge per day
 	$fine = $days_late * $daily_fine;
@@ -561,7 +767,7 @@ function wp_lib_create_fine( $item_id, $date, $return = true ) {
 	
 	// Return item unless otherwise specified
 	if ( $return )
-		wp_lib_return_item( $item_id, false );
+		wp_lib_return_item( $item_id );
 }
 
 // Changes fine from unpaid to paid
@@ -642,7 +848,7 @@ function wp_lib_format_money( $value ) {
 	if ( $position == 1 )
 		$value = $symbol . $value;
 	elseif ( $position == 0 )
-		$value = $value . $position;
+		$value = $value . $symbol;
 	else
 		wp_lib_error( 111, true );
 		
@@ -650,7 +856,7 @@ function wp_lib_format_money( $value ) {
 }
 
 // Fetches date from meta then formats
-function wp_lib_process_date_column( $id, $key ) {
+function wp_lib_prep_date_column( $id, $key ) {
 	// Fetches date from post meta using given key
 	$date = get_post_meta( $id, $key, true );
 	
@@ -671,6 +877,7 @@ function wp_lib_format_loan_status( $status ) {
 		2	=> 'Returned',
 		3	=> 'Returned Late',
 		4	=> 'Returned Late (with fine)',
+		5	=> 'Scheduled'
 	);
 	
 	// If given number refers to a status that doesn't exist, throw error
@@ -715,14 +922,109 @@ function wp_lib_format_manage_fine( $fine_id ) {
 	return admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&fine_id={$fine_id}&item_action=manage-fine" );
 }
 
+// Fetches and returns item title with optional link to manage item, falling back to archived title if needed
+/* Params:
+ * $item_id - Item's ID
+ * $fallback_id - ID of loan or fine to use as a fallback and fetch the item's title from
+ * $hyperlink - (Optional) If to format the title as a hyperlink
+ * $array - If to return an array containing both the title and if the item existed (otherwise return title as a string)
+ * $ending - If to suffix title with '(item deleted)' if item no longer exists
+ */
+function wp_lib_format_item_title( $item_id, $fallback_id, $hyperlink = true, $array = false, $ending = true ) {
+	// Fetches item title
+	$title = get_the_title( $item_id );
+	
+	// If array is to be returned, set item status
+	if ( $title && $array )
+		$output['deleted'] = false;
+	
+	// If item no longer exists
+	if ( !$title ) {
+		// Fetches fallback archive from loan/fine meta and retrieves item name from said archive
+		$title = get_post_meta( $fallback_id, 'wp_lib_archive', true )['item-name'];
+		
+		// Informs user item no longer exists
+		if ( $ending )
+			$title .= ' (item deleted)';
+		
+		// Used if array is returned
+		$output['deleted'] = true;
+	}
+	// If item exists and is to be formatted as a hyperlink
+	elseif ( $hyperlink ) {
+		// Fetches url to manage item
+		$url = wp_lib_format_manage_item( $item_id );
+		
+		// Formats title as hyperlink
+		$title = "<a href=\"{$url}\">{$title}</a>";
+	}
+	
+	// If array was wanted, returns array including item status
+	if ( $array ) {
+		$output['title'] = $title;
+		return $output;
+	}
+	// Otherwise just returns title (as a hyperlink or otherwise)
+	else
+		return $title;
+
+}
+
+// Fetches member's name and, if needed, formats as a hyperlink. Falls back to archived name if needs be
+function wp_lib_fetch_member_name( $post_id, $hyperlink = true, $array = false, $ending = true ) {
+	// Fetches member taxonomy as an object
+	$member = get_the_terms( $post_id, 'wp_lib_member' )[0];
+	
+	// If member exists
+	if ( $member ) {
+		// Fetches member name from taxonomy object
+		$member_name = $member->name;
+		
+		// If array if to be returned, set member status
+		if ( $array )
+			$output['deleted'] = false;
+	}
+	
+	// If member has been deleted
+	if ( !$member ) {
+		// Fetches archive from fallback (loan/fine) meta and fetches member's name from that archive
+		$member_name = get_post_meta( $post_id, 'wp_lib_archive', true )['member-name'];
+		
+		// Suffixes member name explaining that the member was deleted
+		if ( $ending )
+			$member_name .= ' (member deleted)';
+		
+		// If array is to be returned, adds to array
+		if ( $array )
+			$output['deleted'] = true;
+	}
+	elseif ( $hyperlink ) {
+		// Fetches url to manage item
+		$url = wp_lib_format_manage_member( $member->term_id );
+		
+		// Formats title as hyperlink
+		$member_name = "<a href=\"{$url}\">{$member_name}</a>";
+	}
+	
+	// If array was wanted, returns array including member status
+	if ( $array ) {
+		$output['name'] = $member_name;
+		return $output;
+	}
+	
+	// Otherwise just returns member's name (as a hyperlink or otherwise)
+	else
+		return $member_name;
+}
+
 // Cancels loan of item that has a since corrupted loan attached to it
 // This function should not be called under regular operation and should definitely not used to return an item
 function wp_lib_clean_item( $item_id ){
-	// Clears item's Member taxonomy
-	wp_delete_object_term_relationships( $item_id, 'wp_lib_member' );
+// Clears item's Member taxonomy
+wp_delete_object_term_relationships( $item_id, 'wp_lib_member' );
 
-	// Removes loan ID from item meta
-	delete_post_meta($item_id, 'wp_lib_loan_id' );
+// Removes loan ID from item meta
+delete_post_meta($item_id, 'wp_lib_loan_id' );
 }
 
 // Sanitizes phone number
@@ -757,7 +1059,7 @@ function wp_lib_template( $template ) {
 }
 
 // Returns explanation of error given error code
-function wp_lib_error( $error_id, $die = false, $param = '' ) {
+function wp_lib_error( $error_id, $die = false, $param = 'PARAM NOT GIVEN' ) {
 	// Checks if error code is valid and error exists, if not returns error
 	if ( !is_numeric( $error_id ) )
 		wp_lib_error( 901, true );
@@ -777,11 +1079,13 @@ function wp_lib_error( $error_id, $die = false, $param = '' ) {
 		200 => 'No instructions known for given action',
 		201 => "No {$param} status found for given value",
 		202 => 'Loans do not have a management page',
+		203 => 'Loan not found in item\'s loan index',
 		301 => "{$param} ID failed to validate (not an integer)",
+		302 => 'No loans found for that item ID',
 		304 => 'No member found with that ID',
-		305 => 'No valid item found with that ID. Check if item is a draft or in the trash.',
+		305 => 'No valid item found with that ID, check if item is a draft or in the trash',
 		306 => 'No valid loan found with that ID',
-		307 => 'Loan length longer than member is likely to live for',
+		307 => 'Given dates result in an impossible or impractical loan length',
 		308 => 'No valid fine found with that ID',
 		309 => "Fine has unexpected status. Was expecting status {$param}",
 		400 => 'Loan creation failed for unknown reason, sorry :/',
@@ -791,6 +1095,8 @@ function wp_lib_error( $error_id, $die = false, $param = '' ) {
 		405 => 'Loan is missing due date',
 		406 => 'Item is/was not late on given date, mate',
 		407 => 'Fine creation failed for unknown reasons, sorry :/',
+		408 => 'Recursive Scheduling Engine returned unexpected value',
+		409 => 'Loan status reports item is not currently on loan'
 	);
 	
 	// Checks if error exists, if not returns error
@@ -809,10 +1115,16 @@ function wp_lib_error( $error_id, $die = false, $param = '' ) {
 }
 
 // Dumps variables in a pretty way
-function wp_lib_var_dump( $var ) {
-	echo '<pre>';
-	echo var_dump( $var );
-	echo '</pre>';
+function wp_lib_var_dump() {
+	// Gets all given params
+	$args = func_get_args();
+	
+	// For each param, var_dump between <pre> tags to format code properly in browser
+	foreach ( $args as $arg ){
+		echo '<pre>';
+		echo var_dump( $arg );
+		echo '</pre>';
+	}
 }
 
 // Santizes HTML POST data from a checkbox
@@ -861,7 +1173,7 @@ function wp_lib_prefix_url( $option, $slug ) {
 }
 
 // Renders the header for the Item management page
-function wp_lib_render_management_header( $item_id ) {
+function wp_lib_render_item_management_header( $item_id ) {
 	// Fetches title of item e.g. 'Moby-Dick'
 	$title = get_the_title( $item_id );
 	
@@ -879,9 +1191,6 @@ function wp_lib_render_management_header( $item_id ) {
 
 // Renders the header for the Fine management page, displaying information about the fine
 function wp_lib_render_fine_management_header( $fine_id ) {
-	// Fetches member taxonomy as an object
-	$member = get_the_terms( $fine_id, 'wp_lib_member' )[0];
-	
 	// Fetches and formats fine amount ( e.g. £0.40 )
 	$fine_formatted = wp_lib_format_money( get_post_meta( $fine_id, 'wp_lib_fine', true ) );
 	
@@ -895,37 +1204,25 @@ function wp_lib_render_fine_management_header( $fine_id ) {
 	$item_id = get_post_meta( $fine_id, 'wp_lib_item', true );
 	$loan_id = get_post_meta( $fine_id, 'wp_lib_loan', true );
 	
-	// Fetches item title
-	$title = get_the_title( $item_id );
+	// Fetches member name and if member still exists
+	$member_array = wp_lib_fetch_member_name( $fine_id, true, true );
 	
 	// If member no longer exists, fetches member name from fine meta
-	if ( !$member ) {
-		$member_string = get_post_meta( $fine_id, 'wp_lib_archive', true )['member-name'];
-		$member_deleted = true;
-		wp_lib_render_error( "The member {$member_string} has since been deleted, this limits fine management" );
-	}
-	// Otherwise member still exists and member name will be link to manage member
-	else {
-		$url = wp_lib_format_manage_member( $member->term_id );
-		$member_string = "<a href=\"{$url}\">{$member->name}</a>";
-	}
+	if ( $member_array['deleted'] )
+		wp_lib_render_error( "The member {$member_array['name']} has since been deleted, this limits fine management" );
 	
-	// If item no longer exists, fetches item title from fine meta
-	if ( !$title ) {
-		$title = get_post_meta( $fine_id, 'wp_lib_archive', true )['item-name'];
-		$item_deleted = true;
-		wp_lib_render_error( "The item {$title} has since been deleted, this limits fine management" );
-	}
-	// Otherwise item still exists and item title will include link to manage item
-	else {
-		$url = wp_lib_format_manage_item( $item_id );
-		$title = "<a href=\"{$url}\">{$title}</a>";
-	}
+	// Fetches item title and if the item still exists
+	$title_array = wp_lib_format_item_title( $item_id, $fine_id, true, true );
+	
+	// If item no longer exists, inform user how this limits their options
+	if ( $title_array['deleted'] )
+		wp_lib_render_error( "The item {$title_array['title']} has since been deleted, this limits fine management" );
+	
 	?>
 	<h2>Managing: Fine #<?= $fine_id ?></h2>
 	<p>
-		<strong>Item: </strong><?= $title ?><br />
-		<strong>Member: </strong><?= $member_string ?><br />
+		<strong>Item: </strong><?= $title_array['title'] ?><br />
+		<strong>Member: </strong><?= $member_array['name'] ?><br />
 		<strong>Amount: </strong><?= $fine_formatted ?><br />
 		<strong>Status: </strong><?= $formatted_status ?><br />
 		<strong>Created: </strong><?= get_the_date( '', $fine_id ) ?>

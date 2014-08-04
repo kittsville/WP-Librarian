@@ -4,7 +4,9 @@ $page = $_GET['item_page']; // The requested page ( e.g. fine management page )
 $item_id = $_GET['item_id']; // The item's ID
 $member_id = $_GET['member_id']; // The ID of the member loaning/returning the item
 $fine_id = $_GET['fine_id']; // The ID of the fine being managed
-$time = $_GET['item_time']; // The time the item was returned (if an item was returned a few days ago)
+$date = $_GET['item_time']; // The time the item was returned (if an item was returned a few days ago)
+$start_date = $_GET['loan_start_date']; // When an item is to start being loaned
+$end_date = $_GET['loan_end_date']; // When a loan of an item should have ended by
 $length = $_GET['loan_length']; // The length of the loan
 
 ?>
@@ -27,8 +29,17 @@ if ( $fine_id )
 	wp_lib_check_fine_id( $fine_id );
 	
 // If time is not given, it is set to false
-if ( !$time )
-	$time = false;
+if ( !is_numeric( $date ) )
+	wp_lib_prep_date( $date );
+	
+	/* -- GET Variable Sanitization -- */
+	/* Converts any parameters to necessary formats */
+
+if ( $start_date )
+	$start_time = strtotime( $start_date );
+
+if ( $end_date )
+	$end_time = strtotime( $end_date );
 
 	/* -- Item actions -- */
 	/* Used to decide what, if anything, the user is aiming to do */
@@ -36,12 +47,23 @@ if ( !$time )
 switch ( $action ) {
 	// Once the member and item have been chosen the item can be loaned
 	case 'loan':
-		wp_lib_create_loan( $item_id, $member_id, $length );
+		wp_lib_loan_item( $item_id, $member_id, $loan_length );
+	break;
+	
+	// To create loans in the future
+	case 'schedule':
+		wp_lib_render_schedule_loan( $item_id );
+		exit();
+	break;
+	
+	// Passes parameters for scheduling loan to relevant function
+	case 'schedule-loan':
+		wp_lib_schedule_loan( $item_id, $member_id, $start_time, $end_time );
 	break;
 	
 	// When an item is to be returned (member need not be provided as the item/load contains that data)
 	case 'return':
-		wp_lib_return_item( $item_id, $time );
+		wp_lib_return_item( $item_id, $date );
 	break;
 	
 	// When a late item needs to be resolved
@@ -98,6 +120,14 @@ switch ( $action ) {
 		wp_lib_cancel_fine( $fine_id );
 	break;
 	
+	// Debugging option that allows an item to be cleaned of a current loan
+	case 'clean-item':
+		wp_lib_clean_item( $item_id );
+		$title = get_the_title( $item_id );
+		echo "Item {$title} has been cleaned of any current associated loan";
+		exit();
+	break;
+	
 	// If an action has been specified but it is not one of the proper actions listed above, error is thrown
 	case !'':
 		wp_lib_error( 200 );
@@ -134,7 +164,7 @@ function wp_lib_manage_item( $item_id ) {
 		wp_lib_render_error( "{$title} is late, please resolve this issue" );
 	
 	// Displays the management header
-	wp_lib_render_management_header( $item_id );
+	wp_lib_render_item_management_header( $item_id );
 	?>
 	<form action="edit.php" method="get">
 		<input type="hidden" name="post_type" value="wp_lib_items" />
@@ -164,46 +194,87 @@ function wp_lib_manage_item( $item_id ) {
 			$members = get_terms( 'wp_lib_member', 'hide_empty=0' );
 			?>
 			<h4>Loan item:</h4>
-			<div class="member-select manage-item">
-				<label for="member-select">
-					<strong>Member:</strong>
-				</label>
-				<select name='member_id' class='member-select'>
-					<option class='member-option' value=''>None</option>
-					<?php
-					foreach ($members as $member) {
-						echo "<option class=\"member-option\" value=\"{$member->term_id}\">{$member->name}</option>";
-					}
-				   ?>
-				</select>
-			</div>
-			
-			<div class="loan-start manage-item">
-				<label for="loan-start">
-					<strong>Start Date:</strong>
-				</label>
-				<input type="date" name="date" id="loan-start-date" class="loan-date" value="" />
-			</div>
-			
-			<div class="loan-end manage-item">
-				<label for="loan-end">
-					<strong>End Date:</strong>
-				</label>
-				<input type="date" name="date" id="loan-end-date" class="loan-date" value="" />
-			</div>
-			
-			<script>
-				jQuery(document).ready(function(){
-					jQuery('#date').datepicker({
-						dateFormat: 'yy-mm-dd'
-					});
-				});
-			</script>
-			<button name="item_action" value="loan" class="button button-primary button-large">Loan</button>
+			<select name='member_id' id='member_id'>
+				<option class='member-option' value=''>None</option>
+				<?php
+				foreach ($members as $member) {
+					echo "<option class=\"member-option\" value=\"{$member->term_id}\">{$member->name}</option>";
+				}
+				?>
+			</select>
+			<select name='loan_length' id='loan_length'>
+				<option class='loan-length-option' value=''>Default</option>
+				<?php
+				// Temporary code to render days to loan for option
+				$inc = -3;
+				while ( $inc < 12 ) {
+					++$inc;
+					echo "<option class=\"loan-length-option\" value=\"{$inc}\">{$inc} Days</option>";
+				}
+				?>
+			</select>
+			<button name="item_action" value="loan" class="button button-primary button-large">Loan Item</button>
 			<?php
 		}
 		?>
+		<button name="item_action" value="schedule" class="button button-primary button-large">Schedule Future Loan</button>
 	</form>
+	<?php
+}
+
+function wp_lib_render_schedule_loan( $item_id ) {
+	// Displays the management header
+	wp_lib_render_item_management_header( $item_id );
+
+	// Fetches list of all Members
+	$members = get_terms( 'wp_lib_member', 'hide_empty=0' );
+	
+	// Formats placeholder loan start date (current date)
+	$start_date = Date( 'Y-m-d' );
+	
+	// Adds default loan length to current date
+	$time = time() + ( get_option( 'wp_lib_loan_length', 12 ) * 24 * 60 * 60);
+	
+	// Formats placeholder loan end date (current date + default loan length)
+	$end_date = Date( 'Y-m-d', $time );
+	?>
+	<h4>Loan item:</h4>
+	<div class="member-select manage-item">
+		<label for="member-select">
+			<strong>Member:</strong>
+		</label>
+		<select name='member_id' class='member-select'>
+			<option class='member-option' value=''>None</option>
+			<?php
+			foreach ($members as $member) {
+				echo "<option class=\"member-option\" value=\"{$member->term_id}\">{$member->name}</option>";
+			}
+		   ?>
+		</select>
+	</div>
+	
+	<div class="loan-start manage-item">
+		<label for="loan-start">
+			<strong>Start Date:</strong>
+		</label>
+		<input type="date" name="loan_start_date" id="loan-start-date" class="loan-date" value="<?= $start_date ?>" />
+	</div>
+	
+	<div class="loan-end manage-item">
+		<label for="loan-end">
+			<strong>End Date:</strong>
+		</label>
+		<input type="date" name="loan_end_date" id="loan-end-date" class="loan-date" value="<?= $end_date ?>" />
+	</div>
+	
+	<script>
+		jQuery(document).ready(function(){
+			jQuery('#loan-start-date').datepicker({
+				dateFormat: 'yy-mm-dd'
+			});
+		});
+	</script>
+	<button name="item_action" value="schedule-loan" class="button button-primary button-large">Schedule Loan</button>
 	<?php
 }
 
@@ -229,7 +300,7 @@ function wp_lib_render_resolution( $item_id, $date ){
 	$days_late = wp_lib_prep_item_due( $item_id, $date, $args );
 	
 	// Renders 'Managing: $item' header
-	wp_lib_render_management_header( $item_id );
+	wp_lib_render_item_management_header( $item_id );
 	
 	// Prepares useful variables
 	$title = get_the_title( $item_id );

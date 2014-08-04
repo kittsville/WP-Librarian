@@ -24,83 +24,84 @@ function wp_lib_create_post_types() {
 	$args =	array(
 		'labels' => array(
 			'name' => 'Library',
-			'singular_name' => 'Library Item',
-			'add_new' => 'Add New Item',
-			'add_new_item' => 'Add New Library Item',
-			'edit' => 'Edit',
-			'edit_item' => 'Edit Library Item',
-			'new_item' => 'New Library Item',
-			'view' => 'View',
-			'view_item' => 'View Library Item',
-			'search_items' => 'Search Library Items',
-			'not_found' => 'No Library Items found',
-			'not_found_in_trash' => 'No Library Items found in Trash',
-			'parent' => 'Parent Library Item',
+			'singular_name'		=> 'Library Item',
+			'all_items'			=> 'All Items',
+			'add_new'			=> 'Add New Item',
+			'add_new_item'		=> 'Add New Library Item',
+			'edit'				=> 'Edit',
+			'edit_item'			=> 'Edit Library Item',
+			'new_item'			=> 'New Library Item',
+			'view'				=> 'View',
+			'view_item'			=> 'View Library Item',
+			'search_items'		=> 'Search Library Items',
+			'not_found'			=> 'No Library Items found',
+			'not_found_in_trash'=> 'No Library Items found in Trash',
+			'parent'			=> 'Parent Library Item',
 		),
 
-		'public' => true,
-		'menu_position' => 15,
-		'supports' => array( 'title', 'editor', 'thumbnail'),
-		'taxonomies' => array( '' ),
-		'menu_icon' => 'dashicons-book-alt',
-		'has_archive' => true,
-		'rewrite' => array('slug' => get_option( 'wp_lib_slug', 'wp-librarian' ) ),
+		'public'		=> true,
+		'menu_position'	=> 15,
+		'supports'		=> array( 'title', 'editor', 'thumbnail'),
+		'taxonomies'	=> array( '' ),
+		'menu_icon'		=> 'dashicons-book-alt',
+		'has_archive'	=> true,
+		'rewrite'		=> array('slug' => get_option( 'wp_lib_slug', 'wp-librarian' ) ),
 	);
 	register_post_type( 'wp_lib_items', $args );
 	
 	// Creates post type to manage loaned items
 	$args =	array(
 		'labels' => array(
-			'name' => 'Loans',
-			'singular_name' => 'Loan',
-			'add_new' => 'Add New Loan',
-			'add_new_item' => 'Add New Loan',
-			'edit' => 'Edit',
-			'edit_item' => 'Edit Loan',
-			'new_item' => 'New Loan',
-			'view' => 'View',
-			'view_item' => 'View Loan',
-			'search_items' => 'Search Loans',
-			'not_found' => 'No Loans found',
-			'not_found_in_trash' => 'No Loans found in Trash',
-			'parent' => 'Parent Loan',
+			'name'				=> 'Loans',
+			'singular_name'		=> 'Loan',
+			'add_new'			=> 'Add New Loan',
+			'add_new_item'		=> 'Add New Loan',
+			'edit'				=> 'Edit',
+			'edit_item'			=> 'Edit Loan',
+			'new_item'			=> 'New Loan',
+			'view'				=> 'View',
+			'view_item'			=> 'View Loan',
+			'search_items'		=> 'Search Loans',
+			'not_found'			=> 'No Loans found',
+			'not_found_in_trash'=> 'No Loans found in Trash',
+			'parent'			=> 'Parent Loan',
 		),
 
-		'public' => true,
-		'show_in_menu'  => 'edit.php?post_type=wp_lib_items',
-		'supports' => array( '' ),
-		'taxonomies' => array( '' ),
-		'menu_icon' => 'dashicons-book-alt',
-		'has_archive' => true,
-		'rewrite' => array('slug' => get_option( 'wp_lib_loans_slug', 'loans' ) ),
+		'public'		=> true,
+		'show_in_menu' 	=> 'edit.php?post_type=wp_lib_items',
+		'supports'		=> array( '' ),
+		'taxonomies'	=> array( '' ),
+		'menu_icon'		=> 'dashicons-book-alt',
+		'has_archive'	=> true,
+		'rewrite'		=> array('slug' => get_option( 'wp_lib_loans_slug', 'loans' ) ),
 	);
 	register_post_type( 'wp_lib_loans', $args );
 	
 	// Creates post type to manage fines
 	$args =	array(
 		'labels' => array(
-			'name' => 'Fines',
-			'singular_name' => 'Fine',
-			'add_new' => 'Add New Fine',
-			'add_new_item' => 'Add New Fine',
-			'edit' => 'Edit',
-			'edit_item' => 'Edit Fine',
-			'new_item' => 'New Fine',
-			'view' => 'View',
-			'view_item' => 'View Fine',
-			'search_items' => 'Search Fines',
-			'not_found' => 'No Fines found',
-			'not_found_in_trash' => 'No Fines found in Trash',
-			'parent' => 'Parent Fine',
+			'name'				=> 'Fines',
+			'singular_name'		=> 'Fine',
+			'add_new'			=> 'Add New Fine',
+			'add_new_item'		=> 'Add New Fine',
+			'edit'				=> 'Edit',
+			'edit_item'			=> 'Edit Fine',
+			'new_item'			=> 'New Fine',
+			'view'				=> 'View',
+			'view_item'			=> 'View Fine',
+			'search_items'		=> 'Search Fines',
+			'not_found'			=> 'No Fines found',
+			'not_found_in_trash'=> 'No Fines found in Trash',
+			'parent'			=> 'Parent Fine',
 		),
 
-		'public' => true,
-		'show_in_menu'  => 'edit.php?post_type=wp_lib_items',
-		'supports' => array( '' ),
-		'taxonomies' => array( '' ),
-		'menu_icon' => 'dashicons-book-alt',
-		'has_archive' => true,
-		'rewrite' => array('slug' => get_option( 'wp_lib_fines_slug', 'fines' ) ),
+		'public'		=> true,
+		'show_in_menu'	=> 'edit.php?post_type=wp_lib_items',
+		'supports'		=> array( '' ),
+		'taxonomies'	=> array( '' ),
+		'menu_icon'		=> 'dashicons-book-alt',
+		'has_archive'	=> true,
+		'rewrite'		=> array('slug' => get_option( 'wp_lib_fines_slug', 'fines' ) ),
 	);
 	register_post_type( 'wp_lib_fines', $args );
 }
@@ -110,33 +111,33 @@ function wp_lib_create_taxonomies() {
 	
 	// Registers Taxonomy: Media Type - The type of item in the library (book, CD, DVD, etc.)
 	$labels = array(
-		'name'			  => _x( 'Media Types', 'taxonomy general name' ),
-		'singular_name'	 => _x( 'Media Type', 'taxonomy singular name' ),
-		'search_items'	  => __( 'Search Media Types' ),
-		'all_items'		 => __( 'All Media Types' ),
-		'parent_item'	   => __( 'Parent Media Type' ),
-		'parent_item_colon' => __( 'Parent Media Type:' ),
-		'edit_item'		 => __( 'Edit Media Type' ),
-		'update_item'	   => __( 'Update Media Type' ),
-		'add_new_item'	  => __( 'Add New Media Type' ),
-		'new_item_name'	 => __( 'New Media Type Name' ),
-		'menu_name'		 => __( 'Media Type' ),
+		'name'				=> 'Media Types',
+		'singular_name'		=> 'Media Type',
+		'search_items'		=> 'Search Media Types',
+		'all_items'			=> 'All Media Types',
+		'parent_item'		=> 'Parent Media Type',
+		'parent_item_colon'	=> 'Parent Media Type:',
+		'edit_item'			=> 'Edit Media Type',
+		'update_item'		=> 'Update Media Type',
+		'add_new_item'		=> 'Add New Media Type',
+		'new_item_name'		=> 'New Media Type Name',
+		'menu_name'			=> 'Media Type'
 	);
 
 	$args = array(
-		'hierarchical'	  => true,
+		'hierarchical'		=> true,
 		'labels'			=> $labels,
-		'show_ui'		   => true,
-		'show_admin_column' => true,
-		'query_var'		 => true,
-		'rewrite' => array('slug' => apply_filters( 'wp_lib_prefix_url', 'wp_lib_media_type_slug', 'type' ) ),
+		'show_ui'			=> true,
+		'show_admin_column'	=> true,
+		'query_var'			=> true,
+		'rewrite'			=> array('slug' => apply_filters( 'wp_lib_prefix_url', 'wp_lib_media_type_slug', 'type' ) ),
 	);
 
 	register_taxonomy( 'wp_lib_media_type', 'wp_lib_items', $args );
 	
 	// Creates Default Media Type entries if they don't already exist, unless configured otherwise
 	if ( get_option( 'wp_lib_default_media_types', true ) ) {
-		$args = array(
+		$default_media_types = array(
 			array(
 				'name' => 'Book',
 				'slug' => 'books',
@@ -150,14 +151,13 @@ function wp_lib_create_taxonomies() {
 				'slug' => 'graphic-novels',
 			),
 		);
-		foreach ( $args as $item ) {
-			if ( get_term_by( 'name', $item['name'], 'wp_lib_media_type' ) == false){
+		// Iterates through default media types and creates them if they do not already exist
+		foreach ( $default_media_types as $type ) {
+			if ( get_term_by( 'name', $type['name'], 'wp_lib_media_type' ) == false){
 				wp_insert_term(
-					$item['name'], // the term 
-					'wp_lib_media_type', // the taxonomy
-					array(
-						'slug' => $item['slug']
-					)
+					$type['name'],
+					'wp_lib_media_type',
+					array( 'slug' => $type['slug'] )
 				);
 			}
 		}
@@ -165,96 +165,90 @@ function wp_lib_create_taxonomies() {
 
 	// Registers Taxonomy: Authors - For the people who created the physical library item e.g. H.G. Wells or Terry Pratchett
 	$labels = array(
-		'name'					   => _x( 'Authors', 'taxonomy general name' ),
-		'singular_name'			  => _x( 'Author', 'taxonomy singular name' ),
-		'search_items'			   => __( 'Search Authors' ),
-		'popular_items'			  => __( 'Popular Authors' ),
-		'all_items'				  => __( 'All Authors' ),
-		'parent_item'				=> null,
-		'parent_item_colon'		  => null,
-		'edit_item'				  => __( 'Edit Author' ),
-		'update_item'				=> __( 'Update Author' ),
-		'add_new_item'			   => __( 'Add New Author' ),
-		'new_item_name'			  => __( 'New Author Name' ),
-		'separate_items_with_commas' => __( 'Separate authors with commas' ),
-		'add_or_remove_items'		=> __( 'Add or remove authors' ),
-		'choose_from_most_used'	  => __( 'Choose from the most used authors' ),
-		'not_found'				  => __( 'No authors found.' ),
-		'menu_name'				  => __( 'Authors' ),
+		'name'						=> 'Authors',
+		'singular_name'				=> 'Author',
+		'search_items'				=> 'Search Authors',
+		'popular_items'				=> 'Popular Authors',
+		'all_items'					=> 'All Authors',
+		'edit_item'					=> 'Edit Author',
+		'update_item'				=> 'Update Author',
+		'add_new_item'				=> 'Add New Author',
+		'new_item_name'				=> 'New Author Name',
+		'separate_items_with_commas'=> 'Separate authors with commas',
+		'add_or_remove_items'		=> 'Add or remove authors',
+		'choose_from_most_used'		=> 'Choose from the most used authors',
+		'not_found'					=> 'No authors found.',
+		'menu_name'					=> 'Authors',
 	);
 	
 	$args = array(
-		'hierarchical'		  => false,
+		'hierarchical'			=> false,
 		'labels'				=> $labels,
-		'show_ui'			   => true,
-		'show_admin_column'	 => true,
-		'update_count_callback' => '_update_post_term_count',
-		'query_var'			 => true,
-		'rewrite' => array('slug' => apply_filters( 'wp_lib_prefix_url', 'wp_lib_authors_slug', 'authors' ) ),
+		'show_ui'				=> true,
+		'show_admin_column'		=> true,
+		'update_count_callback'	=> '_update_post_term_count',
+		'query_var'				=> true,
+		'rewrite'				=> array('slug' => apply_filters( 'wp_lib_prefix_url', 'wp_lib_authors_slug', 'authors' ) ),
 	);
 
 	register_taxonomy( 'wp_lib_author', 'wp_lib_items', $args );
 
 	// Registers Taxonomy: Donors - The people who donated the library item to the library
 	$labels = array(
-		'name'					   => _x( 'Donors', 'taxonomy general name' ),
-		'singular_name'			  => _x( 'Donor', 'taxonomy singular name' ),
-		'search_items'			   => __( 'Search Donors' ),
-		'popular_items'			  => __( 'Popular Donors' ),
-		'all_items'				  => __( 'All Donors' ),
-		'parent_item'				=> null,
-		'parent_item_colon'		  => null,
-		'edit_item'				  => __( 'Edit Donor' ),
-		'update_item'				=> __( 'Update Donor' ),
-		'add_new_item'			   => __( 'Add New Donor' ),
-		'new_item_name'			  => __( 'New Donor Name' ),
-		'separate_items_with_commas' => __( 'Separate donors with commas' ),
-		'add_or_remove_items'		=> __( 'Add or remove donors' ),
-		'choose_from_most_used'	  => __( 'Choose from the most used donors' ),
-		'not_found'				  => __( 'No donors found.' ),
-		'menu_name'				  => __( 'Donors' ),
+		'name'						=> 'Donors',
+		'singular_name'				=> 'Donor',
+		'search_items'				=> 'Search Donors',
+		'popular_items'				=> 'Popular Donors',
+		'all_items'					=> 'All Donors',
+		'edit_item'					=> 'Edit Donor',
+		'update_item'				=> 'Update Donor',
+		'add_new_item'				=> 'Add New Donor',
+		'new_item_name'				=> 'New Donor Name',
+		'separate_items_with_commas'=> 'Separate donors with commas',
+		'add_or_remove_items'		=> 'Add or remove donors',
+		'choose_from_most_used'		=> 'Choose from the most used donors',
+		'not_found'					=> 'No donors found.',
+		'menu_name'					=> 'Donors',
 	);
 	
 	$args = array(
-		'hierarchical'		  => false,
+		'hierarchical'			=> false,
 		'labels'				=> $labels,
-		'show_ui'			   => true,
-		'show_admin_column'	 => true,
-		'update_count_callback' => '_update_post_term_count',
-		'query_var'			 => true,
-		'rewrite' => array('slug' => apply_filters( 'wp_lib_prefix_url', 'wp_lib_donors_slug', 'donors' ) ),
+		'show_ui'				=> true,
+		'show_admin_column'		=> true,
+		'update_count_callback'	=> '_update_post_term_count',
+		'query_var'				=> true,
+		'rewrite'				=> array('slug' => apply_filters( 'wp_lib_prefix_url', 'wp_lib_donors_slug', 'donors' ) ),
 	);
 
 	register_taxonomy( 'wp_lib_donor', 'wp_lib_items', $args );
 
 	// Registers Taxonomy: Members - People who borrow items from the library
 	$labels = array(
-		'name'					   => _x( 'Members', 'taxonomy general name' ),
-		'singular_name'			  => _x( 'Member', 'taxonomy singular name' ),
-		'search_items'			   => __( 'Search Donors' ),
-		'popular_items'			  => __( 'Popular Donors' ),
-		'all_items'				  => __( 'All Donors' ),
-		'parent_item'				=> null,
-		'parent_item_colon'		  => null,
-		'edit_item'				  => __( 'Edit Member' ),
-		'update_item'				=> __( 'Update Member' ),
-		'add_new_item'			   => __( 'Add New Member' ),
-		'new_item_name'			  => __( 'New Member Name' ),
-		'separate_items_with_commas' => __( 'Separate members with commas' ),
-		'add_or_remove_items'		=> __( 'Add or remove members' ),
-		'choose_from_most_used'	  => __( 'Choose from the most used members' ),
-		'not_found'				  => __( 'No members found.' ),
-		'menu_name'				  => __( 'Members' ),
+		'name'						=> 'Members',
+		'singular_name'				=> 'Member',
+		'search_items'				=> 'Search Members',
+		'popular_items'				=> 'Popular Members',
+		'all_items'					=> 'All Members',
+		'edit_item'					=> 'Edit Member',
+		'update_item'				=> 'Update Member',
+		'add_new_item'				=> 'Add New Member',
+		'new_item_name'				=> 'New Member Name',
+		'separate_items_with_commas'=> 'Separate members with commas',
+		'add_or_remove_items'		=> 'Add or remove members',
+		'choose_from_most_used'		=> 'Choose from the most used members',
+		'not_found'					=> 'No members found.',
+		'menu_name'					=> 'Members',
 	);
 	
 	$args = array(
-		'hierarchical'		  => false,
+		'hierarchical'			=> false,
 		'labels'				=> $labels,
-		'show_ui'			   => true,
-		'show_admin_column'	 => true,
-		'update_count_callback' => '_update_post_term_count',
-		'query_var'			 => true,
-		'rewrite' => array('slug' => apply_filters( 'wp_lib_prefix_url', 'wp_lib_members_slug', 'members' ) ),
+		'show_ui'				=> true,
+		'show_admin_column'		=> true,
+		'update_count_callback'	=> '_update_post_term_count',
+		'query_var'				=> true,
+		'rewrite'				=> array('slug' => apply_filters( 'wp_lib_prefix_url', 'wp_lib_members_slug', 'members' ) ),
 	);
 
 	register_taxonomy( 'wp_lib_member', 'wp_lib_items', $args );
@@ -284,7 +278,7 @@ function wp_lib_fill_item_table( $column, $post_id ) {
 	// Displays the current status of the item (On Loan/Available/Late)
 	if ( $column == 'item_status' )
 		echo wp_lib_prep_item_available( $post_id, false, true );
-	// Displays the condition of the item
+		// Displays the condition of the item
 	elseif ( $column == 'item_condition' )
 		echo get_post_meta( $post_id, 'wp_lib_item_condition', true );
 }
@@ -299,8 +293,8 @@ function wp_lib_modify_loans_table( $columns ) {
 		'loan_item'			=> 'Item',
 		'loan_member'		=> 'Member',
 		'loan_status'		=> 'Status',
-		'loan_created'		=> 'Created',
-		'loan_expected'		=> 'Expected',
+		'loan_start'		=> 'Loaned',
+		'loan_end'			=> 'Expected',
 		'loan_returned'		=> 'Returned',
 	);
 	
@@ -375,14 +369,14 @@ function wp_lib_fill_loans_table( $column, $loan_id ) {
 		}
 	}
 	// Displays date item was loaned
-	elseif ( $column == 'loan_created' )
-		echo wp_lib_process_date_column( $loan_id, 'wp_lib_start_date' );
+	elseif ( $column == 'loan_start' )
+		echo wp_lib_prep_date_column( $loan_id, 'wp_lib_start_date' );
 	// Displays date item should be returned by
-	elseif ( $column == 'loan_expected' )
-		echo wp_lib_process_date_column( $loan_id, 'wp_lib_due_date' );
+	elseif ( $column == 'loan_end' )
+		echo wp_lib_prep_date_column( $loan_id, 'wp_lib_end_date' );
 	// Displays date item was actually returned
 	elseif ( $column == 'loan_returned' )
-		echo wp_lib_process_date_column( $loan_id, 'wp_lib_end_date' );
+		echo wp_lib_prep_date_column( $loan_id, 'wp_lib_returned_date' );
 }
 
 // Add custom columns to wp-admin fines table and removes unneeded ones
@@ -652,6 +646,14 @@ function wp_lib_modify_image_box() {
 function wp_lib_admin_init(){
 	wp_register_style( 'wp_lib_dashboard', plugins_url('/css/admin-dashboard.css', __FILE__) );
 }
+
+// Flushes permalink rules to avoid 404s, used after plugin activation and any Settings change
+function wp_lib_refresh_permalinks() {
+	$wp_rewrite->flush_rules( $hard );
+}
+
+// Hooks permalink refreshing to plugin activation so that custom post types don't 404
+register_activation_hook( __FILE__, 'wp_lib_refresh_permalinks' );
 
 // Adds plugin url to front of string (e.g. authors -> library/authors)
 add_filter( 'wp_lib_prefix_url', 'wp_lib_prefix_url', 10, 2 );
