@@ -31,7 +31,6 @@ function wp_lib_create_post_types() {
 			'edit'				=> 'Edit',
 			'edit_item'			=> 'Edit Library Item',
 			'new_item'			=> 'New Library Item',
-			'view'				=> 'View',
 			'view_item'			=> 'View Library Item',
 			'search_items'		=> 'Search Library Items',
 			'not_found'			=> 'No Library Items found',
@@ -59,7 +58,6 @@ function wp_lib_create_post_types() {
 			'edit'				=> 'Edit',
 			'edit_item'			=> 'Edit Loan',
 			'new_item'			=> 'New Loan',
-			'view'				=> 'View',
 			'view_item'			=> 'View Loan',
 			'search_items'		=> 'Search Loans',
 			'not_found'			=> 'No Loans found',
@@ -87,7 +85,6 @@ function wp_lib_create_post_types() {
 			'edit'				=> 'Edit',
 			'edit_item'			=> 'Edit Fine',
 			'new_item'			=> 'New Fine',
-			'view'				=> 'View',
 			'view_item'			=> 'View Fine',
 			'search_items'		=> 'Search Fines',
 			'not_found'			=> 'No Fines found',
@@ -269,18 +266,26 @@ function wp_lib_modify_item_table( $columns ) {
 		'item_status'		=> 'Loan Status',
 		'item_condition'	=> 'Item Condition',
 	);
+	
+	// Adds new columns between existing ones
 	$columns = array_slice( $columns, 0, 5, true ) + $new_columns + array_slice( $columns, 5, NULL, true );
+	
 	return $columns;
 }
 
 // Adds data to custom columns in item table
 function wp_lib_fill_item_table( $column, $post_id ) {
-	// Displays the current status of the item (On Loan/Available/Late)
-	if ( $column == 'item_status' )
-		echo wp_lib_prep_item_available( $post_id, false, true );
+	switch ( $column ) {
+		// Displays the current status of the item (On Loan/Available/Late)
+		case 'item_status':
+			echo wp_lib_prep_item_available( $post_id, false, true );
+		break;
+		
 		// Displays the condition of the item
-	elseif ( $column == 'item_condition' )
-		echo get_post_meta( $post_id, 'wp_lib_item_condition', true );
+		case 'item_condition':
+			echo get_post_meta( $post_id, 'wp_lib_item_condition', true );
+		break;
+	}
 }
 
 // Add custom columns to wp-admin loans table and removes unneeded ones
@@ -305,78 +310,88 @@ function wp_lib_modify_loans_table( $columns ) {
 
 // Adds data to custom columns in loans table
 function wp_lib_fill_loans_table( $column, $loan_id ) {
-	// Displays title of loaned item with link to view item
-	if ( $column == 'loan_item' ){
-		// Fetches item ID from loan meta
-		$item_id = get_post_meta( $loan_id, 'wp_lib_item', true );
-		
-		// Fetches item title
-		$title = get_the_title( $item_id );
-		
-		// If item has been deleted, fetch item title from loan meta
-		if ( !$title ) {
-			echo get_post_meta( $loan_id, 'wp_lib_archive', true )['item-name'] . ' (item deleted)';
-			return;
-		}
-		
-		// Fetches link to item
-		$url = wp_lib_format_manage_item( $item_id );
-		
-		echo "<a href=\"{$url}\">{$title}</a>";
-	}
-	// Displays member that item has been loaned to
-	elseif ( $column == 'loan_member' ) {
-		// Fetches member ID from loan taxonomy
-		$member_id = get_the_terms( $loan_id, 'wp_lib_member' )[0]->term_id;
-		
-		// Fetches member object using member ID
-		$member = get_term_by( 'id', $member_id, 'wp_lib_member' );
-		
-		// If member does not exist (has been deleted), fetch archived member data from loan
-		if ( !$member )
-			echo get_post_meta( $loan_id, 'wp_lib_archive', true )['member-name'] . ' (member deleted)';
-		// If $member isn't False, member has been found with that ID
-		else {
-			// Constructs url to view/manage the member
-			$url = wp_lib_format_manage_member( $member->term_id );
+	switch ( $column ) {
+		// Displays title of loaned item with link to view item
+		case 'loan_item':
+			// Fetches item ID from loan meta
+			$item_id = get_post_meta( $loan_id, 'wp_lib_item', true );
 			
-			// Displays member name with link to view member in Library Dashboard
-			echo "<a href=\"{$url}\">{$member->name}</a>";
-		}
-	}
-	// Displays loan status (Open/Closed)
-	elseif ( $column == 'loan_status' ) {
-		// Fetches status from loan meta
-		$status = get_post_meta( $loan_id, 'wp_lib_status', true );
-		
-		// Formats status
-		$status_formatted = wp_lib_format_loan_status( $status );
-		
-		// If loan status indicates a fine was charged
-		if ( $status == 4 ){
-			// Fetches fine ID from loan meta
-			$fine_id = get_post_meta( $loan_id, 'wp_lib_fine', true );
+			// Fetches item title
+			$title = get_the_title( $item_id );
 			
-			// Composes url to manage fine
-			$url = wp_lib_format_manage_fine( $fine_id );
+			// If item has been deleted, fetch item title from loan meta
+			if ( !$title ) {
+				echo get_post_meta( $loan_id, 'wp_lib_archive', true )['item-name'] . ' (item deleted)';
+				return;
+			}
 			
-			// Creates and displays hyperlink
-			echo "<a href=\"{$url}\">{$status_formatted}</a>";
-		}
-		else {
-			// Otherwise displays status (no hyperlink)
-			echo $status_formatted;
-		}
+			// Fetches link to item
+			$url = wp_lib_format_manage_item( $item_id );
+			
+			echo "<a href=\"{$url}\">{$title}</a>";
+		break;
+		
+		// Displays member that item has been loaned to
+		case 'loan_member':
+			// Fetches member ID from loan taxonomy
+			$member_id = get_the_terms( $loan_id, 'wp_lib_member' )[0]->term_id;
+			
+			// Fetches member object using member ID
+			$member = get_term_by( 'id', $member_id, 'wp_lib_member' );
+			
+			// If member does not exist (has been deleted), fetch archived member data from loan
+			if ( !$member )
+				echo get_post_meta( $loan_id, 'wp_lib_archive', true )['member-name'] . ' (member deleted)';
+			// If $member isn't False, member has been found with that ID
+			else {
+				// Constructs url to view/manage the member
+				$url = wp_lib_format_manage_member( $member->term_id );
+				
+				// Displays member name with link to view member in Library Dashboard
+				echo "<a href=\"{$url}\">{$member->name}</a>";
+			}
+		break;
+		
+		// Displays loan status (Open/Closed)
+		case 'loan_status':
+			// Fetches status from loan meta
+			$status = get_post_meta( $loan_id, 'wp_lib_status', true );
+			
+			// Formats status
+			$status_formatted = wp_lib_format_loan_status( $status );
+			
+			// If loan status indicates a fine was charged
+			if ( $status == 4 ){
+				// Fetches fine ID from loan meta
+				$fine_id = get_post_meta( $loan_id, 'wp_lib_fine', true );
+				
+				// Composes url to manage fine
+				$url = wp_lib_format_manage_fine( $fine_id );
+				
+				// Creates and displays hyperlink
+				echo "<a href=\"{$url}\">{$status_formatted}</a>";
+			}
+			else {
+				// Otherwise displays status (no hyperlink)
+				echo $status_formatted;
+			}
+		break;
+		
+		// Displays date item was loaned
+		case 'loan_start':
+			echo wp_lib_prep_date_column( $loan_id, 'wp_lib_start_date' );
+		break;
+		
+		// Displays date item should be returned by
+		case 'loan_end':
+			echo wp_lib_prep_date_column( $loan_id, 'wp_lib_end_date' );
+		break;
+		
+		// Displays date item was actually returned
+		case 'loan_returned':
+			echo wp_lib_prep_date_column( $loan_id, 'wp_lib_returned_date' );
+		break;
 	}
-	// Displays date item was loaned
-	elseif ( $column == 'loan_start' )
-		echo wp_lib_prep_date_column( $loan_id, 'wp_lib_start_date' );
-	// Displays date item should be returned by
-	elseif ( $column == 'loan_end' )
-		echo wp_lib_prep_date_column( $loan_id, 'wp_lib_end_date' );
-	// Displays date item was actually returned
-	elseif ( $column == 'loan_returned' )
-		echo wp_lib_prep_date_column( $loan_id, 'wp_lib_returned_date' );
 }
 
 // Add custom columns to wp-admin fines table and removes unneeded ones
@@ -399,63 +414,69 @@ function wp_lib_modify_fines_table( $columns ) {
 
 // Adds data to custom columns in fines table
 function wp_lib_fill_fines_table( $column, $fine_id ) {
-	// Displays title of item fine is for with link to view item
-	if ( $column == 'fine_item' ){
-		// Fetches item ID from loan meta
-		$item_id = get_post_meta( $fine_id, 'wp_lib_item', true );
-		
-		// Fetches item title
-		$title = get_the_title( $item_id );
-		
-		// If item has been deleted, fetch item title from fine meta
-		if ( !$title ) {
-			echo get_post_meta( $fine_id, 'wp_lib_archive', true )['item-name'] . ' (item deleted)';
-			return;
-		}
-		
-		// Fetches link to item
-		$url = wp_lib_format_manage_item( $item_id );
-		
-		echo "<a href=\"{$url}\">{$title}</a>";
-	}
-	// Displays member that has been fined
-	elseif ( $column == 'fine_member' ) {
-		// Fetches member ID from fine taxonomy
-		$member_id = get_the_terms( $fine_id, 'wp_lib_member' )[0]->term_id;
-		
-		// Fetches member object using member ID
-		$member = get_term_by( 'id', $member_id, 'wp_lib_member' );
-		
-		// If member does not exist (has been deleted), fetch archived member data from fine
-		if ( !$member )
-			echo get_post_meta( $fine_id, 'wp_lib_archive', true )['member-name'] . ' (member deleted)';
-		else {
-			// Constructs url to view/manage the member
-			$url = wp_lib_format_manage_member( $member->term_id );
+	switch ( $column ) {
+		// Displays title of item fine is for with link to view item
+		case 'fine_item':
+			// Fetches item ID from loan meta
+			$item_id = get_post_meta( $fine_id, 'wp_lib_item', true );
 			
-			// Displays member name with link to view member in Library Dashboard
-			echo "<a href=\"{$url}\">{$member->name}</a>";
-		}
-	}
-	elseif ( $column == 'fine_amount' ) {
-		// Fetches fine amount from fine's post meta
-		$fine = get_post_meta( $fine_id, 'wp_lib_fine', true );
+			// Fetches item title
+			$title = get_the_title( $item_id );
+			
+			// If item has been deleted, fetch item title from fine meta
+			if ( !$title ) {
+				echo get_post_meta( $fine_id, 'wp_lib_archive', true )['item-name'] . ' (item deleted)';
+				return;
+			}
+			
+			// Fetches link to item
+			$url = wp_lib_format_manage_item( $item_id );
+			
+			echo "<a href=\"{$url}\">{$title}</a>";
+		break;
 		
-		// Formats fine with local currency and displays it
-		echo wp_lib_format_money( $fine );
-	}
-	elseif ( $column == 'fine_status' ) {
-		// Fetches fine status from post meta
-		$status = get_post_meta( $fine_id, 'wp_lib_status', true );
+		// Displays member that has been fined
+		case 'fine_member':
+			// Fetches member ID from fine taxonomy
+			$member_id = get_the_terms( $fine_id, 'wp_lib_member' )[0]->term_id;
+			
+			// Fetches member object using member ID
+			$member = get_term_by( 'id', $member_id, 'wp_lib_member' );
+			
+			// If member does not exist (has been deleted), fetch archived member data from fine
+			if ( !$member )
+				echo get_post_meta( $fine_id, 'wp_lib_archive', true )['member-name'] . ' (member deleted)';
+			else {
+				// Constructs url to view/manage the member
+				$url = wp_lib_format_manage_member( $member->term_id );
+				
+				// Displays member name with link to view member in Library Dashboard
+				echo "<a href=\"{$url}\">{$member->name}</a>";
+			}
+		break;
+
+		case 'fine_amount':
+			// Fetches fine amount from fine's post meta
+			$fine = get_post_meta( $fine_id, 'wp_lib_fine', true );
+			
+			// Formats fine with local currency and displays it
+			echo wp_lib_format_money( $fine );
+		break;
 		
-		// Composes url to manage the fine
-		$url = wp_lib_format_manage_fine( $fine_id );
 		
-		// Turns numerical status into readable string e.g. 1 -> 'Unpaid'
-		$status = wp_lib_format_fine_status( $status );
-		
-		// Gets fine status in a readable format and displays it
-		echo "<a href=\"{$url}\">{$status}</a>";
+		case 'fine_status':
+			// Fetches fine status from post meta
+			$status = get_post_meta( $fine_id, 'wp_lib_status', true );
+			
+			// Composes url to manage the fine
+			$url = wp_lib_format_manage_fine( $fine_id );
+			
+			// Turns numerical status into readable string e.g. 1 -> 'Unpaid'
+			$status = wp_lib_format_fine_status( $status );
+			
+			// Gets fine status in a readable format and displays it
+			echo "<a href=\"{$url}\">{$status}</a>";
+		break;
 	}
 }
 

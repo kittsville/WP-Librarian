@@ -402,17 +402,17 @@ function wp_lib_fetch_loan( $item_id, $date = false ) {
 			}
 		}
 	}
-	
+	wp_lib_var_dump( $loan_id );
 	// Validates loan ID
 	if ( !is_numeric( $loan_id ) )
 		wp_lib_error( 402, true );
-	
+
 	// Checks if loan with that ID actually exists
 	if ( get_post_status( $loan_id ) == false ) {
 		wp_lib_clean_item( $item_id );
 		wp_lib_error( 403, true );
 	}
-		
+	
 	return $loan_id;
 }
 
@@ -434,8 +434,8 @@ function wp_lib_loan_item( $item_id, $member_id, $loan_length = false ) {
 	// Sets end date to current date + loan length
 	$end_date = $start_date + ( $loan_length * 24 * 60 * 60);
 	
-	// Schedules loan
-	wp_lib_schedule_loan( $item_id, $member_id, $start_date, $end_date );
+	// Schedules loan, returns loan's ID on success
+	$loan_id = wp_lib_schedule_loan( $item_id, $member_id, $start_date, $end_date );
 	
 	// Passes item to member
 	wp_lib_give_item( $item_id, $loan_id, $member_id );
@@ -546,6 +546,7 @@ function wp_lib_schedule_loan( $item_id, $member_id, $start_date, $end_date ) {
 	add_post_meta( $loan_id, 'wp_lib_item', $item_id );
 	add_post_meta( $loan_id, 'wp_lib_status', 5 );
 	
+	return $loan_id;
 }
 
 // Represents the physical passing of the item from Library to Member. Item is registered as outside the library and relevant meta is updated
@@ -599,7 +600,7 @@ function wp_lib_return_item( $item_id, $date = false, $no_fine = false ) {
 		if ( !$key )
 			wp_lib_error( 203, true );
 			
-		// Loan index is updated with item's actual return date 
+		// Loan index is updated with item's actual date of return
 		$loan_index[$key]['end'] = $date;
 		
 		// Updated loan index is saved to item meta
@@ -1020,11 +1021,14 @@ function wp_lib_fetch_member_name( $post_id, $hyperlink = true, $array = false, 
 // Cancels loan of item that has a since corrupted loan attached to it
 // This function should not be called under regular operation and should definitely not used to return an item
 function wp_lib_clean_item( $item_id ){
-// Clears item's Member taxonomy
-wp_delete_object_term_relationships( $item_id, 'wp_lib_member' );
+	// Checks if given ID is valid
+	wp_lib_check_item_id( $item_id );
 
-// Removes loan ID from item meta
-delete_post_meta($item_id, 'wp_lib_loan_id' );
+	// Clears item's Member taxonomy
+	wp_delete_object_term_relationships( $item_id, 'wp_lib_member' );
+
+	// Removes loan ID from item meta
+	delete_post_meta($item_id, 'wp_lib_loan_id' );
 }
 
 // Sanitizes phone number
@@ -1078,7 +1082,7 @@ function wp_lib_error( $error_id, $die = false, $param = 'PARAM NOT GIVEN' ) {
 		112 => 'Insufficient permission',
 		200 => 'No instructions known for given action',
 		201 => "No {$param} status found for given value",
-		202 => 'Loans do not have a management page',
+		202 => 'Loans do not have management pages, but I appreciate your curiosity!',
 		203 => 'Loan not found in item\'s loan index',
 		301 => "{$param} ID failed to validate (not an integer)",
 		302 => 'No loans found for that item ID',
