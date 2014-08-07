@@ -4,7 +4,6 @@ $page = $_GET['item_page']; // The requested page ( e.g. fine management page )
 $item_id = $_GET['item_id']; // The item's ID
 $member_id = $_GET['member_id']; // The ID of the member loaning/returning the item
 $fine_id = $_GET['fine_id']; // The ID of the fine being managed
-$date = $_GET['item_time']; // The time the item was returned (if an item was returned a few days ago)
 $start_date = $_GET['loan_start_date']; // When an item is to start being loaned
 $end_date = $_GET['loan_end_date']; // When a loan of an item should have ended by
 $length = $_GET['loan_length']; // The length of the loan
@@ -13,33 +12,14 @@ $length = $_GET['loan_length']; // The length of the loan
 <div class="wrap wp-lib-domain">
 <?php
 
-	/* -- GET Variable Validation -- */
-	/* Checks if the IDs belong to valid objects of their type */
-
-// If Item ID is given, validate
-if ( $item_id )
-	wp_lib_check_item_id( $item_id );
-	
-// If Member ID is given, validate
-if ( $member_id )
-	wp_lib_check_member_id( $member_id );
-
-// If Fine ID is given, validate
-if ( $fine_id )
-	wp_lib_check_fine_id( $fine_id );
-	
-// If time is not given, it is set to false
-if ( !is_numeric( $date ) )
-	wp_lib_prep_date( $date );
-	
-	/* -- GET Variable Sanitization -- */
-	/* Converts any parameters to necessary formats */
+	/* -- Date Sanitization -- */
+	/* Converts dates to Unix timestamps if specified */
 
 if ( $start_date )
-	$start_time = strtotime( $start_date );
+	wp_lib_convert_date( $start_date );
 
 if ( $end_date )
-	$end_time = strtotime( $end_date );
+	wp_lib_convert_date( $end_date );
 
 	/* -- Item actions -- */
 	/* Used to decide what, if anything, the user is aiming to do */
@@ -47,55 +27,70 @@ if ( $end_date )
 switch ( $action ) {
 	// Once the member and item have been chosen the item can be loaned
 	case 'loan':
+		wp_lib_check_item_id( $item_id );
+		wp_lib_check_member_id( $member_id );
 		wp_lib_loan_item( $item_id, $member_id, $loan_length );
 	break;
 	
 	// To create loans in the future
 	case 'schedule':
+		wp_lib_check_item_id( $item_id );
 		wp_lib_render_schedule_loan( $item_id );
 		exit();
 	break;
 	
-	// Passes parameters for scheduling loan to relevant function
+	// Schedules a loan of an item, note that the item will be physically given at a later date
 	case 'schedule-loan':
-		wp_lib_schedule_loan( $item_id, $member_id, $start_time, $end_time );
+		wp_lib_check_item_id( $item_id );
+		wp_lib_check_member_id( $member_id );
+		wp_lib_schedule_loan_wrapper( $item_id, $member_id, $start_time, $end_time );
 	break;
 	
 	// When an item is to be returned (member need not be provided as the item/load contains that data)
 	case 'return':
-		wp_lib_return_item( $item_id, $date );
+		wp_lib_check_item_id( $item_id );
+		wp_lib_prep_date( $end_date );
+		wp_lib_return_item( $item_id, $end_date );
 	break;
 	
 	// When a late item needs to be resolved
 	case 'resolve':
-		wp_lib_render_resolution( $item_id, $date );
+		wp_lib_check_item_id( $item_id );
+		wp_lib_prep_date( $end_date );
+		wp_lib_render_resolution( $item_id, $end_date );
 		exit();
 	break;
 	
 	// If member is to be fined for late item
 	case 'fine':
-		wp_lib_create_fine( $item_id, $date );
+		wp_lib_check_item_id( $item_id );
+		wp_lib_prep_date( $end_date );
+		wp_lib_create_fine( $item_id, $end_date );
 	break;
 	
-	// If an item is late but will be returned with no fine
+	// If an item is late but the Librarian doesn't wish to fine the member
 	case 'no-fine':
-		wp_lib_return_item( $item_id, $time, true );
+		wp_lib_check_item_id( $item_id );
+		wp_lib_return_item( $item_id, false, true );
 	break;
 	
 	// When an item is to be managed (Loaned/Returned/Marked as lost)
 	case 'manage-item':
+		wp_lib_check_item_id( $item_id );
 		wp_lib_manage_item( $item_id );
 		exit();
 	break;
 	
 	// When a member is to be managed
 	case 'manage-member':
+		wp_lib_check_member_id( $member_id );
 		wp_lib_manage_member( $member_id );
 		exit();
 	break;
 	
 	// When a fine is to be managed
 	case 'manage-fine':
+		wp_lib_check_fine_id( $fine_id );
 		wp_lib_manage_fine( $fine_id );
 		exit();
 	break;
@@ -107,16 +102,19 @@ switch ( $action ) {
 	
 	// When user wants to mark a fine as paid
 	case 'resolve-fine':
+		wp_lib_check_fine_id( $fine_id );
 		wp_lib_charge_fine( $fine_id );
 	break;
 	
 	// When a user wants to revert a fine's status from Paid to Unpaid
 	case 'revert-fine':
+		wp_lib_check_fine_id( $fine_id );
 		wp_lib_revert_fine( $fine_id );
 	break;
 	
 	// When a user wants to cancel a fine
 	case 'cancel-fine':
+		wp_lib_check_fine_id( $fine_id );
 		wp_lib_cancel_fine( $fine_id );
 	break;
 	
@@ -233,7 +231,7 @@ function wp_lib_render_schedule_loan( $item_id ) {
 	$start_date = Date( 'Y-m-d' );
 	
 	// Adds default loan length to current date
-	$time = time() + ( get_option( 'wp_lib_loan_length', 12 ) * 24 * 60 * 60);
+	$time = current_time( 'timestamp' ) + ( get_option( 'wp_lib_loan_length', 12 ) * 24 * 60 * 60);
 	
 	// Formats placeholder loan end date (current date + default loan length)
 	$end_date = Date( 'Y-m-d', $time );

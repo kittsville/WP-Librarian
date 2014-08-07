@@ -179,7 +179,7 @@ function wp_lib_loanable( $item_id, $start_date = false, $end_date = false ) {
 // If a date is false, sets to current date
 function wp_lib_prep_date( &$date ) {
 	if ( !$date )
-		$date = time();
+		$date = current_time( 'timestamp' );
 }
 
 // Looks in the gaps between ranges (loan dates) to see if the proposed loan would fit there.
@@ -236,6 +236,10 @@ function wp_lib_fetch_loan_position( $loan_index, $loan_id ) {
 
 // Validates member ID
 function wp_lib_check_member_id( $member_id ) {
+	// Checks if member ID exists
+	if ( !$member_id )
+		wp_lib_error( 300, true, 'Member' );
+
 	// Checks if member_id is valid. Kills script if not
 	if ( !is_numeric( $member_id ) )
 		wp_lib_error( 301, true, 'Member' );
@@ -252,7 +256,11 @@ function wp_lib_check_member_id( $member_id ) {
 
 // Validates item ID
 function wp_lib_check_item_id( $item_id ) {
-	// Checks if ID is actually a number
+	// Checks if item ID exists
+	if ( !$item_id )
+		wp_lib_error( 300, true, 'Item' );
+
+	// Checks if ID is a number
 	if ( !is_numeric( $item_id ) )
 		wp_lib_error( 301, true, 'Item' );
 		
@@ -268,6 +276,10 @@ function wp_lib_check_item_id( $item_id ) {
 
 // Validates loan ID
 function wp_lib_check_loan_id( $loan_id ) {
+	// Checks if loan ID exists
+	if ( !$loan_id )
+		wp_lib_error( 300, true, 'Loan' );
+	
 	// Checks if ID is actually a number
 	if ( !is_numeric( $loan_id ) )
 		wp_lib_error( 301, true, 'Loan' );
@@ -279,7 +291,12 @@ function wp_lib_check_loan_id( $loan_id ) {
 	return $loan_id;
 }
 
+// Validates fine ID
 function wp_lib_check_fine_id( $fine_id ){
+	// Checks if fine ID exists
+	if ( !$fine_id )
+		wp_lib_error( 300, true, 'Fine' );
+	
 	// Checks if ID is actually a number
 	if ( !is_numeric( $fine_id ) )
 		wp_lib_error( 301, true, 'Fine' );
@@ -289,6 +306,19 @@ function wp_lib_check_fine_id( $fine_id ){
 		wp_lib_error( 308, true );
 
 	return $fine_id;
+}
+
+// Validates given date, checking if it meets any given requirements
+function wp_lib_convert_date( &$date ) {
+	// Attempts to convert date into Unix timestamp
+	$date = strtotime( $date );
+	
+	// If conversion is successful, return date
+	if ( $date )
+		return $date;
+	
+	// Otherwise return false
+	return false;
 }
 
 // Calculates days until item needs to be returned, returns negative if item is late
@@ -402,7 +432,7 @@ function wp_lib_fetch_loan( $item_id, $date = false ) {
 			}
 		}
 	}
-	wp_lib_var_dump( $loan_id );
+	
 	// Validates loan ID
 	if ( !is_numeric( $loan_id ) )
 		wp_lib_error( 402, true );
@@ -425,7 +455,7 @@ function wp_lib_loan_item( $item_id, $member_id, $loan_length = false ) {
 	wp_lib_check_member_id( $member_id );
 	
 	// Sets start date to current date
-	$start_date = time();
+	$start_date = current_time( 'timestamp' );
 	
 	// If loan length wasn't given, use default loan length
 	if ( !$loan_length )
@@ -450,16 +480,43 @@ function wp_lib_loan_item( $item_id, $member_id, $loan_length = false ) {
 	$GLOBALS[ 'wp_lib_notification_buffer' ][] = "Loan of {$title} to {$member->name} was successful!";
 }
 
-// Schedules a loan, without actually giving the item to the member
-// If $start_date is not set loan is from current date
-// If $end_date is not set loan will be the default length (option 'wp_lib_loan_length')
-function wp_lib_schedule_loan( $item_id, $member_id, $start_date, $end_date ) {
+function wp_lib_schedule_loan_wrapper( $item_id, $member_id, $start_date, $end_date ) {
 	// Checks if $item_id is valid
 	wp_lib_check_item_id( $item_id );
 	
 	// Checks if given member ID is valid
 	wp_lib_check_member_id( $member_id );
+	
+	// If start date is invalid, sets to current date
+	wp_lib_prep_date( $start_date );
+	
+	// If end date is invalid, sets to current time + default loan length
+	if ( $end_date ) {
+		// Fetches default loan length and converts to seconds
+		$loan_length = $loan_length = ( get_option( 'wp_lib_loan_length', 12 ) * 24 * 60 * 60);
+		
+		// Adds default loan length to loan start date
+		$end_date = $start_date + $loan_length;
+	}
+	
+	// If loan starts before it sends or ends before current time, calls the Doctor, also an error
+	if ( $start_date > $end_date || $end_date < current_time( 'timestamp' ) )
+		wp_lib_error( 307, true );
+		
+	// Schedules loan of item
+	wp_lib_schedule_loan( $item_id, $member_id, $start_date, $end_date );
+	
+	// Fetches item title
+	$title = get_the_title( $item_id );
+	
+	// Notifies user of successful loan
+	$GLOBALS[ 'wp_lib_notification_buffer' ][] = "{$title} has been scheduled to be loaned";
+}
 
+// Schedules a loan, without actually giving the item to the member
+// If $start_date is not set loan is from current date
+// If $end_date is not set loan will be the default length (option 'wp_lib_loan_length')
+function wp_lib_schedule_loan( $item_id, $member_id, $start_date, $end_date ) {
 	// Checks if item can actually be loaned
 	if ( !wp_lib_loanable( $item_id, $start_date, $end_date ) )
 		wp_lib_error( 401, true );
@@ -565,7 +622,7 @@ function wp_lib_give_item( $item_id, $loan_id, $member_id ) {
 	add_post_meta( $item_id, 'wp_lib_loan_id', $loan_id );
 	
 	// Sets date item was loaned
-	add_post_meta( $loan_id, 'wp_lib_loaned_date', time() );
+	add_post_meta( $loan_id, 'wp_lib_loaned_date', current_time( 'timestamp' ) );
 }
 
 // Returns a loaned item, allowing it to be re-loaned. The opposite of wp_lib_give_item
@@ -575,7 +632,7 @@ function wp_lib_return_item( $item_id, $date = false, $no_fine = false ) {
 	
 	// Fetches loan ID using item ID
 	$loan_id = wp_lib_fetch_loan( $item_id );
-	
+
 	// Checks if item as actually on loan
 	if ( get_post_meta( $loan_id, 'wp_lib_status', true ) != 1 )
 		wp_lib_error( 409, true );
@@ -595,9 +652,9 @@ function wp_lib_return_item( $item_id, $date = false, $no_fine = false ) {
 		
 		// Locates position of current loan in item's loan index
 		$key = wp_lib_fetch_loan_position( $loan_index, $loan_id );
-		
+
 		// If key was not found, call error
-		if ( !$key )
+		if ( $key === false )
 			wp_lib_error( 203, true );
 			
 		// Loan index is updated with item's actual date of return
@@ -1080,18 +1137,20 @@ function wp_lib_error( $error_id, $die = false, $param = 'PARAM NOT GIVEN' ) {
 		110 => 'DateTime neither positive or negative',
 		111 => 'Unexpected currency position',
 		112 => 'Insufficient permission',
-		200 => 'No instructions known for given action',
+		200 => 'Item action not recognised',
 		201 => "No {$param} status found for given value",
 		202 => 'Loans do not have management pages, but I appreciate your curiosity!',
 		203 => 'Loan not found in item\'s loan index',
-		301 => "{$param} ID failed to validate (not an integer)",
+		300 => "{$param} ID not given and required",
+		301 => "{$param} ID given is not a number",
 		302 => 'No loans found for that item ID',
 		304 => 'No member found with that ID',
 		305 => 'No valid item found with that ID, check if item is a draft or in the trash',
 		306 => 'No valid loan found with that ID',
-		307 => 'Given dates result in an impossible or impractical loan length',
+		307 => 'Given dates result in an impossible or impractical loan',
 		308 => 'No valid fine found with that ID',
 		309 => "Fine has unexpected status. Was expecting status {$param}",
+		310 => 'Given date not valid',
 		400 => 'Loan creation failed for unknown reason, sorry :/',
 		401 => 'Can not loan item, it is already on loan or not allowed to be loaned.<br/>This can happen if you have multiple tabs open or refresh the loan page after a loan has already been created.',
 		402 => 'Item not on loan (Loan ID not found in item meta)<br/>This can happen if you refresh the page having already returned an item',
