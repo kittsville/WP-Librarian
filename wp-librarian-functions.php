@@ -460,6 +460,9 @@ function wp_lib_loan_item( $item_id, $member_id, $loan_length = false ) {
 	// If loan length wasn't given, use default loan length
 	if ( !$loan_length )
 		$loan_length = get_option( 'wp_lib_loan_length', 12 );
+	// If loan length is not a positive integer, call error
+	elseif ( !ctype_digit( $loan_length ) )
+		wp_lib_error( 311, true );
 
 	// Sets end date to current date + loan length
 	$end_date = $start_date + ( $loan_length * 24 * 60 * 60);
@@ -510,7 +513,7 @@ function wp_lib_schedule_loan_wrapper( $item_id, $member_id, $start_date, $end_d
 	$title = get_the_title( $item_id );
 	
 	// Notifies user of successful loan
-	$GLOBALS[ 'wp_lib_notification_buffer' ][] = "{$title} has been scheduled to be loaned";
+	$GLOBALS[ 'wp_lib_notification_buffer' ][] = "A loan of {$title} has been scheduled";
 }
 
 // Schedules a loan, without actually giving the item to the member
@@ -630,6 +633,10 @@ function wp_lib_return_item( $item_id, $date = false, $no_fine = false ) {
 	// Sets date to current date, if unspecified
 	wp_lib_prep_date( $date );
 	
+	// Checks if date is in the past
+	if ( $date > time() )
+		wp_lib_error( 310, true );
+	
 	// Fetches loan ID using item ID
 	$loan_id = wp_lib_fetch_loan( $item_id );
 
@@ -644,55 +651,60 @@ function wp_lib_return_item( $item_id, $date = false, $no_fine = false ) {
 	$fined = get_post_meta( $loan_id, 'wp_lib_fine', true );
 	
 	// If item is late, a fine hasn't been charged and $no_fine isn't true, render fine resolution page
-	if ( $late && !$no_fine && !$fined )
+	if ( $late && !$no_fine && !$fined ) {
 		wp_lib_render_resolution( $item_id, $date );
-	else {
-		// Fetches loan index from item meta
-		$loan_index = wp_lib_fetch_loan_index( $item_id );
-		
-		// Locates position of current loan in item's loan index
-		$key = wp_lib_fetch_loan_position( $loan_index, $loan_id );
-
-		// If key was not found, call error
-		if ( $key === false )
-			wp_lib_error( 203, true );
-			
-		// Loan index is updated with item's actual date of return
-		$loan_index[$key]['end'] = $date;
-		
-		// Updated loan index is saved to item meta
-		update_post_meta( $item_id, 'wp_lib_loan_index', $loan_index );
-	
-		// Clears item's Member taxonomy
-		wp_delete_object_term_relationships( $item_id, 'wp_lib_member' );
-
-		// Removes loan ID from item meta
-		delete_post_meta($item_id, 'wp_lib_loan_id' );
-	
-		// Loan status is set according to if:
-		// Item was returned late and a fine was charged
-		if ( $fined )
-			$status = 4;
-		// Item was returned late but a fine was not charged
-		elseif ( $late )
-			$status = 3;
-		// Item was returned on time
-		else
-			$status = 2;
-		
-		// Sets loan status
-		update_post_meta( $loan_id, 'wp_lib_status', $status );
-
-		// Loan returned date set
-		// Note: The returned date is when the item is returned, the end date is when it is due back
-		add_post_meta( $loan_id, 'wp_lib_returned_date', $date );
-		
-		// Fetches item title
-		$title = get_the_title( $item_id );
-		
-		// Notifies user of item return
-		$GLOBALS[ 'wp_lib_notification_buffer' ][] = "{$title} has been returned successfully";
+		exit();
 	}
+	
+	// Fetches loan index from item meta
+	$loan_index = wp_lib_fetch_loan_index( $item_id );
+	
+	// Locates position of current loan in item's loan index
+	$key = wp_lib_fetch_loan_position( $loan_index, $loan_id );
+
+	// If key was not found, call error
+	if ( $key === false )
+		wp_lib_error( 203, true );
+		
+	// Checks if user is attempting to return item before it was loaned
+	if ( $loan_index[$key]['start'] > $date )
+		wp_lib_error( 310, true );
+		
+	// Loan index is updated with item's actual date of return
+	$loan_index[$key]['end'] = $date;
+	
+	// Updated loan index is saved to item meta
+	update_post_meta( $item_id, 'wp_lib_loan_index', $loan_index );
+
+	// Clears item's Member taxonomy
+	wp_delete_object_term_relationships( $item_id, 'wp_lib_member' );
+
+	// Removes loan ID from item meta
+	delete_post_meta($item_id, 'wp_lib_loan_id' );
+
+	// Loan status is set according to if:
+	// Item was returned late and a fine was charged
+	if ( $fined )
+		$status = 4;
+	// Item was returned late but a fine was not charged
+	elseif ( $late )
+		$status = 3;
+	// Item was returned on time
+	else
+		$status = 2;
+	
+	// Sets loan status
+	update_post_meta( $loan_id, 'wp_lib_status', $status );
+
+	// Loan returned date set
+	// Note: The returned date is when the item is returned, the end date is when it is due back
+	add_post_meta( $loan_id, 'wp_lib_returned_date', $date );
+	
+	// Fetches item title
+	$title = get_the_title( $item_id );
+	
+	// Notifies user of item return
+	$GLOBALS[ 'wp_lib_notification_buffer' ][] = "{$title} has been returned successfully";
 }
 
 // Allows users to view, manage or create loans from a central dashboard
@@ -702,6 +714,7 @@ function wp_lib_dashboard() {
 
 // Outputs any buffered notifications or errors then cleans URL before displaying the Library Dashboard
 function wp_lib_pre_dashboard() {
+
 	// Fetches notifications and errors
 	$notifications = $GLOBALS[ 'wp_lib_notification_buffer' ];
 	$errors = $GLOBALS[ 'wp_lib_error_buffer' ];
@@ -1151,6 +1164,7 @@ function wp_lib_error( $error_id, $die = false, $param = 'PARAM NOT GIVEN' ) {
 		308 => 'No valid fine found with that ID',
 		309 => "Fine has unexpected status. Was expecting status {$param}",
 		310 => 'Given date not valid',
+		311 => 'Given loan length invalid (not a valid number)',
 		400 => 'Loan creation failed for unknown reason, sorry :/',
 		401 => 'Can not loan item, it is already on loan or not allowed to be loaned.<br/>This can happen if you have multiple tabs open or refresh the loan page after a loan has already been created.',
 		402 => 'Item not on loan (Loan ID not found in item meta)<br/>This can happen if you refresh the page having already returned an item',

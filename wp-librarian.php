@@ -600,25 +600,6 @@ function wp_lib_process_member_meta_box( $member_id ) {
 	update_option( "wp_lib_tax_{$member_id}", $meta_array );
 }
 
-// Checks if a post is a loaned item before it gets trashed
-function wp_lib_check_post_pre_trash( $post_id ){
-	// Checks if post is an item
-	if ( get_post_type( $post_id ) != 'wp_lib_items' )
-		return $post_id;
-		
-	// Checks if item on loan
-	if ( !wp_lib_on_loan( $post_id ) )
-		return $post_id;
-	
-	// Put warning and exit here!
-	?>
-	<div class="error" >
-		<p>The item you are trying to trash in currently on loan! Please return the item then try again.</p>
-	</div>
-	<?php
-	exit();
-}
-
 // Removes unneeded meta boxes from item editing page
 function wp_lib_remove_meta_boxes() {
 	// Removes 'Member' taxonomy box
@@ -645,6 +626,11 @@ function wp_lib_enqueue_dashboard_styles() {
 	wp_enqueue_style( 'wp_lib_dashboard' );
 }
 
+// Enqueues JQuery for the Library Dashboard
+function wp_lib_enqueue_admin_scripts() {
+	wp_enqueue_script( 'jquery' );
+}
+
 // Renders settings page
 function wp_lib_render_settings() {
 	require_once( plugin_dir_path(__FILE__) . '/wp-librarian-admin-settings.php' );
@@ -655,7 +641,7 @@ function wp_lib_render_dashboard() {
 	require_once( plugin_dir_path(__FILE__) . '/wp-librarian-admin-loans.php' );
 }
 
-// Changes the Featured Image title, if the post type is a Library item
+// Changes the title of the 'Featured Image' box on the edit item page
 function wp_lib_modify_image_box() {
 	if ( $GLOBALS['post_type'] == 'wp_lib_items' ) {
 		global $wp_meta_boxes;
@@ -673,8 +659,31 @@ function wp_lib_refresh_permalinks() {
 	$wp_rewrite->flush_rules( $hard );
 }
 
+// Checks if an item is on loan and prevents deletion if it is
+function wp_lib_check_post_pre_trash( $post_id ) {
+	// If post is not an item, further checks are unnecessary
+	if ( $GLOBALS['post_type'] != 'wp_lib_items' )
+		return;
+	
+	// If item is not on loan, no action is needed
+	if ( !wp_lib_on_loan( $post_id ) )
+		return;
+	
+	// Fetches item title
+	$title = get_the_title( $post_id );
+	
+	// Redirects user to Library Dashboard
+	wp_redirect(admin_url("edit.php?post_type=wp_lib_items&page=dashboard&item_action=failed-deletion&item_id={$post_id}"));
+	
+	// Stops further execution to prevent post being deleted
+	exit();
+}
+
 // Hooks permalink refreshing to plugin activation so that custom post types don't 404
 register_activation_hook( __FILE__, 'wp_lib_refresh_permalinks' );
+
+// Hooks JQuery being enqueued on all WP-Admin dashboard pages
+add_action( 'admin_enqueue_scripts', 'wp_lib_enqueue_admin_scripts' );
 
 // Adds plugin url to front of string (e.g. authors -> library/authors)
 add_filter( 'wp_lib_prefix_url', 'wp_lib_prefix_url', 10, 2 );
