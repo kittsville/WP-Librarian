@@ -20,7 +20,7 @@ add_option( 'wp_lib_currency_position', 1 );
 
 /* Slugs - Sections of site urls used when accessing plugin pages e.g. my-site.com/wp-librarian */
 // The slug for library items
-add_option( 'wp_lib_slug', 'wp-librarian' );
+add_option( 'wp_lib_main_slug', 'wp-librarian' );
 
 // The slug for viewing authors
 add_option( 'wp_lib_authors_slug', 'authors' );

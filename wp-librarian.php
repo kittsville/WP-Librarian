@@ -44,7 +44,7 @@ function wp_lib_create_post_types() {
 		'taxonomies'	=> array( '' ),
 		'menu_icon'		=> 'dashicons-book-alt',
 		'has_archive'	=> true,
-		'rewrite'		=> array('slug' => get_option( 'wp_lib_slug', 'wp-librarian' ) ),
+		'rewrite'		=> array('slug' => get_option( 'wp_lib_main_slug', 'wp-librarian' ) ),
 	);
 	register_post_type( 'wp_lib_items', $args );
 	
@@ -609,16 +609,109 @@ function wp_lib_remove_meta_boxes() {
 	remove_meta_box( 'tagsdiv-wp_lib_donor', 'wp_lib_items', 'side' );
 }
 
-// Registers settings page and Management Dashboard
+// Registers Settings page and Management Dashboard
 function wp_lib_create_submenu_pages() {
-	// Adds settings page to Library submenu of wp-admin menu
-	add_submenu_page('edit.php?post_type=wp_lib_items', 'WP Librarian Settings', 'Settings', 'activate_plugins', 'settings', 'wp_lib_render_settings');
-	
+	if ( is_admin() )
+		// Adds settings page to Library submenu of wp-admin menu
+		add_submenu_page('edit.php?post_type=wp_lib_items', 'WP Librarian Settings', 'Settings', 'activate_plugins', 'wp-lib-settings', 'wp_lib_render_settings');
+
 	// Registers Library Dashboard and saves handle to variable
 	$page = add_submenu_page('edit.php?post_type=wp_lib_items', 'Library Dashboard', 'Dashboard', 'edit_post', 'dashboard', 'wp_lib_render_dashboard');
 	
 	// Hooks Dashboard css loading to Dashboard page hook
 	add_action( 'admin_print_styles-' . $page, 'wp_lib_enqueue_dashboard_styles' );
+}
+
+/* Settings API */
+
+add_action( 'admin_init', 'wp_lib_manage_settings' );
+
+// Sets up plugin settings
+function wp_lib_manage_settings() {
+	// Registers settings groups and their sanitization callbacks
+	add_settings_section( 'wp_lib_slug_group', 'Slugs', 'wp_lib_settings_slugs_section_callback', 'wp-lib-settings' );
+	
+	// All slugs settings parameters
+	$all_slugs = array(
+		array(
+			'id'	=> 'main-slug',
+			'name'	=> 'wp_lib_main_slug',
+			'title'	=> 'Main'
+		),
+		array(
+			'id'	=> 'authors-slug',
+			'name'	=> 'wp_lib_authors_slug',
+			'title'	=> 'Authors',
+			'end'	=> 'terry-pratchett'
+		),
+		array(
+			'id'	=> 'media-type-slug',
+			'name'	=> 'wp_lib_media_type_slug',
+			'title'	=> 'Media Type',
+			'end'	=> 'comic-books'
+		),
+		array(
+			'id'	=> 'donors-slug',
+			'name'	=> 'wp_lib_donors_slug',
+			'title'	=> 'Donors',
+			'end'	=> 'john-snow'
+		)
+	
+	);
+	
+	// Fetches site URL
+	$site_url = site_url();
+	
+	// Fetches main slug
+	$main_slug = get_option( 'wp_lib_main_slug', 'null' );
+	
+	// Creates settings field for each slug
+	foreach ( $all_slugs as $slug ) {
+		$slug['url'] = $site_url;
+		$slug['main'] = $main_slug;
+		add_settings_field( $slug['id'], $slug['title'], 'wp_lib_render_field_slug', 'wp-lib-settings', 'wp_lib_slug_group', $slug );
+	}
+	// Registers slugs with sanitization callback
+	register_setting( 'wp_lib_slug_group', 'main-slug', 'wp_lib_sanitize_settings_slugs' );
+}
+
+// Renders description of slug settings group
+function wp_lib_settings_slugs_section_callback() {
+	echo '<p>These form the URLs of the front end of your website</p>';
+}
+
+// Renders a single slug editing field from the slugs group
+function wp_lib_render_field_slug( $args ) {
+	// If the current slug is not the main slug, the slug's current value must be fetched
+	if ( $args['id'] != 'main-slug' )
+		$current_slug = get_option( $args['name'], 'null' );
+	// Otherwise current slug is main slug, so the option has already been fetched
+	else {
+		$current_slug = $args['main'];
+		$is_main = true;
+	}
+	
+	// Fetches site URL
+	$site_url = site_url();
+	
+	// Renders input form and preview of slug, note classes are used by JavaScript on the page to provide a live preview
+	echo "<input type=\"text\" id=\"{$args['id']}\" class=\"slug-input\" name=\"{$args['name']}\" value=\"{$current_slug}\" />";
+	echo "<label for=\"{$args['id']}\" class=\"slug-label\">";
+	if ( $is_main )
+		echo "{$args['url']}/<span class=\"main-slug-text\">{$args['main']}</span>/";
+	else
+		echo "{$args['url']}/<span class=\"main-slug-text\">{$args['main']}</span>/<span class=\"{$args['id']}-text\">{$current_slug}</span>/{$args['end']}/";
+	echo '</label>';
+}
+
+// Sanitizes new slugs from settings page
+function wp_lib_sanitize_settings_slugs( $slugs ) {
+	return sanitize_title( $slugs );
+}
+
+// Renders settings page
+function wp_lib_render_settings() {
+	require_once( plugin_dir_path(__FILE__) . '/wp-librarian-admin-settings.php' );
 }
 
 // Enqueues CSS files used in the Library Dashboard
@@ -627,13 +720,10 @@ function wp_lib_enqueue_dashboard_styles() {
 }
 
 // Enqueues JQuery for the Library Dashboard
-function wp_lib_enqueue_admin_scripts() {
-	wp_enqueue_script( 'jquery' );
-}
-
-// Renders settings page
-function wp_lib_render_settings() {
-	require_once( plugin_dir_path(__FILE__) . '/wp-librarian-admin-settings.php' );
+function wp_lib_enqueue_admin_scripts( $hook ) {
+	wp_register_script( 'wp_lib_settings', plugins_url('/scripts/admin-settings.js', __FILE__), array( 'jquery' ), '0.1' );
+	
+	wp_enqueue_script( 'wp_lib_settings' );
 }
 
 // Render Loans/Returns Page

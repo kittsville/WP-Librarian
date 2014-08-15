@@ -145,15 +145,13 @@ function wp_lib_on_loan( $item_id, $start_date = false, $end_date = false ){
 	// If item has no loans, it'll be available regardless of date
 	if ( !$loans )
 		return false;
+
+	// Runs scheduling engine to check for conflicts. If engine returns loan ID/string, conflict exists
+	if ( wp_lib_recursive_scheduling_engine( $start_date, $end_date, $loans ) )
+		return true;
 		
-	// Interates through 
-	
-	// Else check if existing loans will conflict, if not then it is available
-	elseif ( wp_lib_recursive_scheduling_engine( $start_date, $end_date, $loans ) )
-		return false;
-	
-	// Else loan exists during this time and item will conflict
-	return true;
+	// Otherwise no loan exists during given time frame
+	return false;
 }
 
 // Checks if item is allowed to be loaned
@@ -483,6 +481,7 @@ function wp_lib_loan_item( $item_id, $member_id, $loan_length = false ) {
 	$GLOBALS[ 'wp_lib_notification_buffer' ][] = "Loan of {$title} to {$member->name} was successful!";
 }
 
+// Sanitizes and prepares data for loan scheduling function
 function wp_lib_schedule_loan_wrapper( $item_id, $member_id, $start_date, $end_date ) {
 	// Checks if $item_id is valid
 	wp_lib_check_item_id( $item_id );
@@ -502,7 +501,7 @@ function wp_lib_schedule_loan_wrapper( $item_id, $member_id, $start_date, $end_d
 		$end_date = $start_date + $loan_length;
 	}
 	
-	// If loan starts before it sends or ends before current time, calls the Doctor, also an error
+	// If loan starts before it sends or ends before current time, calls an error and The Doctor
 	if ( $start_date > $end_date || $end_date < current_time( 'timestamp' ) )
 		wp_lib_error( 307, true );
 		
@@ -624,8 +623,13 @@ function wp_lib_give_item( $item_id, $loan_id, $member_id ) {
 	// Saves loan ID to the item's meta
 	add_post_meta( $item_id, 'wp_lib_loan_id', $loan_id );
 	
+	// Fetches current time
+	$time = current_time( 'timestamp' );
+	
 	// Sets date item was loaned
-	add_post_meta( $loan_id, 'wp_lib_loaned_date', current_time( 'timestamp' ) );
+	add_post_meta( $loan_id, 'wp_lib_loaned_date', $time );
+	
+	// Updates loan index 
 }
 
 // Returns a loaned item, allowing it to be re-loaned. The opposite of wp_lib_give_item
@@ -634,7 +638,7 @@ function wp_lib_return_item( $item_id, $date = false, $no_fine = false ) {
 	wp_lib_prep_date( $date );
 	
 	// Checks if date is in the past
-	if ( $date > time() )
+	if ( $date > current_time( 'timestamp' ) )
 		wp_lib_error( 310, true );
 	
 	// Fetches loan ID using item ID

@@ -15,10 +15,10 @@ $length = $_GET['loan_length']; // The length of the loan
 	/* -- Date Sanitization -- */
 	/* Converts dates to Unix timestamps if specified */
 
-if ( $start_date )
+if ( isset( $start_date ) )
 	wp_lib_convert_date( $start_date );
 
-if ( $end_date )
+if ( isset( $end_date ) )
 	wp_lib_convert_date( $end_date );
 
 	/* -- Item actions -- */
@@ -49,7 +49,6 @@ switch ( $action ) {
 	// When an item is to be returned (member need not be provided as the item/load contains that data)
 	case 'return':
 		wp_lib_check_item_id( $item_id );
-		wp_lib_prep_date( $end_date );
 		wp_lib_return_item( $item_id, $end_date );
 	break;
 	
