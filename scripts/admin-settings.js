@@ -4,7 +4,7 @@
 jQuery( document ).ready(function($) {
 	$('.slug-input').each(function(index,element){
 		var text = $(element);
-		text.keyup(function(e) {
+		text.on( 'input', function(e) {
 			var textID = $(element).attr("id");
 			textPreview = $( '.' + textID + '-text' ); 
 			textPreview.text(text.val().replace(/\ /g, '-').toLowerCase());

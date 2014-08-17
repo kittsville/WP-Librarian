@@ -5,6 +5,7 @@
  * Description: Use WP-Librarian to manage a library of books/media and track who they're lent to and when they're due back.
  * Version: 0.0.1
  * Author: Kit Maywood
+ * Text Domain: wp-librarian
  * Author URI: http://nerdverse.co.uk/wp-librarian
  * License: GPL2
  */
@@ -629,29 +630,25 @@ add_action( 'admin_init', 'wp_lib_manage_settings' );
 // Sets up plugin settings
 function wp_lib_manage_settings() {
 	// Registers settings groups and their sanitization callbacks
-	add_settings_section( 'wp_lib_slug_group', 'Slugs', 'wp_lib_settings_slugs_section_callback', 'wp-lib-settings' );
+	add_settings_section( 'wp_lib_slug_group', 'Slugs', 'wp_lib_settings_slugs_section_callback', 'wp_lib_items_page_wp-lib-settings' );
 	
 	// All slugs settings parameters
 	$all_slugs = array(
 		array(
-			'id'	=> 'main-slug',
 			'name'	=> 'wp_lib_main_slug',
 			'title'	=> 'Main'
 		),
 		array(
-			'id'	=> 'authors-slug',
 			'name'	=> 'wp_lib_authors_slug',
 			'title'	=> 'Authors',
 			'end'	=> 'terry-pratchett'
 		),
 		array(
-			'id'	=> 'media-type-slug',
 			'name'	=> 'wp_lib_media_type_slug',
 			'title'	=> 'Media Type',
 			'end'	=> 'comic-books'
 		),
 		array(
-			'id'	=> 'donors-slug',
 			'name'	=> 'wp_lib_donors_slug',
 			'title'	=> 'Donors',
 			'end'	=> 'john-snow'
@@ -669,10 +666,9 @@ function wp_lib_manage_settings() {
 	foreach ( $all_slugs as $slug ) {
 		$slug['url'] = $site_url;
 		$slug['main'] = $main_slug;
-		add_settings_field( $slug['id'], $slug['title'], 'wp_lib_render_field_slug', 'wp-lib-settings', 'wp_lib_slug_group', $slug );
+		add_settings_field( $slug['name'], $slug['title'], 'wp_lib_render_field_slug', 'wp_lib_items_page_wp-lib-settings', 'wp_lib_slug_group', $slug );
+		register_setting( 'wp_lib_slug_group', $slug['name'], 'wp_lib_sanitize_settings_slugs' );
 	}
-	// Registers slugs with sanitization callback
-	register_setting( 'wp_lib_slug_group', 'main-slug', 'wp_lib_sanitize_settings_slugs' );
 }
 
 // Renders description of slug settings group
@@ -683,7 +679,7 @@ function wp_lib_settings_slugs_section_callback() {
 // Renders a single slug editing field from the slugs group
 function wp_lib_render_field_slug( $args ) {
 	// If the current slug is not the main slug, the slug's current value must be fetched
-	if ( $args['id'] != 'main-slug' )
+	if ( $args['name'] != 'wp_lib_main_slug' )
 		$current_slug = get_option( $args['name'], 'null' );
 	// Otherwise current slug is main slug, so the option has already been fetched
 	else {
@@ -695,12 +691,12 @@ function wp_lib_render_field_slug( $args ) {
 	$site_url = site_url();
 	
 	// Renders input form and preview of slug, note classes are used by JavaScript on the page to provide a live preview
-	echo "<input type=\"text\" id=\"{$args['id']}\" class=\"slug-input\" name=\"{$args['name']}\" value=\"{$current_slug}\" />";
-	echo "<label for=\"{$args['id']}\" class=\"slug-label\">";
+	echo "<input type=\"text\" id=\"{$args['name']}\" name=\"{$args['name']}\" class=\"slug-input\" value=\"{$current_slug}\" />";
+	echo "<label for=\"{$args['name']}\" class=\"slug-label\">";
 	if ( $is_main )
-		echo "{$args['url']}/<span class=\"main-slug-text\">{$args['main']}</span>/";
+		echo "{$args['url']}/<span class=\"wp_lib_main_slug-text\">{$args['main']}</span>/";
 	else
-		echo "{$args['url']}/<span class=\"main-slug-text\">{$args['main']}</span>/<span class=\"{$args['id']}-text\">{$current_slug}</span>/{$args['end']}/";
+		echo "{$args['url']}/<span class=\"wp_lib_main_slug-text\">{$args['main']}</span>/<span class=\"{$args['name']}-text\">{$current_slug}</span>/{$args['end']}/";
 	echo '</label>';
 }
 
@@ -719,11 +715,13 @@ function wp_lib_enqueue_dashboard_styles() {
 	wp_enqueue_style( 'wp_lib_dashboard' );
 }
 
-// Enqueues JQuery for the Library Dashboard
+// Enqueues scripts needed on different wp-admin pages
 function wp_lib_enqueue_admin_scripts( $hook ) {
-	wp_register_script( 'wp_lib_settings', plugins_url('/scripts/admin-settings.js', __FILE__), array( 'jquery' ), '0.1' );
-	
-	wp_enqueue_script( 'wp_lib_settings' );
+	switch ( $hook ) {
+		case wp_lib_items_wp-lib-settings:
+			wp_enqueue_script( 'wp_lib_settings', plugins_url('/scripts/admin-settings.js', __FILE__), array( 'jquery' ), '0.1' );
+		break;
+	}
 }
 
 // Render Loans/Returns Page
@@ -745,8 +743,9 @@ function wp_lib_admin_init(){
 }
 
 // Flushes permalink rules to avoid 404s, used after plugin activation and any Settings change
-function wp_lib_refresh_permalinks() {
-	$wp_rewrite->flush_rules( $hard );
+function wp_lib_flush_permalinks() {
+	global $wp_rewrite;
+	$wp_rewrite->flush_rules( false );
 }
 
 // Checks if an item is on loan and prevents deletion if it is
@@ -770,7 +769,7 @@ function wp_lib_check_post_pre_trash( $post_id ) {
 }
 
 // Hooks permalink refreshing to plugin activation so that custom post types don't 404
-register_activation_hook( __FILE__, 'wp_lib_refresh_permalinks' );
+register_activation_hook( __FILE__, 'wp_lib_flush_permalinks' );
 
 // Hooks JQuery being enqueued on all WP-Admin dashboard pages
 add_action( 'admin_enqueue_scripts', 'wp_lib_enqueue_admin_scripts' );

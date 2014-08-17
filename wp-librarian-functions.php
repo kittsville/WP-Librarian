@@ -1322,19 +1322,25 @@ function wp_lib_render_member_management_header( $member_id ) {
 	<?php
 }
 
-function wp_lib_render_error( $message ){
-	?>
-	<div class="wp-lib-error error">
-		<p><?= $message ?></p>
-	</div>
-	<?php
+// Formats error message in HTML and returns as a string
+function wp_lib_format_error( $message ) {
+	return "<div class='wp-lib-error error'><p>{$message}</p></div>";
 }
 
-function wp_lib_render_notification( $message ){
-	?>
-	<div class="wp-lib-notification updated">
-		<p><?= $message ?></p>
-	</div>
-	<?php
+// Formats notification in HTML and returns as a string
+function wp_lib_format_notification( $message ) {
+	return "<div class='wp-lib-notification updated'><p>{$message}</p></div>";
 }
+
+// Wrapper function that renders an error to the page
+function wp_lib_render_error( $message ) {
+	echo wp_lib_format_error( $message );
+}
+
+// Wrapper function that renders a notification to the page
+function wp_lib_render_notification( $message ) {
+	echo wp_lib_format_notification( $message );
+}
+
+
 ?>
