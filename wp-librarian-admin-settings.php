@@ -15,22 +15,20 @@ $donors_slug = get_option( 'wp_lib_donors_slug', 'Error' );
 // One day get_settings_error will be used to fetch whatever error occurred, one day
 $update_success = $_GET['settings-updated'];
 
-if ( $update_success == 'true' ) {
-	$notification = wp_lib_format_notification( 'Settings updated' );
-	wp_lib_flush_permalinks();
+if ( isset( $_GET['settings-updated'] ) ) {
+	?>
+	<script>var UpdateSuccess = <?= $_GET['settings-updated']; ?>;</script>
+	<?php
+	if ( $_GET['settings-updated'] == 'true' )
+		wp_lib_flush_permalinks();
 }
-elseif ( $update_success == 'false' )
-	$notification = wp_lib_format_error( 'Settings failed to update' );
-
-
 ?>
 <div id="wp-lib-admin-wrapper" class="wrap">
 	<div id="wp-lib-title">
 		<h1>WP-Librarian Settings</h1>
 	</div>
-	<?php
-		echo $notification;
-	?>
+	<!-- Filled with any notifications waiting in a session -->
+	<div id="notifications-holder"></div>
 
 	<div id="wp-lib-main-content">
 		<form method="POST" action="options.php">

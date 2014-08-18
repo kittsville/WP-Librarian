@@ -1188,7 +1188,7 @@ function wp_lib_error( $error_id, $die = false, $param = 'PARAM NOT GIVEN' ) {
 	$error_text = $all_errors[$error_id];
 	
 	// Formats and renders error
-	wp_lib_render_error( "<strong style=\"color: red;\">Error {$error_id}: {$error_text}</strong>" );
+	wp_lib_render_error( "<strong style=\"color: red;\">WP-Librarian Error {$error_id}: {$error_text}</strong>" );
 
 	// If error necessitates killing the script, error kills script
 	if ( $die )

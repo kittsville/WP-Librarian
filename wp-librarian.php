@@ -13,8 +13,8 @@
 	/* External Files used */
 	
 require_once (plugin_dir_path(__FILE__) . '/wp-librarian-functions.php');
-require_once (plugin_dir_path(__FILE__) . '/wp-librarian-options.php');
 require_once (plugin_dir_path(__FILE__) . '/wp-librarian-meta-box.php');
+require_once (plugin_dir_path(__FILE__) . '/wp-librarian-ajax.php');
 
 
 	/* Custom Post Types and Taxonomies */
@@ -717,9 +717,11 @@ function wp_lib_enqueue_dashboard_styles() {
 
 // Enqueues scripts needed on different wp-admin pages
 function wp_lib_enqueue_admin_scripts( $hook ) {
+	wp_register_script( 'wp_lib_core', plugins_url('/scripts/wp-librarian-core.js', __FILE__), array( 'jquery' ), '0.1' );
+
 	switch ( $hook ) {
 		case wp_lib_items_wp-lib-settings:
-			wp_enqueue_script( 'wp_lib_settings', plugins_url('/scripts/admin-settings.js', __FILE__), array( 'jquery' ), '0.1' );
+			wp_enqueue_script( 'wp_lib_settings', plugins_url('/scripts/admin-settings.js', __FILE__), array( 'wp_lib_core' ), '0.1' );
 		break;
 	}
 }
@@ -768,8 +770,17 @@ function wp_lib_check_post_pre_trash( $post_id ) {
 	exit();
 }
 
-// Hooks permalink refreshing to plugin activation so that custom post types don't 404
-register_activation_hook( __FILE__, 'wp_lib_flush_permalinks' );
+// Sets up plugin on activation
+function wp_lib_activtion() {
+	// Flushes permalink rules so new URLs don't 404
+	wp_lib_flush_permalinks();
+	
+	// Creates various options used by WP-Librarian
+	require_once (plugin_dir_path(__FILE__) . '/wp-librarian-options.php');
+}
+
+// Sets up default options for WP-Librarian
+register_activation_hook( __FILE__, 'wp_lib_activtion' );
 
 // Hooks JQuery being enqueued on all WP-Admin dashboard pages
 add_action( 'admin_enqueue_scripts', 'wp_lib_enqueue_admin_scripts' );
