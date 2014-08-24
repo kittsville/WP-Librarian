@@ -717,11 +717,17 @@ function wp_lib_enqueue_dashboard_styles() {
 
 // Enqueues scripts needed on different wp-admin pages
 function wp_lib_enqueue_admin_scripts( $hook ) {
-	wp_register_script( 'wp_lib_core', plugins_url('/scripts/wp-librarian-core.js', __FILE__), array( 'jquery' ), '0.1' );
+	wp_register_script( 'wp_lib_core', plugins_url('/scripts/admin-core.js', __FILE__), array( 'jquery', 'jquery-ui-datepicker' ), '0.1' );
+	
+	update_option( 'wp_lib_debug_hook', $hook );
 
 	switch ( $hook ) {
-		case wp_lib_items_wp-lib-settings:
+		case 'wp_lib_items_page_wp-lib-settings':
 			wp_enqueue_script( 'wp_lib_settings', plugins_url('/scripts/admin-settings.js', __FILE__), array( 'wp_lib_core' ), '0.1' );
+		break;
+		
+		case 'wp_lib_items_page_dashboard':
+			wp_enqueue_script( 'wp_lib_dashboard', plugins_url('/scripts/admin-dashboard.js', __FILE__), array( 'wp_lib_core' ), '0.1' );
 		break;
 	}
 }
@@ -764,7 +770,7 @@ function wp_lib_check_post_pre_trash( $post_id ) {
 	$title = get_the_title( $post_id );
 	
 	// Redirects user to Library Dashboard
-	wp_redirect(admin_url("edit.php?post_type=wp_lib_items&page=dashboard&item_action=failed-deletion&item_id={$post_id}"));
+	wp_redirect(admin_url("edit.php?post_type=wp_lib_items&page=dashboard&dash_page=failed-deletion&item_id={$post_id}"));
 	
 	// Stops further execution to prevent post being deleted
 	exit();

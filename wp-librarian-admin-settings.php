@@ -24,8 +24,8 @@ if ( isset( $_GET['settings-updated'] ) ) {
 }
 ?>
 <div id="wp-lib-admin-wrapper" class="wrap">
-	<div id="wp-lib-title">
-		<h1>WP-Librarian Settings</h1>
+	<div id="title-wrap">
+		<h2>WP-Librarian Settings</h2>
 	</div>
 	<!-- Filled with any notifications waiting in a session -->
 	<div id="notifications-holder"></div>
