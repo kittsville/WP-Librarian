@@ -13,7 +13,7 @@
 	/* External Files used */
 	
 require_once (plugin_dir_path(__FILE__) . '/wp-librarian-functions.php');
-require_once (plugin_dir_path(__FILE__) . '/wp-librarian-meta-box.php');
+require_once (plugin_dir_path(__FILE__) . '/wp-librarian-helpers.php');
 require_once (plugin_dir_path(__FILE__) . '/wp-librarian-ajax.php');
 
 
@@ -495,7 +495,7 @@ function wp_lib_create_meta_box() {
 	add_meta_box(
 		'library_meta_box',
 		'Library Item Details',
-		'wp_lib_draw_meta_box',
+		'wp_lib_render_meta_box',
 		'wp_lib_items',
 		'normal',
 		'high'
