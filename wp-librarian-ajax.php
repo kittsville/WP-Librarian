@@ -1,5 +1,10 @@
 <?php
-// For simplicity, 'die()' will be referred to as if it were 'return' within this file
+/*
+ * WP-LIBRARIAN AJAX
+ * Handles all of WP-Librarian's AJAX requests, calls the relevant functions to render pages or modify the Library
+ * All functions prefixed 'page' return HTML pages, while all functions prefixed 'do' modify the Library
+ * Note that, for simplicity, 'die()' will be referred to here as if it were 'return' within this file
+ */
 
 // Ensures only authorised users can access data via AJAX
 if ( wp_lib_is_librarian() ) {

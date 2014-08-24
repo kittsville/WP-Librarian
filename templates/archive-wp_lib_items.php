@@ -1,9 +1,8 @@
 <?php
 /*
-Template Name: Library Item Archive
-*/
+ * Template Name: Library Item Archive
+ */
 
-// Loads relevant CSS
 wp_enqueue_style( 'wp_lib_template' );
 
 get_header();
@@ -24,7 +23,7 @@ get_header();
 				<div class="wp-lib-item-left">
 					<!-- Item title and meta -->
 					<strong>Title: </strong><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a><br />
-					<?php echo apply_filters( 'wp_lib_fetch_meta', get_the_ID() ); ?>
+					<?php echo wp_lib_fetch_meta( get_the_ID() ); ?>
 					<!-- Item description -->
 					<div class="entry-content">
 						<?php the_content(); ?>

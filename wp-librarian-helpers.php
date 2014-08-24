@@ -1,7 +1,7 @@
 <?php
-/*
+
+/* 
  * WP-LIBRARIAN HELPERS
- *
  * These are a collection of various useful functions used by WP-Librarian to operate
  */
 

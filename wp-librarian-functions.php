@@ -1,7 +1,9 @@
 <?php
 /*
- * The generally useful hooks and functions file
- *
+ * WP-LIBRARIAN FUNCTIONS
+ * Various functions used to display or modify parts of the Library.
+ * These functions use numerous helpers from wp-librarian-helpers.php
+ * and rely on post types and taxonomies set up in wp-librarian.php
  */
 
 // Prepares taxonomy and metabox information for theme use
@@ -16,7 +18,6 @@ function wp_lib_fetch_meta( $the_post_id ) {
 	);
 	$all_meta = '';
 	// Runs through each meta value and, if the meta exists, adds it to the end of the $all_meta string
-	//echo var_dump( $meta_array );
 	foreach ( $meta_array as $value ) {
 		if ( $value != false )
 			$all_meta .= $value . '<br />';
@@ -52,7 +53,7 @@ function wp_lib_prep_meta( $raw_array, $option_name, $option_default_slug, $bold
 				$spacer .= get_option( 'wp_lib_taxonomy_spacer', ', ' );
 			if ( isset( $item->slug ) ) {
 				$tax_url = get_option( 'siteurl', 'example.com/' );
-				$tax_slug = apply_filters( 'wp_lib_prefix_url', $option_name, $option_default_slug );
+				$tax_slug = wp_lib_prefix_url( $option_name, $option_default_slug );
 				$item_string .= "{$spacer}<a href=\"{$tax_url}/{$tax_slug}/{$item->slug}\">{$item->name}</a>";
 			}
 			else
@@ -1061,31 +1062,6 @@ function wp_lib_clean_item( $item_id ){
 
 	// Removes loan ID from item meta
 	delete_post_meta($item_id, 'wp_lib_loan_id' );
-}
-
-// Checks for appropriate template in current theme, loads plugin's default template on failure
-function wp_lib_template( $template ) {
-	if ( get_post_type() == 'wp_lib_items' ) {
-		if ( is_archive() ) {
-			$theme_file = locate_template( array ( 'archive-wp_lib_items.php' ) );
-			if ($theme_file != ''){
-				return $theme_file;
-			}
-			else {
-				return plugin_dir_path(__FILE__) . '/templates/archive-wp_lib_items.php';
-			}
-		}
-		elseif ( is_single() ) {
-			$theme_file = locate_template( array ( 'single-wp_lib_items.php' ) );
-			if ($theme_file != ''){
-				return $theme_file;
-			}
-			else {
-				return plugin_dir_path(__FILE__) . '/templates/single-wp_lib_items.php';
-			}
-		}
-	}
-	return $template;
 }
 
 // Returns explanation of error given error code

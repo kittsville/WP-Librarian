@@ -1,9 +1,4 @@
-// Soon to be deprecated code used on the plugin's settings page
-function wp_lib_render_notification( notification ) {
-	jQuery('#notifications-holder').append( "<div class='wp-lib-notification updated'><p>" + notification + "</p></div>" );
-}
-
-// Adds notification to clientside buffer
+// Adds notification to client-side buffer
 function wp_lib_add_notification( array ) {
 	if (typeof window.wp_lib_notification_buffer === 'undefined') {
 		window.wp_lib_notification_buffer = [];
@@ -41,6 +36,10 @@ function wp_lib_format_notification( notification ) {
 		// Uses notification classes, which displays a green flared box
 		classes = 'wp-lib-notification updated';
 		message = notification[1];
+	} else if ( notification[0] == 1 ) {
+		// Uses error classes, which displays a red flared box
+		classes = 'wp-lib-error error';
+		message = "<strong style='color: red;'>WP-Librarian Error: " + notification[1] + "</strong>";
 	} else {
 		// Uses error classes, which displays a red flared box
 		classes = 'wp-lib-error error';
@@ -58,7 +57,7 @@ function wp_lib_display_notifications() {
 	
 	// Fetches client-side notifications from global buffer
 	if (typeof window.wp_lib_notification_buffer != 'undefined') {
-		localNotifications = window.wp_lib_notification_buffer;
+		notifications = window.wp_lib_notification_buffer;
 	}
 
 	// Sets up AJAX request

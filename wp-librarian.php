@@ -10,42 +10,44 @@
  * License: GPL2
  */
 
-	/* External Files used */
+	/* -- External Files used -- */
 	
 require_once (plugin_dir_path(__FILE__) . '/wp-librarian-functions.php');
 require_once (plugin_dir_path(__FILE__) . '/wp-librarian-helpers.php');
 require_once (plugin_dir_path(__FILE__) . '/wp-librarian-ajax.php');
 
 
-	/* Custom Post Types and Taxonomies */
-
+	/* -- Custom Post Types and Taxonomies -- */
+	/* Registers custom post types and taxonomies */
+	
 // Creates custom post types to store library items and loans
-function wp_lib_create_post_types() {
+add_action( 'init', function() {
 	// Creates post type for library items
 	$args =	array(
 		'labels' => array(
 			'name' => 'Library',
-			'singular_name'		=> 'Library Item',
-			'all_items'			=> 'All Items',
-			'add_new'			=> 'Add New Item',
-			'add_new_item'		=> 'Add New Library Item',
-			'edit'				=> 'Edit',
-			'edit_item'			=> 'Edit Library Item',
-			'new_item'			=> 'New Library Item',
-			'view_item'			=> 'View Library Item',
-			'search_items'		=> 'Search Library Items',
-			'not_found'			=> 'No Library Items found',
-			'not_found_in_trash'=> 'No Library Items found in Trash',
-			'parent'			=> 'Parent Library Item',
+			'singular_name'			=> 'Library Item',
+			'all_items'				=> 'All Items',
+			'add_new'				=> 'Add New Item',
+			'add_new_item'			=> 'Add New Library Item',
+			'edit'					=> 'Edit',
+			'edit_item'				=> 'Edit Library Item',
+			'new_item'				=> 'New Library Item',
+			'view_item'				=> 'View Library Item',
+			'search_items'			=> 'Search Library Items',
+			'not_found'				=> 'No Library Items found',
+			'not_found_in_trash'	=> 'No Library Items found in Trash',
+			'parent'				=> 'Parent Library Item'
 		),
 
-		'public'		=> true,
-		'menu_position'	=> 15,
-		'supports'		=> array( 'title', 'editor', 'thumbnail'),
-		'taxonomies'	=> array( '' ),
-		'menu_icon'		=> 'dashicons-book-alt',
-		'has_archive'	=> true,
-		'rewrite'		=> array('slug' => get_option( 'wp_lib_main_slug', 'wp-librarian' ) ),
+		'public'				=> true,
+		'menu_position'			=> 15,
+		'supports'				=> array( 'title', 'editor', 'thumbnail'),
+		'taxonomies'			=> array( '' ),
+		'menu_icon'				=> 'dashicons-book-alt',
+		'has_archive'			=> true,
+		'rewrite'				=> array('slug' => get_option( 'wp_lib_main_slug', 'wp-librarian' ) ),
+		'register_meta_box_cb'	=> 'wp_lib_setup_meta_box'
 	);
 	register_post_type( 'wp_lib_items', $args );
 	
@@ -102,10 +104,10 @@ function wp_lib_create_post_types() {
 		'rewrite'		=> array('slug' => get_option( 'wp_lib_fines_slug', 'fines' ) ),
 	);
 	register_post_type( 'wp_lib_fines', $args );
-}
+});
 
-// Creates all Taxonomies used for the custom post type 'wp_lib_items'
-function wp_lib_create_taxonomies() {
+// Registers all Taxonomies used by the plugin
+add_action( 'init', function() {
 	
 	// Registers Taxonomy: Media Type - The type of item in the library (book, CD, DVD, etc.)
 	$labels = array(
@@ -128,7 +130,7 @@ function wp_lib_create_taxonomies() {
 		'show_ui'			=> true,
 		'show_admin_column'	=> true,
 		'query_var'			=> true,
-		'rewrite'			=> array('slug' => apply_filters( 'wp_lib_prefix_url', 'wp_lib_media_type_slug', 'type' ) ),
+		'rewrite'			=> array('slug' => wp_lib_prefix_url( 'wp_lib_media_type_slug', 'type' ) ),
 	);
 
 	register_taxonomy( 'wp_lib_media_type', 'wp_lib_items', $args );
@@ -186,7 +188,7 @@ function wp_lib_create_taxonomies() {
 		'show_admin_column'		=> true,
 		'update_count_callback'	=> '_update_post_term_count',
 		'query_var'				=> true,
-		'rewrite'				=> array('slug' => apply_filters( 'wp_lib_prefix_url', 'wp_lib_authors_slug', 'authors' ) ),
+		'rewrite'				=> array('slug' => wp_lib_prefix_url( 'wp_lib_authors_slug', 'authors' ) ),
 	);
 
 	register_taxonomy( 'wp_lib_author', 'wp_lib_items', $args );
@@ -216,7 +218,7 @@ function wp_lib_create_taxonomies() {
 		'show_admin_column'		=> true,
 		'update_count_callback'	=> '_update_post_term_count',
 		'query_var'				=> true,
-		'rewrite'				=> array('slug' => apply_filters( 'wp_lib_prefix_url', 'wp_lib_donors_slug', 'donors' ) ),
+		'rewrite'				=> array('slug' => wp_lib_prefix_url( 'wp_lib_donors_slug', 'donors' ) ),
 	);
 
 	register_taxonomy( 'wp_lib_donor', 'wp_lib_items', $args );
@@ -246,14 +248,27 @@ function wp_lib_create_taxonomies() {
 		'show_admin_column'		=> true,
 		'update_count_callback'	=> '_update_post_term_count',
 		'query_var'				=> true,
-		'rewrite'				=> array('slug' => apply_filters( 'wp_lib_prefix_url', 'wp_lib_members_slug', 'members' ) ),
+		'rewrite'				=> array('slug' => wp_lib_prefix_url( 'wp_lib_members_slug', 'members' ) ),
 	);
 
 	register_taxonomy( 'wp_lib_member', 'wp_lib_items', $args );
 	
-}
+});
 
-	/* Functions */
+	/* -- Post Tables -- */
+	/* Adds new columns to item/loan/fine tables and populates them */
+
+// Modifies and populates item post table
+add_filter( 'manage_wp_lib_items_posts_columns', 'wp_lib_modify_item_table');
+add_action( 'manage_wp_lib_items_posts_custom_column' , 'wp_lib_fill_item_table', 10, 2 );
+
+// Modifies and populates loan post table
+add_filter( 'manage_wp_lib_loans_posts_columns', 'wp_lib_modify_loans_table');
+add_action( 'manage_wp_lib_loans_posts_custom_column' , 'wp_lib_fill_loans_table', 10, 2 );
+
+// Modifies and populates fine post table
+add_filter( 'manage_wp_lib_fines_posts_columns', 'wp_lib_modify_fines_table');
+add_action( 'manage_wp_lib_fines_posts_custom_column' , 'wp_lib_fill_fines_table', 10, 2 );
 
 // Adds custom columns to wp-admin item table and removes unneeded ones
 function wp_lib_modify_item_table( $columns ) {
@@ -481,17 +496,11 @@ function wp_lib_fill_fines_table( $column, $fine_id ) {
 	}
 }
 
-// Hooks meta boxes
-function wp_lib_setup_meta_box() {
-	// Creates meta box below Library Item description
-	add_action( 'add_meta_boxes', 'wp_lib_create_meta_box' );
-	
-	// Saves the meta fields on the save_post hook
-	add_action( 'save_post', 'wp_lib_process_item_meta_box', 10, 2 );
-}
+	/* -- Meta boxes -- */
+	/* Adds and populates new meta boxes and removes unneeded ones from item edit page */
 
-// Creates meta box below item description
-function wp_lib_create_meta_box() {
+// Creates meta box below Library Item description
+function wp_lib_setup_meta_box() {
 	add_meta_box(
 		'library_meta_box',
 		'Library Item Details',
@@ -500,13 +509,16 @@ function wp_lib_create_meta_box() {
 		'normal',
 		'high'
 	);
+	
+	// Saves the meta fields on the save_post hook
+	add_action( 'save_post', 'wp_lib_process_item_meta_box', 10, 2 );
 }
 
-// Updates item's meta values
+// Updates item's meta using new values from meta box
 function wp_lib_process_item_meta_box( $item_id, $item ) {
 
 	// Verify the nonce before proceeding
-	if ( !isset( $_POST['wp_lib_item_nonce'] ) || !wp_verify_nonce( $_POST['wp_lib_item_nonce'], "updating item {$item_id} meta" ) )
+	if ( !isset( $_POST['wp_lib_item_nonce'] ) || !wp_verify_nonce( $_POST['wp_lib_item_nonce'], "Updating item {$item_id} meta" ) )
 		return $item_id;
 
 	// Get the post type object
@@ -563,7 +575,11 @@ function wp_lib_process_item_meta_box( $item_id, $item ) {
 	}
 }
 
-// Updates member's meta values
+// Hooks member creation/editing to member meta updating
+add_action( 'edited_wp_lib_member', 'wp_lib_process_member_meta_box', 10, 2 );  
+add_action( 'create_wp_lib_member', 'wp_lib_process_member_meta_box', 10, 2 );
+
+// Updates member's meta values when relevant pages are also updated
 function wp_lib_process_member_meta_box( $member_id ) {
 
 	// Stores all meta box fields and sanitization methods
@@ -602,17 +618,20 @@ function wp_lib_process_member_meta_box( $member_id ) {
 }
 
 // Removes unneeded meta boxes from item editing page
-function wp_lib_remove_meta_boxes() {
+add_action( 'admin_menu', function() {
 	// Removes 'Member' taxonomy box
 	remove_meta_box( 'tagsdiv-wp_lib_member', 'wp_lib_items', 'side' );
 	
 	// Removes 'Donor' taxonomy box
 	remove_meta_box( 'tagsdiv-wp_lib_donor', 'wp_lib_items', 'side' );
-}
+});
+
+	/* -- Admin Menus -- */
+	/* Registers sub-menu items to wp-admin menu */
 
 // Registers Settings page and Management Dashboard
-function wp_lib_create_submenu_pages() {
-	if ( is_admin() )
+add_action( 'admin_menu', function() {
+	if ( current_user_can( 'manage_options' ) )
 		// Adds settings page to Library submenu of wp-admin menu
 		add_submenu_page('edit.php?post_type=wp_lib_items', 'WP Librarian Settings', 'Settings', 'activate_plugins', 'wp-lib-settings', 'wp_lib_render_settings');
 
@@ -621,9 +640,10 @@ function wp_lib_create_submenu_pages() {
 	
 	// Hooks Dashboard css loading to Dashboard page hook
 	add_action( 'admin_print_styles-' . $page, 'wp_lib_enqueue_dashboard_styles' );
-}
+});
 
-/* Settings API */
+	/* -- Settings API -- */
+	/* Registers WP-Librarian settings fields so WordPress handles their rendering and saving */
 
 add_action( 'admin_init', 'wp_lib_manage_settings' );
 
@@ -676,7 +696,7 @@ function wp_lib_settings_slugs_section_callback() {
 	echo '<p>These form the URLs of the front end of your website</p>';
 }
 
-// Renders a single slug editing field from the slugs group
+// Renders a single settings option for editing a slug
 function wp_lib_render_field_slug( $args ) {
 	// If the current slug is not the main slug, the slug's current value must be fetched
 	if ( $args['name'] != 'wp_lib_main_slug' )
@@ -700,41 +720,49 @@ function wp_lib_render_field_slug( $args ) {
 	echo '</label>';
 }
 
-// Sanitizes new slugs from settings page
+// Sanitizes updated slugs submitted from the plugin settings page
 function wp_lib_sanitize_settings_slugs( $slugs ) {
 	return sanitize_title( $slugs );
 }
 
-// Renders settings page
+// Renders plugin settings page
 function wp_lib_render_settings() {
 	require_once( plugin_dir_path(__FILE__) . '/wp-librarian-admin-settings.php' );
 }
+
+	/* -- Scripts and Styles -- */
+	/* Registers and enqueues JavaScript and CSS files on the relevant pages, including their dependencies */
 
 // Enqueues CSS files used in the Library Dashboard
 function wp_lib_enqueue_dashboard_styles() {
 	wp_enqueue_style( 'wp_lib_dashboard' );
 }
 
-// Enqueues scripts needed on different wp-admin pages
-function wp_lib_enqueue_admin_scripts( $hook ) {
+// Enqueues scripts and styles needed on different wp-admin pages
+add_action( 'admin_enqueue_scripts', function( $hook ) {
 	wp_register_script( 'wp_lib_core', plugins_url('/scripts/admin-core.js', __FILE__), array( 'jquery', 'jquery-ui-datepicker' ), '0.1' );
-	
-	update_option( 'wp_lib_debug_hook', $hook );
 
+	if ( $GLOBALS['post_type'] == 'wp_lib_items' )
+		wp_register_style( 'wp_lib_admin_meta', plugins_url( '/css/admin-meta-box.css', __FILE__ ), false, '0.1' );
+	
 	switch ( $hook ) {
+		// Plugin settings page
 		case 'wp_lib_items_page_wp-lib-settings':
 			wp_enqueue_script( 'wp_lib_settings', plugins_url('/scripts/admin-settings.js', __FILE__), array( 'wp_lib_core' ), '0.1' );
+			wp_register_style( 'wp_lib_admin_settings', plugins_url( '/css/admin-settings.css', __FILE__ ), false, '0.1' );
 		break;
 		
+		// Library Dashboard
 		case 'wp_lib_items_page_dashboard':
 			wp_enqueue_script( 'wp_lib_dashboard', plugins_url('/scripts/admin-dashboard.js', __FILE__), array( 'wp_lib_core' ), '0.1' );
+			wp_register_style( 'wp_lib_dashboard', plugins_url('/css/admin-dashboard.css', __FILE__) );
 		break;
 	}
-}
+});
 
 // Render Loans/Returns Page
 function wp_lib_render_dashboard() {
-	require_once( plugin_dir_path(__FILE__) . '/wp-librarian-admin-loans.php' );
+	require_once( plugin_dir_path(__FILE__) . '/wp-librarian-dashboard-template.php' );
 }
 
 // Changes the title of the 'Featured Image' box on the edit item page
@@ -743,11 +771,6 @@ function wp_lib_modify_image_box() {
 		global $wp_meta_boxes;
 		$wp_meta_boxes['wp_lib_items']['side']['low']['postimagediv']['title'] = 'Cover Image';
 	}
-}
-
-// Registers css and scripts needed for wp-admin
-function wp_lib_admin_init(){
-	wp_register_style( 'wp_lib_dashboard', plugins_url('/css/admin-dashboard.css', __FILE__) );
 }
 
 // Flushes permalink rules to avoid 404s, used after plugin activation and any Settings change
@@ -776,23 +799,14 @@ function wp_lib_check_post_pre_trash( $post_id ) {
 	exit();
 }
 
-// Sets up plugin on activation
-function wp_lib_activtion() {
+// Sets up WP-Librarian on plugin activation
+register_activation_hook( __FILE__, function() {
 	// Flushes permalink rules so new URLs don't 404
 	wp_lib_flush_permalinks();
 	
 	// Creates various options used by WP-Librarian
 	require_once (plugin_dir_path(__FILE__) . '/wp-librarian-options.php');
-}
-
-// Sets up default options for WP-Librarian
-register_activation_hook( __FILE__, 'wp_lib_activtion' );
-
-// Hooks JQuery being enqueued on all WP-Admin dashboard pages
-add_action( 'admin_enqueue_scripts', 'wp_lib_enqueue_admin_scripts' );
-
-// Adds plugin url to front of string (e.g. authors -> library/authors)
-add_filter( 'wp_lib_prefix_url', 'wp_lib_prefix_url', 10, 2 );
+});
 
 // Adds metadata addition section to taxonomy field
 add_action('wp_lib_member_edit_form', 'wp_lib_member_edit_form');
@@ -802,27 +816,8 @@ add_action('wp_lib_member_add_form', 'wp_lib_member_edit_form');
 add_action('wp_lib_member_add_form_fields','wp_lib_member_add_form_fields');
 add_action( 'wp_lib_member_edit_form_fields', 'wp_lib_member_edit_form_fields', 10, 2 );
 
-// Updates taxonomy metadata after update
-add_action( 'edited_wp_lib_member', 'wp_lib_process_member_meta_box', 10, 2 );  
-add_action( 'create_wp_lib_member', 'wp_lib_process_member_meta_box', 10, 2 );
-
 // Clears taxonomy options on taxonomy term delete
 add_action( 'delete_term_taxonomy', 'wp_lib_clear_tax_options', 1, 2 );
-
-// Removes meta box 'series' from item edit page
-add_action( 'admin_menu', 'wp_lib_remove_meta_boxes' );
-
-// Modifies table of library items, removing unnecessary columns and adding useful ones
-add_filter( 'manage_wp_lib_items_posts_columns', 'wp_lib_modify_item_table');
-add_action( 'manage_wp_lib_items_posts_custom_column' , 'wp_lib_fill_item_table', 10, 2 );
-
-// Modifies table of loans, removing unnecessary columns and adding useful ones
-add_filter( 'manage_wp_lib_loans_posts_columns', 'wp_lib_modify_loans_table');
-add_action( 'manage_wp_lib_loans_posts_custom_column' , 'wp_lib_fill_loans_table', 10, 2 );
-
-// Modifies table of loans, removing unnecessary columns and adding useful ones
-add_filter( 'manage_wp_lib_fines_posts_columns', 'wp_lib_modify_fines_table');
-add_action( 'manage_wp_lib_fines_posts_custom_column' , 'wp_lib_fill_fines_table', 10, 2 );
 
 // Clears Description field on unwanted taxonomies
 add_action( 'wp_lib_member_add_form_fields', 'wp_lib_no_tax_description' );
@@ -836,10 +831,6 @@ add_action('admin_head-post.php', 'wp_lib_modify_image_box' );
 
 // Checks if item is on loan before it is moved to trash
 add_action('wp_trash_post', 'wp_lib_check_post_pre_trash');
-
-// Does everything needed at admin initialisation
-add_action( 'admin_init', 'wp_lib_admin_init' );
-
 
 // Currently does nothing
 function wp_lib_member_edit_form() {
@@ -896,33 +887,48 @@ function wp_lib_member_edit_form_fields( $member ) {
 <?php 
 }
 
-/* Functions to run when plugin is initialised */
-// Creates all custom post types
-add_action( 'init', 'wp_lib_create_post_types' );
-// Creates all custom taxonomies
-add_action( 'init', 'wp_lib_create_taxonomies' );
-
-
-// Adds settings and Dashboard to library menu
-add_action( 'admin_menu', 'wp_lib_create_submenu_pages');
-
-/* Metabox when creating or editing items */
-add_action( 'load-post.php', 'wp_lib_setup_meta_box' );
-add_action( 'load-post-new.php', 'wp_lib_setup_meta_box' );
-
-/* Registered Functions */
-add_filter( 'wp_lib_fetch_meta', 'wp_lib_fetch_meta', 10, 1 );
-add_filter( 'wp_lib_format_meta', 'wp_lib_prep_meta', 10, 4 );
-
-/* Registered CSS Files */
-wp_register_style( 'wp_lib_template', plugins_url( '/css/templates.css', __FILE__ ), false, '1' );
-wp_register_style( 'wp_lib_admin_settings', plugins_url( '/css/admin-settings.css', __FILE__ ), false, '1' );
-wp_register_style( 'wp_lib_admin_meta', plugins_url( '/css/admin-meta-box.css', __FILE__ ), false, '1' );
-
+// Registers CSS Files
+wp_register_style( 'wp_lib_template', plugins_url( '/css/templates.css', __FILE__ ), false, '0.1' );
 
 /* Templates */
 
-// Archive Template
+// Hooks templates to WordPress
 add_filter( 'template_include', 'wp_lib_template', 10 );
+
+// Checks for appropriate templates in the current theme and loads the plugin's default templates if that fails
+function wp_lib_template( $template ) {
+	if ( get_post_type() == 'wp_lib_items' ) {
+		// If page is archive of multiple items
+		if ( is_archive() ) {
+			// Looks for template in current theme
+			$theme_file = locate_template( array ( 'archive-wp_lib_items.php' ) );
+			
+			// If template is found, uses it
+			if ($theme_file != ''){
+				return $theme_file;
+			}
+			// Otherwise uses plugin's default template for archives
+			else {
+				return plugin_dir_path(__FILE__) . '/templates/archive-wp_lib_items.php';
+			}
+		}
+		// If page is a single item
+		elseif ( is_single() ) {
+			// Looks for template in current theme
+			$theme_file = locate_template( array ( 'single-wp_lib_items.php' ) );
+			
+			// If template is found, uses it
+			if ($theme_file != ''){
+				return $theme_file;
+			}
+			// Otherwise uses plugin's default template for single items
+			else {
+				return plugin_dir_path(__FILE__) . '/templates/single-wp_lib_items.php';
+			}
+		}
+	}
+	// If post is not a Library item
+	return $template;
+}
 
 ?>

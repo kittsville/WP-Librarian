@@ -1,7 +1,8 @@
 <?php
 /*
- * All default option are set here
- * configure them via the settings page
+ * WP-LIBRARIAN OPTIONS
+ * Default WP-Librarian Options
+ * These are added when WP-Librarian is first activated
  */
 
 

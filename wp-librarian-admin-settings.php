@@ -1,26 +1,35 @@
 <?php
+/*
+ * WP-LIBRARIAN SETTINGS
+ * Utilises WordPress Settings API to render settings fields for this plugin
+ */
 
+// If user isn't allowed to modify site's settings, settings fields aren't rendered and error is called
 if ( !current_user_can( 'manage_options' ) ) {
 	wp_lib_error( 112, true );
 }
 
+// Loads settings CSS
 wp_enqueue_style( 'wp_lib_admin_settings' );
 
-// Fetches current value for slugs
-$main_slug = get_option( 'wp_lib_slug', 'Error' );
-$authors_slug = get_option( 'wp_lib_authors_slug', 'Error' );
-$type_slug = get_option( 'wp_lib_media_type_slug', 'Error' );
-$donors_slug = get_option( 'wp_lib_donors_slug', 'Error' );
-
-// One day get_settings_error will be used to fetch whatever error occurred, one day
-$update_success = $_GET['settings-updated'];
-
+// If settings have been updated (or failed to do so)
 if ( isset( $_GET['settings-updated'] ) ) {
-	?>
-	<script>var UpdateSuccess = <?= $_GET['settings-updated']; ?>;</script>
-	<?php
-	if ( $_GET['settings-updated'] == 'true' )
-		wp_lib_flush_permalinks();
+	$updated = $_GET['settings-updated'];
+	
+	// If settings were successfully updated, notifies user
+	if ( $updated == 'true' ) {
+		?>
+		<script type="text/javascript">
+			wp_lib_add_notification( [ 0, 'Settings updated successfully' ] );
+		</script>
+		<?php
+	} elseif ( $updated == 'false' ) {
+		?>
+		<script type="text/javascript">
+			wp_lib_add_notification( [ 1, 'Settings failed to update' ] );
+		</script>
+		<?php
+	}
 }
 ?>
 <div id="wp-lib-admin-wrapper" class="wrap">

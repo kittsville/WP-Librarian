@@ -5,6 +5,7 @@ function wp_lib_send_form( action, params ) {
 	// Initialising default page to load on success
 	var successPage = '';
 	
+	// AJAX action switch, decides what action should be taken
 	switch ( action ) {
 		case 'loan':
 			data.action = 'wp_lib_loan_item';
@@ -87,7 +88,7 @@ function wp_lib_send_form( action, params ) {
 // Fetches page, using given parameters
 function wp_lib_load_page( page, data ) {
 	
-	// Main AJAX switch, decides where AJAX request should go
+	// AJAX page switch, decides which page should be loaded
 	switch ( page ) {
 		case 'manage-item':
 			data['action'] = 'wp_lib_manage_item';
@@ -129,10 +130,10 @@ function wp_lib_load_page( page, data ) {
 	// Sends AJAX page request with given params, fills workspace div with response
 	jQuery.post( ajaxurl, data, function(response) {
 		jQuery( '#library-workspace' ).html( response );
+		
+		// Runs after load function
+		wp_lib_after_load();
 	});
-	
-	// Runs after load function
-	wp_lib_after_load();
 }
 
 // Run on each new dynamically loaded page

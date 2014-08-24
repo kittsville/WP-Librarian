@@ -1,15 +1,9 @@
 jQuery( document ).ready(function($) {
-	/*
-	 * Checks server for notifications and renders any
-	 */
-	if ( typeof UpdateSuccess !== 'undefined' ) {
-		if ( UpdateSuccess ) {
-			wp_lib_render_notification( 'Settings updated' );
-		}
-	}
+	// Renders any buffered notifications
+	wp_lib_display_notifications();
 	
 	/* 
-	 * Makes the slug preview dynamic so that the user can see what the full url would look like
+	 * Updates example slug as text input is updated, providing live preview of what the slug would look like
 	 * var text is the input box where the user types the slug
 	 * var textPreview is an html span that updates to show whatever var text currently is
 	 */
