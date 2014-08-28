@@ -24,14 +24,18 @@ if ( isset( $_GET['settings-updated'] ) ) {
 		// Notifies user settings have been updated
 		?>
 		<script type="text/javascript">
-			wp_lib_add_notification( [ 0, 'Settings updated successfully' ] );
+			jQuery( document ).ready(function($) {
+				wp_lib_local_notification( 'Settings updated successfully' );
+			});
 		</script>
 		<?php
 	} elseif ( $updated == 'false' ) {
 		// Calls error to inform user that settings update failed
 		?>
 		<script type="text/javascript">
-			wp_lib_add_notification( [ 1, 'Settings failed to update' ] );
+			jQuery( document ).ready(function($) {
+				wp_lib_local_error( 'Settings failed to update' );
+			});
 		</script>
 		<?php
 	}

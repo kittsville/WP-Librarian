@@ -82,6 +82,9 @@ function wp_lib_send_form( action, params ) {
 			// Otherwise load notifications to display explanatory errors
 			wp_lib_display_notifications();
 		}
+	})
+	.fail( function() {
+		wp_lib_ajax_fail();
 	});
 }
 
@@ -153,8 +156,7 @@ function wp_lib_load_page( page, ajaxData ) {
 		}
 	})
 	.fail( function() {
-		// Calls error as page has failed to be loaded
-		wp_lib_add_error( 'Unable to load page, is there a problem with your internet connection?' );
+		wp_lib_ajax_fail();
 	})
 	.always( function() {
 		// Runs after load function

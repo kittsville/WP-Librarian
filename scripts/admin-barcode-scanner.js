@@ -22,7 +22,7 @@ function wp_lib_lookup_barcode( input ) {
 	var barcode = parseInt( input );
 
 	if ( !( typeof barcode== "number" && isFinite( barcode ) && barcode%1===0 ) ) {
-		wp_lib_add_error( "The barcode needs to be a number" );
+		wp_lib_local_error( "The barcode needs to be a number" );
 		wp_lib_display_notifications();
 		return false;
 	}
@@ -42,5 +42,8 @@ function wp_lib_lookup_barcode( input ) {
 			wp_lib_add_notification( [ 1, "Unable to find item with that barcode" ] );
 			wp_lib_display_notifications();
 		}
-	});
+	})
+	.fail(
+		wp_lib_ajax_fail();
+	);
 }

@@ -1,12 +1,11 @@
+// Counter used as part of simple UID for notifications
 var notificationCount = 0;
 
-// Adds notification to client-side buffer
-function wp_lib_add_notification( array ) {
-	if (typeof window.wp_lib_notification_buffer === 'undefined') {
-		window.wp_lib_notification_buffer = [];
-	}
-	window.wp_lib_notification_buffer.push( array );
-}
+jQuery( document ).ready(function($) {
+	// Selects the notification holder
+	window.notificationHolder = jQuery( '#notifications-holder' );
+
+});
 
 // Collects of a submitted form's parameters, removes the blank ones, then returns the result as an object
 function wp_lib_collect_form_params( selector ) {
@@ -25,6 +24,97 @@ function wp_lib_collect_form_params( selector ) {
 	});
 
 	return result;
+}
+
+// General purpose AJAX failed message, probably a network issue, unless the server is hosted off some terrible cloud server
+function wp_lib_ajax_fail() {
+	wp_lib_local_error( "Unable to complete request. The website might be down or you may be having connection issues." );
+}
+
+// Adds notification to client-side buffer
+function wp_lib_add_notification( array ) {
+	if (typeof window.wp_lib_notification_buffer === 'undefined') {
+		window.wp_lib_notification_buffer = [];
+	}
+	window.wp_lib_notification_buffer.push( array );
+}
+
+// Fetches and displays any notifications waiting in the local or server buffer
+function wp_lib_display_notifications() {
+	// Initialises notifications array by fetching any client-side notifications
+	var notifications = wp_lib_fetch_local_notifications();
+	
+	// Checks server for notifications
+	jQuery.post( ajaxurl, { 'action' : 'wp_lib_fetch_notifications' } )
+	.done( function( response ) {
+		// Parses response
+		var serverNotifications = JSON.parse( response );
+		
+		// If there are any server-side notifications, merge them into client-side notifications
+		if ( jQuery.isArray( serverNotifications ) ) {
+			notifications = notifications.concat( serverNotifications );
+		}
+	})
+	.fail( function() {
+		wp_lib_ajax_fail();
+	})
+	.always( function() {
+		// Renders all collected local and server notifications
+		wp_lib_render_notifications( notifications );
+	});
+}
+
+// Fetches and returns all client-side buffered notifications
+function wp_lib_fetch_local_notifications() {
+	// If any notifications are buffered, fetch them then clear the buffer
+	if (typeof window.wp_lib_notification_buffer != 'undefined') {
+		var notifications = window.wp_lib_notification_buffer;
+		delete window.wp_lib_notification_buffer;
+		return notifications;
+	}
+	// If none were found, return empty array
+	return [];
+}
+
+// Fetches and displays local notifications only
+function wp_lib_display_local_notifications() {
+	wp_lib_render_notifications( wp_lib_fetch_local_notifications() );
+}
+
+// Given an array of notifications, renders them to the notification holder
+function wp_lib_render_notifications( notificationsArray ) {
+	
+	// Iterates through notifications, rendering them to the notification holder
+	notificationsArray.forEach( function( notificationText ) {
+		wp_lib_render_notification( notificationText );
+	});
+}
+
+// Renders a single notification to a specified notification holder
+function wp_lib_render_notification( notificationText ) {
+	// Formats notification inside div and gives notification ID (to keep track of it)
+	var result = wp_lib_format_notification( notificationText );
+
+	// Adds notification to the notification holder
+	notificationHolder.append( result[1] ).hide().fadeIn( 500 );
+	
+	// Selects the notification using its ID
+	var notification = jQuery( '.' + result[0] );
+	
+	// Sets notification to fade away after 5 seconds then get deleted
+	setTimeout(function(){
+		wp_lib_hide_notification( notification );
+	}, 6000 );
+}
+
+// Renders client-side notification straight to the browser, no buffering
+function wp_lib_local_notification( text ) {
+	wp_lib_render_notification( [ 0, text ] );
+}
+
+// Renders client-side error straight to the browser, no buffering
+function wp_lib_local_error( text ) {
+	wp_lib_render_notification( [ 1, text ] );
 }
 
 // Formats a notification with appropriate tags to utilise WordPress and Plugin CSS
@@ -56,83 +146,11 @@ function wp_lib_format_notification( notification ) {
 	return [ uID, "<div onclick='wp_lib_hide_notification(this)' class='" + classes + "'><p>" + message + "</p></div>" ];
 }
 
-// Fetches and displays any notifications waiting in the buffer
-function wp_lib_display_notifications() {
-	// Initialises client-side notifications array
-	var notifications = [];
-	
-	// Fetches client-side notifications from global buffer
-	if (typeof window.wp_lib_notification_buffer != 'undefined') {
-		notifications = window.wp_lib_notification_buffer;
-		delete window.wp_lib_notification_buffer;
-	}
-
-	// Selects div that holds notifications
-	var holder = jQuery( '#notifications-holder' );
-	
-	// Clears previous notifications
-	holder.empty();
-	
-	// Checks server for notifications
-	jQuery.post( ajaxurl, { 'action' : 'wp_lib_fetch_notifications' } )
-	.done( function( response ) {
-		// Parses response
-		var serverNotifications = JSON.parse( response );
-		
-		// If there are any server-side notifications, merge them into client-side notifications
-		if ( jQuery.isArray( serverNotifications ) ) {
-			notifications = notifications.concat( serverNotifications );
-		}
-	})
-	.always( function() {
-		// Iterates through notifications, rendering them to the notification holder
-		notifications.forEach(function(notificationText){
-			// Formats notification inside div and gives notification ID (to keep track of it)
-			var result = wp_lib_format_notification( notificationText );
-			
-			// Adds notification to the notification holder
-			holder.append( result[1] ).hide().fadeIn( 500 );
-			
-			// Selects the notification using its ID
-			var notification = jQuery( '.' + result[0] );
-			
-			// Sets notification to fade away after 5 seconds then get deleted
-			setTimeout(function(){
-				wp_lib_hide_notification( notification );
-			}, 6000)
-			
-		});
-	});
-}
-
-// Hides then deletes notification
-function wp_lib_hide_notification(element) {
+// Hides then deletes notification, called from notification's onclick property
+function wp_lib_hide_notification( element ) {
 	var notification = jQuery( element );
 	
-	notification.fadeOut("slow");
+	notification.fadeOut("fast");
 	
 	delete notification;
 }
-
-// Wrapper for wp_lib_add_notification
-function wp_lib_add_error( error ) {
-	wp_lib_add_notification( [ 1, error ] );
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
