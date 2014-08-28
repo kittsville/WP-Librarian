@@ -1,3 +1,5 @@
+var notificationCount = 0;
+
 // Adds notification to client-side buffer
 function wp_lib_add_notification( array ) {
 	if (typeof window.wp_lib_notification_buffer === 'undefined') {
@@ -27,27 +29,31 @@ function wp_lib_collect_form_params( selector ) {
 
 // Formats a notification with appropriate tags to utilise WordPress and Plugin CSS
 function wp_lib_format_notification( notification ) {
+	// Creates unique ID for notification (to keep track of it)
+	var uID = 'wp_lib_nid_' + notificationCount++;
+	
 	// Initialises variables
-	var classes = '';
+	var classes = uID + ' ';
 	var message = '';
+	var onClick = " onclick='wp_lib_hide_notification(this)";
 	
 	// If notification has no error code (defaulted to 0 )
 	if ( notification[0] == 0 ) {
 		// Uses notification classes, which displays a green flared box
-		classes = 'wp-lib-notification updated';
+		classes += 'wp-lib-notification updated';
 		message = notification[1];
 	} else if ( notification[0] == 1 ) {
 		// Uses error classes, which displays a red flared box
-		classes = 'wp-lib-error error';
+		classes += 'wp-lib-error error';
 		message = "<strong style='color: red;'>WP-Librarian Error: " + notification[1] + "</strong>";
 	} else {
 		// Uses error classes, which displays a red flared box
-		classes = 'wp-lib-error error';
+		classes += 'wp-lib-error error';
 		message = "<strong style='color: red;'>WP-Librarian Error " + notification[0] + ": " + notification[1] + "</strong>";
 	}
 	
 	// Returns HTML formatted notification
-	return "<div class='" + classes + "'><p>" + message + "</p></div>";
+	return [ uID, "<div onclick='wp_lib_hide_notification(this)' class='" + classes + "'><p>" + message + "</p></div>" ];
 }
 
 // Fetches and displays any notifications waiting in the buffer
@@ -58,13 +64,9 @@ function wp_lib_display_notifications() {
 	// Fetches client-side notifications from global buffer
 	if (typeof window.wp_lib_notification_buffer != 'undefined') {
 		notifications = window.wp_lib_notification_buffer;
+		delete window.wp_lib_notification_buffer;
 	}
 
-	// Sets up AJAX request
-	var data = {
-		'action' : 'wp_lib_fetch_notifications'
-	};
-	
 	// Selects div that holds notifications
 	var holder = jQuery( '#notifications-holder' );
 	
@@ -72,8 +74,8 @@ function wp_lib_display_notifications() {
 	holder.empty();
 	
 	// Checks server for notifications
-	jQuery.post( ajaxurl, data, function( response ) {
-	
+	jQuery.post( ajaxurl, { 'action' : 'wp_lib_fetch_notifications' } )
+	.done( function( response ) {
 		// Parses response
 		var serverNotifications = JSON.parse( response );
 		
@@ -81,10 +83,56 @@ function wp_lib_display_notifications() {
 		if ( jQuery.isArray( serverNotifications ) ) {
 			notifications = notifications.concat( serverNotifications );
 		}
-		
+	})
+	.always( function() {
 		// Iterates through notifications, rendering them to the notification holder
-		notifications.forEach(function(notification){
-			holder.append( wp_lib_format_notification( notification ) ).fadeOut( 6000 );;
+		notifications.forEach(function(notificationText){
+			// Formats notification inside div and gives notification ID (to keep track of it)
+			var result = wp_lib_format_notification( notificationText );
+			
+			// Adds notification to the notification holder
+			holder.append( result[1] ).hide().fadeIn( 500 );
+			
+			// Selects the notification using its ID
+			var notification = jQuery( '.' + result[0] );
+			
+			// Sets notification to fade away after 5 seconds then get deleted
+			setTimeout(function(){
+				wp_lib_hide_notification( notification );
+			}, 6000)
+			
 		});
 	});
 }
+
+// Hides then deletes notification
+function wp_lib_hide_notification(element) {
+	var notification = jQuery( element );
+	
+	notification.fadeOut("slow");
+	
+	delete notification;
+}
+
+// Wrapper for wp_lib_add_notification
+function wp_lib_add_error( error ) {
+	wp_lib_add_notification( [ 1, error ] );
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

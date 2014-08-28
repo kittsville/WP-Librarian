@@ -349,11 +349,8 @@ function wp_lib_fill_loans_table( $column, $loan_id ) {
 		
 		// Displays member that item has been loaned to
 		case 'loan_member':
-			// Fetches member ID from loan taxonomy
-			$member_id = get_the_terms( $loan_id, 'wp_lib_member' )[0]->term_id;
-			
-			// Fetches member object using member ID
-			$member = get_term_by( 'id', $member_id, 'wp_lib_member' );
+			// Fetches member object from loan taxonomy
+			$member = get_the_terms( $loan_id, 'wp_lib_member' )[0];
 			
 			// If member does not exist (has been deleted), fetch archived member data from loan
 			if ( !$member )
@@ -453,11 +450,8 @@ function wp_lib_fill_fines_table( $column, $fine_id ) {
 		
 		// Displays member that has been fined
 		case 'fine_member':
-			// Fetches member ID from fine taxonomy
-			$member_id = get_the_terms( $fine_id, 'wp_lib_member' )[0]->term_id;
-			
-			// Fetches member object using member ID
-			$member = get_term_by( 'id', $member_id, 'wp_lib_member' );
+			// Fetches member object from fine taxonomy
+			$member_id = get_the_terms( $fine_id, 'wp_lib_member' )[0];
 			
 			// If member does not exist (has been deleted), fetch archived member data from fine
 			if ( !$member )
@@ -509,25 +503,25 @@ function wp_lib_setup_meta_box() {
 		'normal',
 		'high'
 	);
-	
-	// Saves the meta fields on the save_post hook
-	add_action( 'save_post', 'wp_lib_process_item_meta_box', 10, 2 );
 }
+
+// Saves the meta fields on the save_post hook
+add_action( 'save_post', 'wp_lib_process_item_meta_box', 10, 2 );
 
 // Updates item's meta using new values from meta box
 function wp_lib_process_item_meta_box( $item_id, $item ) {
-
+	add_option( 'wp_lib_debug_1', 'GOT HERE' );
 	// Verify the nonce before proceeding
 	if ( !isset( $_POST['wp_lib_item_nonce'] ) || !wp_verify_nonce( $_POST['wp_lib_item_nonce'], "Updating item {$item_id} meta" ) )
 		return $item_id;
-
+	add_option( 'wp_lib_debug_2', 'GOT HERE' );
 	// Get the post type object
 	$post_type = get_post_type_object( $item->post_type );
 
 	// Check if the current user has permission to edit the post
 	if ( !current_user_can( $post_type->cap->edit_post, $item_id ) )
 		return $item_id;
-		
+	add_option( 'wp_lib_debug_3', 'GOT HERE' );		
 	// Stores all meta box fields and sanitization methods
 	$meta_array = array(
 		array(
@@ -542,9 +536,14 @@ function wp_lib_process_item_meta_box( $item_id, $item ) {
 		),
 		array(
 			'post'		=> 'wp_lib_item_condition',
-			'sanitize'	=> 'sanitize_html_class',
+			'sanitize'	=> 'sanitize_text_field',
 			'key'		=> 'wp_lib_item_condition',
 		),
+		array(
+			'post'		=> 'wp_lib_item_barcode',
+			'sanitize'	=> 'wp_lib_sanitize_number',
+			'key'		=> 'wp_lib_item_barcode',
+		)
 	);
 	
 	foreach ( $meta_array as $meta ) {
@@ -554,7 +553,7 @@ function wp_lib_process_item_meta_box( $item_id, $item ) {
 	
 		// Get the posted data and sanitize it for use as an HTML class
 		$new_meta_value = ( isset( $_POST[$meta['post']] ) ? $meta['sanitize']( $_POST[$meta['post']] ) : '' );
-
+		
 		// Get the meta key
 		$meta_key = $meta['key'];
 
@@ -586,12 +585,12 @@ function wp_lib_process_member_meta_box( $member_id ) {
 	$meta_index = array(
 		array(
 			'post'		=> 'wp_lib_member_phone',
-			'sanitize'	=> 'wp_lib_sanitize_num',
+			'sanitize'	=> 'wp_lib_sanitize_phone_number',
 			'key'		=> 'member_phone',
 		),
 		array(
 			'post'		=> 'wp_lib_member_mobile',
-			'sanitize'	=> 'wp_lib_sanitize_num',
+			'sanitize'	=> 'wp_lib_sanitize_phone_number',
 			'key'		=> 'member_mobile',
 		),
 	);
@@ -740,15 +739,28 @@ function wp_lib_enqueue_dashboard_styles() {
 
 // Enqueues scripts and styles needed on different wp-admin pages
 add_action( 'admin_enqueue_scripts', function( $hook ) {
+	// Registers core JavaScript file for WP-Librarian, a collection of various essential functions
 	wp_register_script( 'wp_lib_core', plugins_url('/scripts/admin-core.js', __FILE__), array( 'jquery', 'jquery-ui-datepicker' ), '0.1' );
-
+	
+	// Sets up array of variables to be passed to JavaScript
+	$vars = array(
+			'siteurl' 	=> get_option( 'siteurl' ),
+			'adminurl'	=> admin_url( 'edit.php?post_type=wp_lib_items' ),
+			'dashurl'	=> admin_url( 'edit.php?post_type=wp_lib_items&page=dashboard' ),
+			'sitename'	=> get_bloginfo( 'name' ),
+			'getparams'	=> $_GET
+	);
+	
+	// Sends variables to user
+	wp_localize_script( 'wp_lib_core', 'wp_lib_vars', $vars );
+	
 	if ( $GLOBALS['post_type'] == 'wp_lib_items' )
 		wp_register_style( 'wp_lib_admin_meta', plugins_url( '/css/admin-meta-box.css', __FILE__ ), false, '0.1' );
 	
 	switch ( $hook ) {
 		// Plugin settings page
 		case 'wp_lib_items_page_wp-lib-settings':
-			wp_enqueue_script( 'wp_lib_settings', plugins_url('/scripts/admin-settings.js', __FILE__), array( 'wp_lib_core' ), '0.1' );
+			wp_enqueue_script( 'wp_lib_settings', plugins_url('/scripts/admin-settings.js', __FILE__), array( 'wp_lib_core' ), '0.2' );
 			wp_register_style( 'wp_lib_admin_settings', plugins_url( '/css/admin-settings.css', __FILE__ ), false, '0.1' );
 		break;
 		
@@ -756,6 +768,8 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
 		case 'wp_lib_items_page_dashboard':
 			wp_enqueue_script( 'wp_lib_dashboard', plugins_url('/scripts/admin-dashboard.js', __FILE__), array( 'wp_lib_core' ), '0.1' );
 			wp_register_style( 'wp_lib_dashboard', plugins_url('/css/admin-dashboard.css', __FILE__) );
+			wp_register_style( 'wp_lib_datepicker_mellon', plugins_url('/css/mellon-datepicker.css', __FILE__), array(), '0.1' ); // Styles Datepickers
+			wp_register_style( 'wp_lib_datepicker', plugins_url('/css/jquery-ui.css', __FILE__), array(), '1.10.1' ); // Core Datepickers Styles
 		break;
 	}
 });

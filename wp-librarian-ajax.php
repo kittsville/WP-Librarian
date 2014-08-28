@@ -17,7 +17,7 @@ if ( wp_lib_is_librarian() ) {
 	add_action( 'wp_ajax_wp_lib_scheduling_page', 'wp_lib_page_scheduling_page' );
 	add_action( 'wp_ajax_wp_lib_return_past', 'wp_lib_page_return_past' );
 	add_action( 'wp_ajax_wp_lib_resolution_page', 'wp_lib_page_resolution_page' );
-	add_action( 'wp_ajax_wp_lib_fetch_notifications', 'wp_lib_fetch_notifications' );
+	add_action( 'wp_ajax_wp_lib_scan_item', 'wp_lib_page_scan_item' );
 	
 	/* Library Actions - Loaning/returning items etc. */
 	add_action( 'wp_ajax_wp_lib_loan_item', 'wp_lib_do_loan_item' );
@@ -30,6 +30,8 @@ if ( wp_lib_is_librarian() ) {
 	add_action( 'wp_ajax_wp_lib_deletion_failed', 'wp_lib_page_deletion_failed' );
 	add_action( 'wp_ajax_wp_lib_clean_item', 'wp_lib_do_clean_item' );
 	add_action( 'wp_ajax_wp_lib_unknown_action', 'wp_lib_do_unknown_action' );
+	add_action( 'wp_ajax_wp_lib_fetch_notifications', 'wp_lib_fetch_notifications' );
+	add_action( 'wp_ajax_wp_lib_lookup_barcode', 'wp_lib_fetch_item_by_barcode' );
 }
 
 	/* Misc AJAX Functions */
@@ -88,6 +90,52 @@ function wp_lib_stop_ajax( $boolean = '', $error_code = false, $params = false )
 	die();
 }
 
+// Looks for item with given barcode, returns item ID on success and false on failure
+function wp_lib_fetch_item_by_barcode() {
+	// Converts barcode to an int
+	$barcode = (int)$_POST['code'];
+
+	// If barcode is zero, invalid barcode was given
+	if ( $barcode == 0 )
+		wp_lib_stop_ajax( false );
+		
+	// Sets up meta query arguments
+	$args = array(
+		'post_type'		=> 'wp_lib_items',
+		'post_status'	=> 'publish',
+		'meta_key'		=> 'wp_lib_item_barcode',
+		'meta_query'	=> array(
+			array(
+				'key'		=> 'wp_lib_item_barcode',
+				'value'		=> $barcode,
+				'compare'	=> 'IN'
+			)
+		)
+	);
+	
+	// Looks for post(s) with barcode
+	$query = new WP_Query( $args );
+	
+	// Checks number of posts found
+	$posts_found = $query->found_posts;
+	
+	// If an item was found
+	if ( $posts_found == 1 ) {
+		$query->the_post();
+		
+		// Return item ID
+		echo json_encode( get_the_ID() );
+		
+		wp_lib_stop_ajax();
+	} elseif ( $posts_found > 1 ) {
+		// If multiple items have said barcode, call error
+		wp_lib_stop_ajax( false, 204 );
+	} else {
+		// If no items were found, call error
+		wp_lib_stop_ajax( false );
+	}
+}
+
 // Informs user that action requested does not exist
 function wp_lib_do_unknown_action() {
 	wp_lib_stop_ajax( '', 500, $_POST['given_action'] );
@@ -105,8 +153,7 @@ function wp_lib_do_loan_item() {
 	
 	// If item or member ID fail to validate, return false (errors are handled by the validation functions)
 	if ( !wp_lib_valid_item_id( $item_id ) || !wp_lib_valid_member_id( $member_id ) ) {
-		echo json_encode( false );
-		die();
+		wp_lib_stop_ajax( false );
 	}
 	
 	// Attempts to loan item
@@ -126,8 +173,7 @@ function wp_lib_do_schedule_loan() {
 	
 	// If item or member ID fail to validate, return false (errors are handled by the validation functions)
 	if ( !wp_lib_valid_item_id( $item_id ) || !wp_lib_valid_member_id( $member_id ) ) {
-		echo json_encode( false );
-		die();
+		wp_lib_stop_ajax( false );
 	}		
 	
 	// Attempts to convert given dates to Unix timestamps
@@ -135,11 +181,8 @@ function wp_lib_do_schedule_loan() {
 	wp_lib_convert_date( $end_date );
 		
 	// Checks if dates failed to convert, return false and call error
-	if ( !$start_date || !$end_date ) {
-		wp_lib_error( 312 );
-		echo json_encode( false );
-		die();
-	}
+	if ( !$start_date || !$end_date )
+		wp_lib_stop_ajax( false, 312 );
 	
 	// Passes parameters to scheduling function
 	$success = wp_lib_schedule_loan_wrapper( $item_id, $member_id, $start_date, $end_date );
@@ -418,6 +461,27 @@ function wp_lib_page_manage_loan() {
 	wp_lib_stop_ajax( '', 202);
 }
 
+// Page for looking up an item by its barcode
+function wp_lib_page_scan_item() {
+
+	$script_url = plugins_url( '/scripts/admin-barcode-scanner.js', __FILE__ );
+	?>
+	<script>
+		jQuery.getScript( <?php echo json_encode( $script_url ); ?> )
+		.fail( function( jqxhr, settings, exception ) {
+			wp_lib_add_notification( [ 1, "Failed to load JavaScript needed for this page" ] );
+			wp_lib_display_notifications();
+		});
+	</script>
+	<h2>Scan Item Barcode</h2>
+	<p>Once the barcode is scanned the item will be retried automatically</p>
+	<form id="library-form">
+		<input type="text" id="barcode-input" name="item_barcode" autofocus="autofocus" />
+	</form>
+	<?php
+	wp_lib_stop_ajax();
+}
+
 // Allows user to schedule a loan to happen in the future, to be fulfilled when the time comes
 function wp_lib_page_scheduling_page() {
 	// Fetches item ID from AJAX request
@@ -462,23 +526,15 @@ function wp_lib_page_scheduling_page() {
 			<label for="loan-start">
 				<strong>Start Date:</strong>
 			</label>
-			<input type="date" name="loan_start_date" id="loan-start-date" class="loan-date" value="<?= $start_date ?>" />
+			<input type="date" name="loan_start_date" id="loan-start-date" class="loan-date datepicker ll-skin-melon" value="<?= $start_date ?>" />
 		</div>
 		
 		<div class="loan-end manage-item">
 			<label for="loan-end">
 				<strong>End Date:</strong>
 			</label>
-			<input type="date" name="loan_end_date" id="loan-end-date" class="loan-date" value="<?= $end_date ?>" />
+			<input type="date" name="loan_end_date" id="loan-end-date" class="loan-date datepicker ll-skin-melon" value="<?= $end_date ?>" />
 		</div>
-		
-		<script>
-			jQuery(document).ready(function($) {
-				$('input[type=date]').datepicker({
-					dateFormat: 'yy-mm-dd'
-				});
-			});
-		</script>
 		<button class="button button-primary button-large dash-action" name="dash_action" value="schedule-loan">Schedule Loan</button>
 	</form>
 	<?php
@@ -511,7 +567,7 @@ function wp_lib_page_return_past() {
 			<label for="loan-end">
 				<strong>Date:</strong>
 			</label>
-			<input type="date" name="loan_end_date" id="loan-end-date" class="loan-date" value="<?= $date ?>" />
+			<input type="date" name="loan_end_date" id="loan-end-date" class="loan-date datepicker ll-skin-melon" value="<?= $date ?>" />
 		</div>
 		<button class="button button-primary button-large dash-action" name="dash_action" value="return">Return Item</button>
 	</form>

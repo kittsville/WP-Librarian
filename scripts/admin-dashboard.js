@@ -86,51 +86,77 @@ function wp_lib_send_form( action, params ) {
 }
 
 // Fetches page, using given parameters
-function wp_lib_load_page( page, data ) {
-	
+function wp_lib_load_page( page, ajaxData ) {
+
 	// AJAX page switch, decides which page should be loaded
 	switch ( page ) {
 		case 'manage-item':
-			data['action'] = 'wp_lib_manage_item';
+			ajaxData['action'] = 'wp_lib_manage_item';
 		break;
 		
 		case 'manage-member':
-			data['action'] = 'wp_lib_manage_member';
+			ajaxData['action'] = 'wp_lib_manage_member';
 		break;
 		
 		case 'manage-fine':
-			data['action'] = 'wp_lib_manage_fine';
+			ajaxData['action'] = 'wp_lib_manage_fine';
 		break;
 		
 		case 'manage-loan':
-			data['action'] = 'wp_lib_manage_loan';
+			ajaxData['action'] = 'wp_lib_manage_loan';
+		break;
+		
+		case 'scan-item':
+			ajaxData['action'] = 'wp_lib_scan_item';
 		break;
 		
 		case 'scheduling-page':
-			data['action'] = 'wp_lib_scheduling_page';
+			ajaxData['action'] = 'wp_lib_scheduling_page';
 		break;
 		
 		case 'return-past':
-			data['action'] = 'wp_lib_return_past';
+			ajaxData['action'] = 'wp_lib_return_past';
 		break;
 		
 		case 'resolve-loan':
-			data['action'] = 'wp_lib_resolution_page';
+			ajaxData['action'] = 'wp_lib_resolution_page';
 		break;
 		
 		case 'failed-deletion':
-			data['action'] = 'wp_lib_deletion_failed';
+			ajaxData['action'] = 'wp_lib_deletion_failed';
 		break;
 		
 		default:
-			data['action'] = 'wp_lib_dashboard';
+			ajaxData['action'] = 'wp_lib_dashboard';
 		break;
 	}
 	
 	// Sends AJAX page request with given params, fills workspace div with response
-	jQuery.post( ajaxurl, data, function(response) {
+	jQuery.post( ajaxurl, ajaxData, function( response ) {
 		jQuery( '#library-workspace' ).html( response );
 		
+		// Deletes now redunant parameter
+		delete ajaxData['action'];
+
+		// Serializes page parameters
+		var urlString = jQuery.param( ajaxData );
+		
+		// Creates current page title
+		var currentPage = wp_lib_vars.dashurl + '&' + urlString;
+		
+		// Changes URL to reflect new page (also creates browser history entry)
+		history.pushState( ajaxData, 'Dashboard Title' + '&bull' + wp_lib_vars.sitename, currentPage );
+		
+		// Sets trigger for the back button being used
+		window.onpopstate = function( event ) {
+			wp_lib_load_page( event.state.dash_page, event.state );
+		}
+	})
+	.fail( function() {
+		// Calls error as page has failed to be loaded
+		wp_lib_add_error( 'Unable to load page, is there a problem with your internet connection?' );
+	})
+	.always( function() {
 		// Runs after load function
 		wp_lib_after_load();
 	});
@@ -142,6 +168,13 @@ function wp_lib_after_load() {
 	// Fetches and renders any new notifications
 	wp_lib_display_notifications();
 	
+	// Sets all all date inputs as jQuery datepickers
+	jQuery('.datepicker').datepicker({
+		dateFormat: 'yy-mm-dd',
+		inline: true,
+		showOtherMonths: true,
+	});
+	
 	// Adds listener for action performing buttons
 	jQuery('#library-workspace').on('click', '.dash-action', function ( e ){
 		// Fetches action to be performed
@@ -151,7 +184,7 @@ function wp_lib_after_load() {
 		var params = wp_lib_collect_form_params( '#library-form' );
 		
 		// Performs action
-		wp_lib_send_form( action, params )
+		wp_lib_send_form( action, params );
 		
 		// Prevents regular form submission
 		return false;
@@ -159,14 +192,14 @@ function wp_lib_after_load() {
 	
 	// Adds listener for page loading buttons
 	jQuery('#library-workspace').on('click', '.dash-page', function ( e ){
-		// Fetches page to be loaded
-		var page = e.currentTarget.value;
-		
 		// Fetches form parameters that have been set
 		var params = wp_lib_collect_form_params( '#library-form' );
+		
+		// Fetches page to be loaded
+		params.dash_page = e.currentTarget.value;
 
 		// Loads page
-		wp_lib_load_page( page, params );
+		wp_lib_load_page( params.dash_page, params );
 		
 		// Prevents regular form submission
 		return false;
@@ -174,6 +207,14 @@ function wp_lib_after_load() {
 
 }
 
+// Loads page content on first external visit
 jQuery( document ).ready(function($) {
-	wp_lib_load_page( GetVars['dash_page'], GetVars );
+	var GetVars = wp_lib_vars.getparams;
+	
+	// Removes default GET params as they are no longer needed
+	delete GetVars["post_type"];
+	delete GetVars["page"];
+	
+	// Loads relevant page
+	wp_lib_load_page( GetVars['dash_page'], GetVars, true );
 });

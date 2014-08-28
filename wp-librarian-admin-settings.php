@@ -18,12 +18,17 @@ if ( isset( $_GET['settings-updated'] ) ) {
 	
 	// If settings were successfully updated, notifies user
 	if ( $updated == 'true' ) {
+		// Flushes permalink rules so new slugs work
+		wp_lib_flush_permalinks();
+		
+		// Notifies user settings have been updated
 		?>
 		<script type="text/javascript">
 			wp_lib_add_notification( [ 0, 'Settings updated successfully' ] );
 		</script>
 		<?php
 	} elseif ( $updated == 'false' ) {
+		// Calls error to inform user that settings update failed
 		?>
 		<script type="text/javascript">
 			wp_lib_add_notification( [ 1, 'Settings failed to update' ] );

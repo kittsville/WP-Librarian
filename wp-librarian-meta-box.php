@@ -37,5 +37,9 @@ $loanable = ( $loanable == true ? 'checked' : '' );
 			<td class="wp-lib-meta-title">ISBN</td>
 			<td class="wp-lib-meta-input"><input type="text" size="50%" name="wp_lib_item_isbn" value="<?php echo $meta['wp_lib_item_isbn'][0]; ?>" /></td>
 		</tr>
+		<tr>
+			<td class="wp-lib-meta-title">Barcode</td>
+			<td class="wp-lib-meta-input"><input type="text" size="50%" name="wp_lib_item_barcode" value="<?php echo $meta['wp_lib_item_barcode'][0]; ?>" /></td>
+		</tr>
 	</div>
 </table>

@@ -1088,6 +1088,7 @@ function wp_lib_error( $error_id, $die = false, $param = 'NULL' ) {
 		201 => "No {$param} status found for given value",
 		202 => 'Loans do not have management pages, but I appreciate your curiosity!',
 		203 => 'Loan not found in item\'s loan index',
+		204 => 'Multiple items have the same barcode',
 		300 => "{$param} ID not given and required",
 		301 => "{$param} ID given is not a number",
 		302 => 'No loans found for that item ID',
@@ -1254,6 +1255,20 @@ function wp_lib_render_member_management_header( $member_id ) {
 	<h2>Managing: <?= $member->name ?></h2>
 	<strong>Member ID: </strong><?= $member->term_id ?><br />
 	<?php
+	// Sets up loan history parameters
+	$args = array(
+		'post_type' => 'wp_lib_loans',
+		'tax_query' => array(
+			array(
+				'taxonomy'	=> 'wp_lib_member',
+				'field'		=> 'term_id',
+				'terms'		=> $member_id
+			)
+		)
+	);	
+	
+	// Creates query of all loans attached to this member
+	$query = new WP_Query( $args );
 }
 
 // Formats error message in HTML and returns as a string

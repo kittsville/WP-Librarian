@@ -4,11 +4,11 @@
  * This file renders the template for the Dashboard.
  * The template is then populated and modified dynamically by JavaScript
  */
-?>
-<script type="text/javascript">
-	var GetVars = <?php echo json_encode( $_GET ); ?>;
-</script>
 
+wp_enqueue_style( 'wp_lib_datepicker' );
+wp_enqueue_style( 'wp_lib_datepicker_mellon' );
+
+?>
 <div class="wrap">
 <div id="title-wrap">
 	<h2>

@@ -1,5 +1,4 @@
 <?php
-
 /* 
  * WP-LIBRARIAN HELPERS
  * These are a collection of various useful functions used by WP-Librarian to operate
@@ -8,9 +7,14 @@
 	/* Sanitising Functions */
 
 // Sanitizes phone number
-function wp_lib_sanitize_num( $string ){
+function wp_lib_sanitize_phone_number( $string ) {
 	// Strips every character from the string that is not a number, a space, + or -
 	return preg_replace('/[^0-9|^\+|^\s|^-]/', '', $string );
+}
+
+// Sanitizes input to
+function wp_lib_sanitize_number( $raw ) {
+	return ereg_replace('[^0-9]', '', $raw );
 }
 
 	/* URLs and Slugs */
@@ -160,7 +164,26 @@ function wp_lib_fetch_member_name( $post_id, $hyperlink = true, $array = false, 
 		return $member_name;
 }
 
-
+// Simple function for rendering tables. Potentially a place-holder that will be eventually be deprecated
+function wp_lib_render_simple_table( $headers, $rows ) {
+	
+	echo '<table>';
+	echo '<thead>';
+	foreach ( $headers as $header ) {
+		echo '<th>' . $header . '</th>';
+	}
+	echo '</thead>';
+	echo '<tfoot>';
+	foreach ( $rows as $row ) {
+		echo '<tr>';
+		foreach ( $row as $data ) {
+			echo '<td>' . $data . '</td>';
+		}
+		echo '</tr>';
+	}
+	echo '<tfoot>';
+	echo '</table>';
+}
 
 
 
