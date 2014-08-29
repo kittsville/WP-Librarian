@@ -129,8 +129,13 @@ function wp_lib_load_page( page, ajaxData ) {
 			ajaxData['action'] = 'wp_lib_deletion_failed';
 		break;
 		
-		default:
+		case undefined:
 			ajaxData['action'] = 'wp_lib_dashboard';
+		break;
+		
+		default:
+			wp_lib_local_error( "Unknown Page" );
+			return;
 		break;
 	}
 	
@@ -209,7 +214,13 @@ function wp_lib_after_load() {
 
 }
 
-// Loads page content on first external visit
+function wp_lib_click_dash_button( e ) {
+	// Redirects page to clicked button's href attribute
+	location.href = jQuery( e ).attr('href');
+
+}
+
+// Loads page content on page load. Only used if page is visited from a non-Dashboard page
 jQuery( document ).ready(function($) {
 	var GetVars = wp_lib_vars.getparams;
 	

@@ -70,17 +70,17 @@ foreach ( $buttons as $button ) {
 		case 'post-type':
 			$url = admin_url( 'edit.php?post_type=' . $button['link']['name'] );
 		
-			$properties = "href='{$url}'";
+			$properties = "href='{$url}' onclick='wp_lib_click_dash_button( this )'";
 		break;
 		
 		case 'url':
-			$properties = "href='{$button['link']['url']}'";
+			$properties = "href='{$button['link']['url']}' onclick='wp_lib_click_dash_button( this )'";
 		break;
 		
 		case 'admin-url':
 			$url = admin_url( $button['link']['url'] );
 			
-			$properties = "href='{$url}'";
+			$properties = "href='{$url}' onclick='wp_lib_click_dash_button( this )'";
 		break;
 	}
 	// Constructs url to icon using base url
@@ -89,7 +89,6 @@ foreach ( $buttons as $button ) {
 	echo "<button class='{$classes}' {$properties} ><div class='dash-button-top'><img class='dashboard-icon' src='{$icon_url}' alt='{$button['title']} Icon' /></div><div class='dash-button-bottom'>{$button['title']}</div></button>";
 
 }
-
 
 ?>
 </div>

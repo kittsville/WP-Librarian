@@ -740,8 +740,8 @@ function wp_lib_enqueue_dashboard_styles() {
 // Enqueues scripts and styles needed on different wp-admin pages
 add_action( 'admin_enqueue_scripts', function( $hook ) {
 	// Registers core JavaScript file for WP-Librarian, a collection of various essential functions
-	wp_register_script( 'wp_lib_core', plugins_url('/scripts/admin-core.js', __FILE__), array( 'jquery', 'jquery-ui-datepicker' ), '0.1' );
-	
+	wp_register_script( 'wp_lib_core', wp_lib_script_url( 'admin-core' ), array( 'jquery', 'jquery-ui-datepicker' ), '0.1' );
+
 	// Sets up array of variables to be passed to JavaScript
 	$vars = array(
 			'siteurl' 	=> get_option( 'siteurl' ),
@@ -754,22 +754,24 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
 	// Sends variables to user
 	wp_localize_script( 'wp_lib_core', 'wp_lib_vars', $vars );
 	
-	if ( $GLOBALS['post_type'] == 'wp_lib_items' )
-		wp_register_style( 'wp_lib_admin_meta', plugins_url( '/css/admin-meta-box.css', __FILE__ ), false, '0.1' );
+	if ( ( $hook == 'post-new.php' || $hook == 'post.php' ) && $GLOBALS['post_type'] == 'wp_lib_items' ) {
+		wp_register_style( 'wp_lib_admin_meta', wp_lib_style_url( 'admin-meta-box' ), array(), '0.1' );
+		wp_enqueue_script( 'wp_lib_edit_item', wp_lib_script_url( 'admin-edit-item' ), array(), '0.1' );
+	}
 	
 	switch ( $hook ) {
 		// Plugin settings page
 		case 'wp_lib_items_page_wp-lib-settings':
-			wp_enqueue_script( 'wp_lib_settings', plugins_url('/scripts/admin-settings.js', __FILE__), array( 'wp_lib_core' ), '0.2' );
-			wp_register_style( 'wp_lib_admin_settings', plugins_url( '/css/admin-settings.css', __FILE__ ), false, '0.1' );
+			wp_enqueue_script( 'wp_lib_settings', wp_lib_script_url( 'admin-settings' ), array( 'wp_lib_core' ), '0.2' );
+			wp_register_style( 'wp_lib_admin_settings', wp_lib_style_url( 'admin-settings' ), array(), '0.1' );
 		break;
 		
 		// Library Dashboard
 		case 'wp_lib_items_page_dashboard':
-			wp_enqueue_script( 'wp_lib_dashboard', plugins_url('/scripts/admin-dashboard.js', __FILE__), array( 'wp_lib_core' ), '0.1' );
-			wp_register_style( 'wp_lib_dashboard', plugins_url('/css/admin-dashboard.css', __FILE__) );
-			wp_register_style( 'wp_lib_datepicker_mellon', plugins_url('/css/mellon-datepicker.css', __FILE__), array(), '0.1' ); // Styles Datepickers
-			wp_register_style( 'wp_lib_datepicker', plugins_url('/css/jquery-ui.css', __FILE__), array(), '1.10.1' ); // Core Datepickers Styles
+			wp_enqueue_script( 'wp_lib_dashboard', wp_lib_script_url( 'admin-dashboard' ), array( 'wp_lib_core' ), '0.1' );
+			wp_register_style( 'wp_lib_dashboard', wp_lib_style_url( 'admin-dashboard' ), array(), '0.1' );
+			wp_register_style( 'wp_lib_datepicker_mellon', wp_lib_style_url( 'mellon-datepicker' ), array(), '0.1' ); // Styles Datepickers
+			wp_register_style( 'wp_lib_datepicker', wp_lib_style_url( 'jquery-ui' ), array(), '1.10.1' ); // Core Datepickers Styles
 		break;
 	}
 });

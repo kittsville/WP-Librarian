@@ -104,7 +104,7 @@ function wp_lib_render_notification( notificationText ) {
 	// Sets notification to fade away after 5 seconds then get deleted
 	setTimeout(function(){
 		wp_lib_hide_notification( notification );
-	}, 6000 );
+	}, 7000 );
 }
 
 // Renders client-side notification straight to the browser, no buffering
