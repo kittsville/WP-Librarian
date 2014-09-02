@@ -21,23 +21,26 @@ require_once (plugin_dir_path(__FILE__) . '/wp-librarian-ajax.php');
 	/* Registers custom post types and taxonomies */
 	
 // Creates custom post types to store library items and loans
-add_action( 'init', function() {
+add_action( 'init', 'wp_lib_register_post_and_tax' );
+function wp_lib_register_post_and_tax() {
+
 	// Creates post type for library items
 	$args =	array(
 		'labels' => array(
-			'name' => 'Library',
+			'name'					=> 'Library',
 			'singular_name'			=> 'Library Item',
+			'name_admin_bar'		=> 'Add New Item',
 			'all_items'				=> 'All Items',
-			'add_new'				=> 'Add New Item',
-			'add_new_item'			=> 'Add New Library Item',
+			'add_new'				=> 'Add New',
+			'add_new_item'			=> 'Add New',
 			'edit'					=> 'Edit',
-			'edit_item'				=> 'Edit Library Item',
-			'new_item'				=> 'New Library Item',
+			'edit_item'				=> 'Edit Item',
+			'new_item'				=> 'New Item',
 			'view_item'				=> 'View Library Item',
 			'search_items'			=> 'Search Library Items',
-			'not_found'				=> 'No Library Items found',
-			'not_found_in_trash'	=> 'No Library Items found in Trash',
-			'parent'				=> 'Parent Library Item'
+			'not_found'				=> 'No Items found',
+			'not_found_in_trash'	=> 'No Items found in Trash',
+			'parent_item_colon'		=> 'Parent Library Item'
 		),
 
 		'public'				=> true,
@@ -104,7 +107,7 @@ add_action( 'init', function() {
 		'rewrite'		=> array('slug' => get_option( 'wp_lib_fines_slug', 'fines' ) ),
 	);
 	register_post_type( 'wp_lib_fines', $args );
-});
+}
 
 // Registers all Taxonomies used by the plugin
 add_action( 'init', function() {
@@ -791,8 +794,11 @@ function wp_lib_modify_image_box() {
 
 // Flushes permalink rules to avoid 404s, used after plugin activation and any Settings change
 function wp_lib_flush_permalinks() {
-	global $wp_rewrite;
-	$wp_rewrite->flush_rules( false );
+	// Registers custom post type
+	wp_lib_register_post_and_tax();
+	
+	// Flushes permalinks so new ones work, e.g. mysite.com/wp-librarian/
+	flush_rewrite_rules();
 }
 
 // Checks if an item is on loan and prevents deletion if it is
