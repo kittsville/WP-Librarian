@@ -297,9 +297,9 @@ function wp_lib_fill_item_table( $column, $post_id ) {
 			echo wp_lib_prep_item_available( $post_id, false, true );
 		break;
 		
-		// Displays the condition of the item
+		// Fetches and formats the condition the item is in, using a placeholder if the condition is unspecified
 		case 'item_condition':
-			echo get_post_meta( $post_id, 'wp_lib_item_condition', true );
+			echo wp_lib_format_item_condition( get_post_meta( $post_id, 'wp_lib_item_condition', true ) );
 		break;
 	}
 }

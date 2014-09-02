@@ -11,10 +11,6 @@ wp_enqueue_style( 'wp_lib_admin_meta' );
 // Nonce, to verify user authenticity
 wp_nonce_field( "Updating item {$item->ID} meta", 'wp_lib_item_nonce' );
 
-// If item meta allows item to be loaned, checkbox is checked
-//$loanable = $meta['wp_lib_item_loanable'][0];
-//$loanable = ( $loanable == true ? 'checked' : '' );
-
 // Array of all item meta, consisting of each section, then each section's fields and their properties
 $meta_formatting = array(
 	array(
@@ -42,21 +38,20 @@ $meta_formatting = array(
 				'options'	=> array(
 					array(
 						'value' => '4',
-						'text'	=> '4 - Excellent'
+						'text'	=> wp_lib_format_item_condition( 4 )
 					),
 					array(
 						'value' => '3',
-						'text'	=> '3 - Good'
+						'text'	=> wp_lib_format_item_condition( 3 )
 					),
 					array(
 						'value' => '2',
-						'text'	=> '2 - Fair'
+						'text'	=> wp_lib_format_item_condition( 2 )
 					),
 					array(
 						'value' => '1',
-						'text'	=> '1 - Poor'
+						'text'	=> wp_lib_format_item_condition( 1 )
 					)
-					// 0 - Very Poor?
 				)
 			),
 			array(

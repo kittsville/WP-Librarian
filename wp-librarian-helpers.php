@@ -184,7 +184,26 @@ function wp_lib_fetch_member_name( $post_id, $hyperlink = true, $array = false, 
 		return $member_name;
 }
 
-
+// Returns formatted item condition given item number
+function wp_lib_format_item_condition( $number, $full = true ) {
+	// All possible conditions item can be in
+	$states = array(
+		4 => 'Excellent',
+		3 => 'Good',
+		2 => 'Fair',
+		1 => 'Poor',
+		0 => 'Very Poor'
+	);
+	
+	// If item has not been given a state, return placeholder
+	if ( !$states[$number] )
+		return '-';
+	
+	if ( $full )
+		return $number . ' - ' . $states[$number];
+	else
+		return $states[$number];	
+}
 
 
 

@@ -1,12 +1,12 @@
 jQuery( document ).ready(function($) {
-	/*$( '[name=tax_input[wp_lib_media_type]]' ).each( function( e ) {
-	
-		console.log( e );
-		
-		$('#library-workspace').change( function( e ) {
+	// Selects and iterates through every media type checkbox
+	$( '[name=tax_input\\[wp_lib_media_type\\]\\[\\]]' ).each( function( e ) {
+		// Sets up listener for media type being changed
+		$(e).click( function( e ) {
 			console.log( "Element changed" );
+			console.log( e );
 		})
-	});*/
+	});
 	
 	var meta = JSON.parse( document.getElementById( 'meta-raw' ).innerHTML );
 	
