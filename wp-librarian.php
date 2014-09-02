@@ -510,39 +510,39 @@ add_action( 'save_post', 'wp_lib_process_item_meta_box', 10, 2 );
 
 // Updates item's meta using new values from meta box
 function wp_lib_process_item_meta_box( $item_id, $item ) {
-	add_option( 'wp_lib_debug_1', 'GOT HERE' );
+
 	// Verify the nonce before proceeding
 	if ( !isset( $_POST['wp_lib_item_nonce'] ) || !wp_verify_nonce( $_POST['wp_lib_item_nonce'], "Updating item {$item_id} meta" ) )
 		return $item_id;
-	add_option( 'wp_lib_debug_2', 'GOT HERE' );
+
 	// Get the post type object
 	$post_type = get_post_type_object( $item->post_type );
 
 	// Check if the current user has permission to edit the post
 	if ( !current_user_can( $post_type->cap->edit_post, $item_id ) )
 		return $item_id;
-	add_option( 'wp_lib_debug_3', 'GOT HERE' );		
+	
 	// Stores all meta box fields and sanitization methods
 	$meta_array = array(
 		array(
-			'post'		=> 'wp_lib_item_isbn',
-			'sanitize'	=> 'sanitize_html_class',
 			'key'		=> 'wp_lib_item_isbn',
+			'sanitize'	=> 'sanitize_html_class'
 		),
 		array(
-			'post'		=> 'wp_lib_item_loanable',
-			'sanitize'	=> 'wp_lib_sanitize_checkbox',
 			'key'		=> 'wp_lib_item_loanable',
+			'sanitize'	=> 'wp_lib_sanitize_checkbox'
 		),
 		array(
-			'post'		=> 'wp_lib_item_condition',
-			'sanitize'	=> 'sanitize_text_field',
 			'key'		=> 'wp_lib_item_condition',
+			'sanitize'	=> 'wp_lib_sanitize_number'
 		),
 		array(
-			'post'		=> 'wp_lib_item_barcode',
-			'sanitize'	=> 'wp_lib_sanitize_number',
 			'key'		=> 'wp_lib_item_barcode',
+			'sanitize'	=> 'wp_lib_sanitize_number'
+		),
+		array(
+			'key'		=> 'wp_lib_item_cover_type',
+			'sanitize'	=> 'wp_lib_sanitize_number'
 		)
 	);
 	
@@ -552,7 +552,7 @@ function wp_lib_process_item_meta_box( $item_id, $item ) {
 			return $item_id;
 	
 		// Get the posted data and sanitize it for use as an HTML class
-		$new_meta_value = ( isset( $_POST[$meta['post']] ) ? $meta['sanitize']( $_POST[$meta['post']] ) : '' );
+		$new_meta_value = ( isset( $_POST[$meta['key']] ) ? $meta['sanitize']( $_POST[$meta['key']] ) : '' );
 		
 		// Get the meta key
 		$meta_key = $meta['key'];

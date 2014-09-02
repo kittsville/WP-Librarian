@@ -4,7 +4,6 @@ jQuery( document ).ready(function($) {
 	// Workaround for IE9 and older (God I hate IE so much...)
 	$('[autofocus]:not(:focus)').eq(0).focus();
 	
-	
 	// Selects barcode input field
 	var barcodeInput = $( '#barcode-input' );
 	
@@ -39,8 +38,7 @@ function wp_lib_lookup_barcode( input ) {
 		if ( response ) {
 			wp_lib_load_page( 'manage-item', { item_id : response } );
 		} else {
-			wp_lib_add_notification( [ 1, "Unable to find item with that barcode" ] );
-			wp_lib_display_notifications();
+			wp_lib_local_error( "Unable to find item with that barcode" );
 		}
 	})
 	.fail(

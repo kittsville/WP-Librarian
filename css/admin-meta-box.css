@@ -9,3 +9,7 @@ td.wp-lib-meta-input {
 #wp-lib-meta-left, #wp-lib-meta-left {
 	width: 50%;
 }
+
+#meta-dropzone {
+	display: none;
+}

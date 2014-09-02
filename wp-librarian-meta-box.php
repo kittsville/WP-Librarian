@@ -8,38 +8,109 @@
 // Loads meta box css
 wp_enqueue_style( 'wp_lib_admin_meta' );
 
-// Fetches item meta
-$meta = get_post_meta( $item->ID );
-
 // Nonce, to verify user authenticity
 wp_nonce_field( "Updating item {$item->ID} meta", 'wp_lib_item_nonce' );
 
 // If item meta allows item to be loaned, checkbox is checked
-$loanable = $meta['wp_lib_item_loanable'][0];
-$loanable = ( $loanable == true ? 'checked' : '' );
+//$loanable = $meta['wp_lib_item_loanable'][0];
+//$loanable = ( $loanable == true ? 'checked' : '' );
+
+// Array of all item meta, consisting of each section, then each section's fields and their properties
+$meta_formatting = array(
+	array(
+		'title'	=> 'Basic Details',
+		'id'	=> 'basic-meta-details',
+		'fields'=> array(
+			array(
+				'title'		=> 'Available',
+				'name'		=> 'wp_lib_item_loanable',
+				'type'		=> 'checkbox',
+				'alt-text'	=> 'Check if item can be loaned',
+				'default'	=> 'checked',
+				'value'		=> 'true'
+			),
+			array(
+				'title'		=> 'Hide from listing',
+				'name'		=> 'wp_lib_item_delist',
+				'type'		=> 'checkbox',
+				'alt-text'	=> 'Check to hide from public list of items'
+			),
+			array(
+				'title'		=> 'Condition',
+				'name'		=> 'wp_lib_item_condition',
+				'type'		=> 'select',
+				'options'	=> array(
+					array(
+						'value' => '4',
+						'text'	=> '4 - Excellent'
+					),
+					array(
+						'value' => '3',
+						'text'	=> '3 - Good'
+					),
+					array(
+						'value' => '2',
+						'text'	=> '2 - Fair'
+					),
+					array(
+						'value' => '1',
+						'text'	=> '1 - Poor'
+					)
+					// 0 - Very Poor?
+				)
+			),
+			array(
+				'title'		=> 'Barcode',
+				'name'		=> 'wp_lib_item_barcode',
+				'type'		=> 'text'
+			)
+		)
+	),
+	array(
+		'title'	=> 'Book Details',
+		'id'	=> 'book-meta-details',
+		'fields'=> array(
+			array(
+				'title'		=> 'ISBN',
+				'name'		=> 'wp_lib_item_isbn',
+				'type'		=> 'text',
+			),
+			array(
+				'title'		=> 'Cover Type',
+				'name'		=> 'wp_lib_item_cover_type',
+				'type'		=> 'select',
+				'options'	=> array(
+					array(
+						'value'	=> '2',
+						'text'	=> 'HardCover'
+					),
+					array(
+						'value'	=> '3',
+						'text'	=> 'Softcover'
+					)
+				),
+			),
+
+		)
+	),
+);
+
+// Fetches all item meta
+$all_meta = get_post_meta( $item->ID );
+
+// Iterates through meta formatting and fetches needed meta values for all item meta
+foreach ( $meta_formatting as $meta_area ) {
+	foreach ( $meta_area['fields'] as $field ) {
+		$meta[$field['name']] = $all_meta[ $field['name'] ][0];
+	}
+}
 ?>
-<table id="wp-lib-left-meta-table">
-	<tr>
-		<td class="wp-lib-meta-title">Available</td>
-		<td class="wp-lib-meta-input"><input type="checkbox" size="50%" name="wp_lib_item_loanable" value="true" <?php echo $loanable; ?> />Check if item is allowed to be loaned</td>
-	</tr>
-	<tr>
-		<td class="wp-lib-meta-title">Condition</td>
-		<td class="wp-lib-meta-input"><input type="text" size="50%" name="wp_lib_item_condition" value="<?php echo $meta['wp_lib_item_condition'][0]; ?>" /></td>
-	</tr>
-	<div id="wp-lib-only-books">
-		<tr>
-			<div id="wp-lib-meta-type">
-				<h4>Book Details</h4>
-			</div>
-		</tr>
-		<tr>
-			<td class="wp-lib-meta-title">ISBN</td>
-			<td class="wp-lib-meta-input"><input type="text" size="50%" name="wp_lib_item_isbn" value="<?php echo $meta['wp_lib_item_isbn'][0]; ?>" /></td>
-		</tr>
-		<tr>
-			<td class="wp-lib-meta-title">Barcode</td>
-			<td class="wp-lib-meta-input"><input type="text" size="50%" name="wp_lib_item_barcode" value="<?php echo $meta['wp_lib_item_barcode'][0]; ?>" /></td>
-		</tr>
+<div id="meta-dropzone">
+	<div id="meta-formatting">
+		<?php echo json_encode( $meta_formatting ); ?>
 	</div>
-</table>
+	<div id="meta-raw">
+		<?php echo json_encode( $meta ); ?>
+	</div>
+</div>
+<div id="item-meta"></div>

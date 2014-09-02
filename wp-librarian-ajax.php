@@ -469,8 +469,7 @@ function wp_lib_page_scan_item() {
 	<script>
 		jQuery.getScript( <?php echo json_encode( $script_url ); ?> )
 		.fail( function( jqxhr, settings, exception ) {
-			wp_lib_add_notification( [ 1, "Failed to load JavaScript needed for this page" ] );
-			wp_lib_display_notifications();
+			wp_lib_local_error( "Failed to load JavaScript needed for this page" );
 		});
 	</script>
 	<h2>Scan Item Barcode</h2>

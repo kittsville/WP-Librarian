@@ -17,6 +17,16 @@ function wp_lib_sanitize_number( $raw ) {
 	return ereg_replace('[^0-9]', '', $raw );
 }
 
+// Sanitizes item cover type
+function wp_lib_sanitize_item_cover( $raw ) {
+	if ( $raw == 'hardcover' )
+		return 2;
+	elseif ( $raw == 'softcover' )
+		return 3;
+	else
+		return '';
+}
+
 	/* URLs and Slugs */
  
 // Adds plugin url to front of string (e.g. authors -> library/authors)
@@ -172,27 +182,6 @@ function wp_lib_fetch_member_name( $post_id, $hyperlink = true, $array = false, 
 	// Otherwise just returns member's name (as a hyperlink or otherwise)
 	else
 		return $member_name;
-}
-
-// Simple function for rendering tables. Potentially a place-holder that will be eventually be deprecated
-function wp_lib_render_simple_table( $headers, $rows ) {
-	
-	echo '<table>';
-	echo '<thead>';
-	foreach ( $headers as $header ) {
-		echo '<th>' . $header . '</th>';
-	}
-	echo '</thead>';
-	echo '<tfoot>';
-	foreach ( $rows as $row ) {
-		echo '<tr>';
-		foreach ( $row as $data ) {
-			echo '<td>' . $data . '</td>';
-		}
-		echo '</tr>';
-	}
-	echo '<tfoot>';
-	echo '</table>';
 }
 
 
