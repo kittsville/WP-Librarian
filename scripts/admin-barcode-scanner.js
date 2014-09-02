@@ -18,7 +18,7 @@ jQuery( document ).ready(function($) {
 // Searches for item with given barcode
 // Returns item ID on success, false on failure
 function wp_lib_lookup_barcode( input ) {
-	var barcode = parseInt( input );
+	var barcode = parseInt( input, 10 );
 
 	if ( !( typeof barcode== "number" && isFinite( barcode ) && barcode%1===0 ) ) {
 		wp_lib_local_error( "The barcode needs to be a number" );
@@ -30,7 +30,7 @@ function wp_lib_lookup_barcode( input ) {
 	var ajaxData = {
 		action	: 'wp_lib_lookup_barcode',
 		code	: barcode
-	}
+	};
 	
 	// Sends request to the server
 	jQuery.post( ajaxurl, ajaxData, function( response ) {
@@ -41,7 +41,7 @@ function wp_lib_lookup_barcode( input ) {
 			wp_lib_local_error( "Unable to find item with that barcode" );
 		}
 	})
-	.fail(
+	.fail( function() {
 		wp_lib_ajax_fail();
-	);
+	});
 }
