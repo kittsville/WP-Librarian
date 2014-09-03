@@ -654,7 +654,7 @@ function wp_lib_give_item( $item_id, $loan_id, $member_id ) {
 	$member = get_term_by( 'id', absint( $member_id ), 'wp_lib_member' );
 
 	// Assigns the member to the item, to signify their current position of the Library item
-	wp_set_post_terms( $item_id, $member->name, 'wp_lib_member' );
+	wp_set_object_terms( $item_id, $member->name, 'wp_lib_member' );
 	
 	// Updates loan status from 'Scheduled' to 'On Loan'
 	update_post_meta( $loan_id, 'wp_lib_status', 1 );	

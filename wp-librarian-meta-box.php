@@ -11,12 +11,30 @@ wp_enqueue_style( 'wp_lib_admin_meta' );
 // Nonce, to verify user authenticity
 wp_nonce_field( "Updating item {$item->ID} meta", 'wp_lib_item_nonce' );
 
+// Fetches list of media types
+$media_type_objects = get_terms( 'wp_lib_media_type', 'hide_empty=0' );
+
+// Creates meta formatting array of media types
+foreach ( $media_type_objects as $type ) {
+	$media_types[] = array(
+		'value'	=> $type->slug,
+		'text'	=> $type->name
+	);
+}
+
 // Array of all item meta, consisting of each section, then each section's fields and their properties
 $meta_formatting = array(
 	array(
 		'title'	=> 'Basic Details',
-		'id'	=> 'basic-meta-details',
+		'class'	=> 'meta-basic-details-section',
 		'fields'=> array(
+			array(
+				'title'		=> 'Media Type',
+				'id'		=> 'meta-media-type-selector',
+				'name'		=> 'wp_lib_media_type',
+				'type'		=> 'select',
+				'options'	=> $media_types
+			),
 			array(
 				'title'		=> 'Available',
 				'name'		=> 'wp_lib_item_loanable',
@@ -63,7 +81,8 @@ $meta_formatting = array(
 	),
 	array(
 		'title'	=> 'Book Details',
-		'id'	=> 'book-meta-details',
+		'class'	=> 'meta-media-type-section',
+		'value'	=> 'books',
 		'fields'=> array(
 			array(
 				'title'		=> 'ISBN',
@@ -88,6 +107,18 @@ $meta_formatting = array(
 
 		)
 	),
+	array(
+		'title'	=> 'DVD Details',
+		'class'	=> 'meta-media-type-section',
+		'value'	=> 'dvds',
+		'fields'=> array(
+			array(
+				'title'		=> 'Placeholder',
+				'name'		=> 'wp_lib_item_placeholder',
+				'type'		=> 'text',
+			),
+		)
+	),
 );
 
 // Fetches all item meta
@@ -99,6 +130,9 @@ foreach ( $meta_formatting as $meta_area ) {
 		$meta[$field['name']] = $all_meta[ $field['name'] ][0];
 	}
 }
+
+// Adds media type meta to meta array
+$meta['wp_lib_media_type'] = wp_get_object_terms($item->ID, 'wp_lib_media_type', array("fields" => "slugs") )[0];
 ?>
 <div id="meta-dropzone">
 	<div id="meta-formatting">

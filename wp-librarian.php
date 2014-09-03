@@ -546,9 +546,15 @@ function wp_lib_process_item_meta_box( $item_id, $item ) {
 		array(
 			'key'		=> 'wp_lib_item_cover_type',
 			'sanitize'	=> 'wp_lib_sanitize_number'
+		),
+		array(
+			'key'		=> 'wp_lib_media_type',
+			'sanitize'	=> 'sanitize_title',
+			'tax'		=> true
 		)
 	);
 	
+	// Iterates through each meta field, fetching and sanitizing it then saving/updating/deleting as appropriate
 	foreach ( $meta_array as $meta ) {
 		// Checks if sanitizing function exists
 		if ( !is_callable( $meta['sanitize'] ) )
@@ -556,6 +562,25 @@ function wp_lib_process_item_meta_box( $item_id, $item ) {
 	
 		// Get the posted data and sanitize it for use as an HTML class
 		$new_meta_value = ( isset( $_POST[$meta['key']] ) ? $meta['sanitize']( $_POST[$meta['key']] ) : '' );
+		
+		// If data is a taxonomy term and not a meta value
+		if ( $meta['tax'] ) {
+			// If new meta value is not empty
+			if ( $new_meta_value ) {
+				// Attempts to fetch term from its respective taxonomy
+				$term = get_term_by( 'slug', $new_meta_value, $meta['key'] );
+				
+				// If term exists
+				if ( $term )
+					// Updates item's term for that taxonomy
+					wp_set_object_terms( $item_id, $term->name, $meta['key'] );
+			} else {
+				// Removes any term(s) attached to item for current taxonomy
+				wp_delete_object_term_relationships( $item_id, $meta['key'] );
+			}
+			// Skips rest of current loop
+			continue;
+		}
 		
 		// Get the meta key
 		$meta_key = $meta['key'];
@@ -626,6 +651,9 @@ add_action( 'admin_menu', function() {
 	
 	// Removes 'Donor' taxonomy box
 	remove_meta_box( 'tagsdiv-wp_lib_donor', 'wp_lib_items', 'side' );
+	
+	// Removes 'Media Type' taxonomy box
+	remove_meta_box( 'wp_lib_media_typediv', 'wp_lib_items', 'side' );
 });
 
 	/* -- Admin Menus -- */

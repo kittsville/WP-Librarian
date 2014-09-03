@@ -13,3 +13,7 @@ td.wp-lib-meta-input {
 #meta-dropzone {
 	display: none;
 }
+
+.meta-field-title {
+	width: 200px;
+}
