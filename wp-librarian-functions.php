@@ -573,7 +573,7 @@ function wp_lib_give_item( $item_id, $loan_id, $member_id ) {
 	
 	// Sets date item was loaned
 	add_post_meta( $loan_id, 'wp_lib_loaned_date', $time );
-	// GGGGGGG
+
 	return true;
 }
 

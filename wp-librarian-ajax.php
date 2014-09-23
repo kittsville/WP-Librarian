@@ -316,7 +316,6 @@ function wp_lib_do_delete_object() {
 	// Validates ID of Library object
 	if ( !wp_lib_get_object_type() )
 		wp_lib_stop_ajax( false );
-	// GGGGG
 	
 	// Deletes post, connected post deletion is handled on the pre_deletion hook 'before_delete_post'
 	wp_delete_post( $post_id );
