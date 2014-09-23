@@ -4,7 +4,6 @@ var notificationCount = 0;
 jQuery( document ).ready(function($) {
 	// Selects the notification holder
 	window.notificationHolder = jQuery( '#notifications-holder' );
-
 });
 
 // Collects of a submitted form's parameters, removes the blank ones, then returns the result as an object
@@ -146,11 +145,20 @@ function wp_lib_format_notification( notification ) {
 	return [ uID, "<div onclick='wp_lib_hide_notification(this)' class='" + classes + "'><p>" + message + "</p></div>" ];
 }
 
-// Hides then deletes notification, called from notification's onclick property
+// Hides then deletes notification, called when notification is clicked or some time after it appeared
 function wp_lib_hide_notification( element ) {
+	// Selects notification
 	var notification = jQuery( element );
 	
+	// Removes notification, in style!
 	notification.fadeOut("fast");
 	
-	delete notification;
+	// Deletes notification
+	notification.remove();
+}
+
+// JavaScript to allow buttons to act as hyperlinks
+function wp_lib_click_button( e ) {
+	// Redirects page to clicked button's href attribute
+	location.href = jQuery( e ).attr('href');
 }

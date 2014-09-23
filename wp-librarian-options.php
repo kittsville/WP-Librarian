@@ -6,20 +6,21 @@
  */
 
 
-/* General - Miscellaneous options relating to WP-Librarian's operation */
+	/* -- Library Options -- */
+	/* Settings relating to loaning/returning systems */
+	
 // Loan length in days
 add_option( 'wp_lib_loan_length', 12 );
 
 // Fine length (per day)
 add_option( 'wp_lib_fine_daily', 0.20 );
 
-// Currency Symbol
-add_option( 'wp_lib_currency_symbol', '£' );
+// If to prompt on each item's deletion or simply follow the default deletion behaviour
+add_option( 'wp_lib_bulk_deletion', '0' ); // GGGGG
 
-// Currency position (1 - before, 0 - after)
-add_option( 'wp_lib_currency_position', 1 );
+	/* -- Slugs -- */
+	/* Sections of site urls used when accessing plugin pages e.g. my-site.com/wp-librarian */
 
-/* Slugs - Sections of site urls used when accessing plugin pages e.g. my-site.com/wp-librarian */
 // The slug for library items
 add_option( 'wp_lib_main_slug', 'wp-librarian' );
 
@@ -41,11 +42,19 @@ add_option( 'wp_lib_loans_slug', 'loans' );
 // The slug for viewing fines
 add_option( 'wp_lib_fines_slug', 'fines' );
 
-/* Formatting and Customisation - Small tweaks to plugin presentation */
-// Whether to create default media types if they don't already exist
+	/* -- Formatting -- */
+	/* Settings relating to plugin presentation */
+	
+// Whether to create the default media types (Books, DVDs etc. )
 add_option( 'wp_lib_default_media_types', true );
 
 // The separator for item taxonomies (the comma between authors)
 add_option( 'wp_lib_taxonomy_spacer', ', ' );
+
+// Currency Symbol
+add_option( 'wp_lib_currency_symbol', '£' );
+
+// Currency position relative to the numerical value (1 - Before: £20, 0 - After: 20£)
+add_option( 'wp_lib_currency_position', 1 );
 
 ?>

@@ -59,6 +59,17 @@ function wp_lib_send_form( action, params ) {
 			data.fine_action = params['cancel'];
 		break;
 		
+		
+		case 'delete-object-et-al':
+			data.et_al = true;
+		// Lack of break statement is deliberate
+		
+		case 'delete-object':
+			data.action = 'wp_lib_delete_object';
+			data.post_id = params['post_id'];
+			data.deletion_confirmed = true;
+		break;
+		
 		case 'clean-item':
 			data.action = 'wp_lib_clean_item';
 			data.item_id = params['item_id'];
@@ -72,12 +83,19 @@ function wp_lib_send_form( action, params ) {
 	
 	// Submits action with all given form parameters
 	jQuery.post( ajaxurl, data, function( response ) {
+		// Fetches and renders any new notifications
+		wp_lib_display_notifications();
+	
 		// Parses response
 		var success = JSON.parse( response );
 		
 		// If action completed successfully, redirects to dashboard
 		if ( success ) {
-			wp_lib_load_page( successPage, {} );
+			if ( successPage ) {
+				wp_lib_load_page( successPage, {} );
+			} else {
+				wp_lib_load_page();
+			}
 		} else {
 			// Otherwise load notifications to display explanatory errors
 			wp_lib_display_notifications();
@@ -90,7 +108,6 @@ function wp_lib_send_form( action, params ) {
 
 // Fetches page, using given parameters
 function wp_lib_load_page( page, ajaxData ) {
-
 	// AJAX page switch, decides which page should be loaded
 	switch ( page ) {
 		case 'manage-item':
@@ -125,8 +142,8 @@ function wp_lib_load_page( page, ajaxData ) {
 			ajaxData['action'] = 'wp_lib_resolution_page';
 		break;
 		
-		case 'failed-deletion':
-			ajaxData['action'] = 'wp_lib_deletion_failed';
+		case 'object-deletion':
+			ajaxData['action'] = 'wp_lib_confirm_deletion_page';
 		break;
 		
 		case undefined:
@@ -140,24 +157,44 @@ function wp_lib_load_page( page, ajaxData ) {
 	}
 	
 	// Sends AJAX page request with given params, fills workspace div with response
-	jQuery.post( ajaxurl, ajaxData, function( response ) {
-		jQuery( '#library-workspace' ).html( response );
+	jQuery.post( ajaxurl, ajaxData )
+	.done( function( response ) {
+		// Attempts to encode result, calls error on failure
+		try {
+			var ajaxResult = JSON.parse( response );
+		}
+		catch(e) {
+			wp_lib_local_error( "Failed to render data returned by server" );
+			
+			// Debugging - Renders un-parseable returned data to workspace
+			jQuery('<pre/>', {
+				'html'	: response
+			}).appendTo( '#library-workspace' );
+		}
 		
-		// Deletes now redunant parameter
-		delete ajaxData['action'];
+		// If server response was false, call error
+		if ( !ajaxResult ) {
+			wp_lib_local_error( 'Server encounted error while loading page' );
+		} else {
+			// Renders page using AJAX returned data
+			wp_lib_render_page( ajaxResult );
+			
+			// Deletes redundant parameter
+			delete ajaxData['action'];
 
-		// Serializes page parameters
-		var urlString = jQuery.param( ajaxData );
-		
-		// Creates current page title
-		var currentPage = wp_lib_vars.dashurl + '&' + urlString;
-		
-		// Changes URL to reflect new page (also creates browser history entry)
-		history.pushState( ajaxData, 'Dashboard Title' + '&bull' + wp_lib_vars.sitename, currentPage );
-		
-		// Sets trigger for the back button being used
-		window.onpopstate = function( event ) {
-			wp_lib_load_page( event.state.dash_page, event.state );
+			// Serializes page parameters
+			var urlString = jQuery.param( ajaxData );
+			
+			// Creates current page title
+			var currentPage = wp_lib_vars.dashurl + '&' + urlString;
+			
+			// Changes URL to reflect new page (also creates browser history entry)
+			history.pushState( ajaxData, wp_lib_format_tab_title( ajaxResult.title ), currentPage );
+			
+			// Sets trigger for the back button being used
+			window.onpopstate = function( event ) {
+				wp_lib_load_page( event.state.dash_page, event.state );
+			}
 		}
 	})
 	.fail( function() {
@@ -183,7 +220,7 @@ function wp_lib_after_load() {
 	});
 	
 	// Adds listener for action performing buttons
-	jQuery('#library-workspace').on('click', '.dash-action', function ( e ){
+	jQuery('#library-workspace').on('click', '[name="dash_action"]', function ( e ){
 		// Fetches action to be performed
 		var action = e.currentTarget.value;
 		
@@ -198,7 +235,7 @@ function wp_lib_after_load() {
 	});
 	
 	// Adds listener for page loading buttons
-	jQuery('#library-workspace').on('click', '.dash-page', function ( e ){
+	jQuery('#library-workspace').on('click', '[name="dash_page"]', function ( e ){
 		// Fetches form parameters that have been set
 		var params = wp_lib_collect_form_params( '#library-form' );
 		
@@ -211,13 +248,245 @@ function wp_lib_after_load() {
 		// Prevents regular form submission
 		return false;
 	});
+}
+
+// Renders form from an array
+function wp_lib_render_page( pageArray ) {
+	// jQuery setup
+	var $ = jQuery;
+
+	// Changes page title
+	jQuery( '#page-title' ).html( pageArray.pageTitle );
+	
+	// Changes title of browser tab
+	document.title = wp_lib_format_tab_title( pageArray.title )
+	
+	if ( pageArray.scripts ) {
+		$( pageArray.scripts ).each( function( i, scriptURL ) {
+			jQuery.getScript( scriptURL )
+			.fail( function( jqxhr, settings, exception ) {
+				wp_lib_local_error( "Failed to load JavaScript needed for this page" );
+			});
+		});
+	}
+	
+	// Clears and selects Library workspace in preparation of new page
+	var libWorkspace = jQuery( '#library-workspace' ).empty();
+	
+	// If page has any non-form content, render each element to the Library workspace
+	if ( pageArray.content ) {
+		// Iterates through elements, rendering them
+		jQuery( pageArray.content ).each( function( i, e ) {
+			render_page_element( e, libWorkspace );
+		});
+	}
+	
+	// If page has any form content, render each element inside a form element
+	if ( pageArray.form ) {
+		// Creates and selects form element
+		var libPage = $( '<form/>', {
+			'id'	: 'library-form'
+		} ).appendTo( libWorkspace );
+		
+		// Iterates through elements, rendering them
+		jQuery( pageArray.form ).each( function( i, e ) {
+			render_page_element( e, libPage );
+		});
+	}
+	
+	// Concatenates array into string with spaces, can handle string if needed
+	function add_classes( newClasses ) {
+		if ( newClasses instanceof Array ){
+			return newClasses.join(' ');
+		}
+		else if ( typeof newClasses === "string" ) {
+			return newClasses;
+		} else {
+			return '';
+		}
+	}
+	
+	// Renders a page element to the specified parent
+	// Function is recursive and will render a div's child nodes using itself
+	function render_page_element( pageItem, theParent ) {
+		// Initialises object that will contain element's arguments (ID, Value, Class, etc. )
+		var elementObject = {
+			'class'	: ''
+		};
+		
+		// Iterates through common html properties and sets them if they exist
+		$( [ 'id', 'name', 'value', 'html' ] ).each( function( i, e ) {
+			if ( pageItem[e] ) {
+				elementObject[e] = pageItem[e];
+			}
+		});
+		
+		// If page element has classes, sets
+		if ( pageItem.classes ) {
+			elementObject.class += add_classes( pageItem.classes );
+		}
+		
+		// If element has a label, creates
+		if ( pageItem.label ) {
+			// Creates label, appends to parent, then sets parent as label. This means the pageItem will be inside the label
+			theParent = $('<label/>', {
+				'for'	: pageItem.label
+			}).appendTo( theParent );
+		}
+		
+		// Performs actions on page element based on element type
+		switch ( pageItem.type ) {
+			case 'hidden':
+				elementObject.type = pageItem.type;
+				
+				$('<input/>', elementObject ).appendTo( theParent );
+			break;
+			
+			case 'button':
+				elementObject.class += add_classes( [ 'button', 'button-primary', 'button-large' ] );
+				
+				// Sets up button properties based on the button type
+				switch ( pageItem.link ) {
+					// Button to load a new Dash page
+					case 'page':
+						elementObject.name = 'dash_page';
+					break;
+					
+					// Button to modify the library (e.g. loan an item)
+					case 'action':
+						elementObject.name = 'dash_action';
+					break;
+					
+					// Button that links to an external URL
+					case 'url':
+						elementObject.href = pageItem.href;
+						elementObject.onclick = 'wp_lib_click_button( this )';
+					break;
+				}
+				
+				// Creates button using buttonObject and appends it to page
+				$('<button/>', elementObject ).appendTo( theParent );
+			break;
+			
+			case 'dash-button':
+				// Merges dash button's classes with default dash button classes
+				elementObject.class += add_classes( [ 'dashboard-button' ] );
+				
+				var onClick = "wp_lib_click_button( this )";
+				
+				// Sets button's click behaviour based on its link type
+				switch ( pageItem.link ) {
+					case 'dash-page':
+						elementObject.name = 'dash_page';
+					break;
+					
+					case 'post-type':
+						elementObject.href = wp_lib_vars.adminurl + 'edit.php?post_type=' + pageItem.pType;
+						elementObject.onclick = onClick;
+					break;
+					
+					case 'admin-url':
+						elementObject.href = wp_lib_vars.adminurl + pageItem.url;
+						elementObject.onclick = onClick;
+					break;
+					
+					case 'url':
+						elementObject.href = pageItem.url;
+						elementObject.onclick = onClick;
+					break;
+				}
+				
+				// Creates button and appends to document, setting parent to button
+				var theParent = $('<button/>', elementObject ).appendTo( theParent );
+				
+				// Creates top half of button: the icon
+				$('<img/>', {
+					'class'	: 'dashboard-icon',
+					'src'	: wp_lib_vars.pluginsurl + '/images/dash-icons/' + pageItem.icon + '.png',
+					'alt'	: pageItem.title + ' Icon',
+				}).appendTo('<div/>', {
+					'class'	: 'dash-button-top'
+				}).appendTo( theParent );
+				
+				// Creates bottom half of button: the label
+				$('<div/>', {
+					'html'	: pageItem.title
+				}).appendTo( theParent );
+			break;
+			
+			case 'paras':
+				// Renders paragraphs from array to separate p elements
+				$( pageItem.content ).each( function ( i, e ) {
+					$('<p/>', {
+						'html'	: e
+					}).appendTo( theParent );
+				});
+			break;
+			
+			case 'date':
+				elementObject.type = pageItem.type;
+				elementObject.class += add_classes( [ 'datepicker', 'll-skin-melon' ] );
+				$('<input/>', elementObject ).appendTo( theParent );
+			break;
+			
+			case 'select':
+				// Renders select element and adds it to the page
+				var select = $('<select/>', elementObject ).appendTo( theParent );
+				
+				// Iterates through select element's options, adding them to the select element
+				$( pageItem.options ).each( function( i, selectOption ) {
+					$('<option/>', {
+						'value'	: selectOption.value,
+						'html'	: selectOption.html,
+						'class'	: pageItem.optionClass
+					}).appendTo( select );
+				});
+			break;
+			
+			case 'header':
+				$('<h' + pageItem.size + '/>', elementObject ).appendTo( theParent );
+			break;
+			
+			case 'text':
+				// Sets object's type
+				elementObject.type = 'text';
+				
+				// Sets property if property exists
+				if ( pageItem.autofocus ) {
+					elementObject.autofocus = 'autofocus';
+				}
+				
+				// Creates text input element
+				$('<input/>', elementObject ).appendTo( theParent );
+			break;
+			
+			case 'div':
+				// Creates div, selects and appends to parent
+				var pageDiv = $('<div/>', elementObject ).appendTo( theParent );
+				
+				// Iterates through div's inner elements, appending them to itself
+				$( pageItem.inner ).each( function( i, e ) {
+					render_page_element( e, pageDiv );
+				});
+			break;
+			
+			case 'strong':
+				$('<strong/>', elementObject ).appendTo( theParent );
+			break;
+			
+			default:
+				$('<strong/>', {
+					'html'	: 'UNKNOWN ELEMENT TYPE<br/>',
+					'style'	: 'color:red;'
+				}).appendTo( theParent );
+			break;
+		}
+	}
 
 }
 
-function wp_lib_click_dash_button( e ) {
-	// Redirects page to clicked button's href attribute
-	location.href = jQuery( e ).attr('href');
-
+function wp_lib_format_tab_title( title ) {
+	return title + ' ‹ ' + wp_lib_vars.sitename;
 }
 
 // Loads page content on page load. Only used if page is visited from a non-Dashboard page

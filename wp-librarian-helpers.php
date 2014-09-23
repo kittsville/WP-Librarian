@@ -4,7 +4,7 @@
  * These are a collection of various useful functions used by WP-Librarian to operate
  */
 
-	/* Sanitising Functions */
+	/* -- Sanitising Functions -- */
 
 // Sanitizes phone number
 function wp_lib_sanitize_phone_number( $string ) {
@@ -27,7 +27,148 @@ function wp_lib_sanitize_item_cover( $raw ) {
 		return '';
 }
 
-	/* URLs and Slugs */
+	/* -- Data Validation Functions -- */
+
+// AJAX Wrapper for wp_lib_valid_item_id
+function wp_lib_check_item_id( $item_id ) {
+	if ( !wp_lib_valid_item_id( $item_id ) )
+		wp_lib_page_dashboard();
+}
+
+// AJAX Wrapper for wp_lib_valid_member_id
+function wp_lib_check_member_id( $member_id ) {
+	if ( !wp_lib_valid_member_id( $member_id ) )
+		wp_lib_page_dashboard();
+}
+
+// AJAX Wrapper for wp_lib_valid_fine_id
+function wp_lib_check_fine_id( $fine_id ) {
+	if ( !wp_lib_valid_fine_id( $fine_id ) )
+		wp_lib_page_dashboard();
+}
+
+// AJAX Wrapper for wp_lib_valid_loan_id
+function wp_lib_check_loan_id( $loan_id ) {
+	if ( !wp_lib_valid_loan_id( $loan_id ) )
+		wp_lib_page_dashboard();
+}
+
+// Checks if member ID is valid
+function wp_lib_valid_member_id( $member_id ) {
+	// Attempts to fetch member with given ID, fetching function handles sanitization
+	if ( wp_lib_fetch_member( $member_id ) )
+		return true;
+	else
+		return false;
+}
+
+// Checks if item ID is valid
+function wp_lib_valid_item_id( $item_id ) {
+	// Checks if item ID exists
+	if ( !$item_id ) {
+		wp_lib_error( 300, false, 'Item' );
+		return false;
+	}
+
+	// Checks if ID is a number
+	if ( !is_numeric( $item_id ) ) {
+		wp_lib_error( 301, false, 'Item' );
+		return false;
+	}
+	
+	// Fetches item status
+	$item_status = get_post_status( $item_id );
+	
+	// Checks if ID belongs to a published/private library item
+	if ( get_post_type( $item_id ) != 'wp_lib_items' || !( $item_status == 'publish' || $item_status == 'private' ) ) {
+		wp_lib_error( 305, false, $item_id );
+		return false;
+	}
+
+	return true;
+}
+
+// Checks if loan ID is valid
+function wp_lib_valid_loan_id( $loan_id ) {
+	// Checks if loan ID exists
+	if ( !$loan_id ) {
+		wp_lib_error( 300, false, 'Loan' );
+		return false;
+	}
+	
+	// Checks if ID is actually a number
+	if ( !is_numeric( $loan_id ) ) {
+		wp_lib_error( 301, false, 'Loan' );
+		return false;
+	}
+	
+	// Checks if ID belongs to a published loan (a loan in any other state is not valid)
+	if ( get_post_type( $loan_id ) != 'wp_lib_loans' || !get_post_status( $loan_id ) != 'publish' ) {
+		wp_lib_error( 306 );
+		return false;
+	}
+
+	return true;
+}
+
+// Checks if fine ID is valid
+function wp_lib_valid_fine_id( $fine_id ){
+	// Checks if fine ID exists
+	if ( !$fine_id ) {
+		wp_lib_error( 300, false, 'Fine' );
+		return false;
+	}
+	
+	// Checks if ID is actually a number
+	if ( !is_numeric( $fine_id ) ) {
+		wp_lib_error( 301, false, 'Fine' );
+		return false;
+	}
+	
+	// Checks if ID belongs to a published loan (a loan in any other state is not valid)
+	if ( get_post_type( $fine_id ) != 'wp_lib_fines' || get_post_status( $fine_id ) != 'publish' ) {
+		wp_lib_error( 308 );
+		return false;
+	}
+
+	return true;
+}
+
+// Checks if ID belongs to valid Library item, returns object type if true
+function wp_lib_get_object_type( $post_id ) {
+	// Checks if item ID exists
+	if ( !$post_id ) {
+		wp_lib_error( 300, false, 'Library Object' );
+		return false;
+	}
+
+	// Checks if ID is a number
+	if ( !is_numeric( $post_id ) ) {
+		wp_lib_error( 301, false, 'Library Object' );
+		return false;
+	}
+	
+	// Gets object's post type
+	$post_type = get_post_type( $post_id );
+	
+	// Returns Library object type
+	switch ( get_post_type( $post_id ) ) {
+		case 'wp_lib_items':
+			return 'item';
+		
+		case 'wp_lib_loans':
+			return 'loan';
+		
+		case 'wp_lib_fines':
+			return 'fine';
+	}
+	
+	// Otherwise object does not belong to the Library
+	wp_lib_error( 305, false, $item_id );
+	return false;
+}
+
+	/* -- URLs and Slugs -- */
  
 // Adds plugin url to front of string (e.g. authors -> library/authors)
 function wp_lib_prefix_url( $option, $slug ) {
@@ -43,17 +184,47 @@ function wp_lib_prefix_url( $option, $slug ) {
 
 // Formats a URL to manage the member with the given ID
 function wp_lib_format_manage_member( $member_id ) {
-	return admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&member_id={$member_id}&dash_page=manage-member" );
+	$args = array(
+		'dash_page'	=> 'manage-member',
+		'member_id'	=> $member_id
+	);
+	
+	return wp_lib_format_dash_url( $args );
 }
 
 // Formats a URL to manage the item with the given ID
 function wp_lib_format_manage_item( $item_id ) {
-	return admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&item_id={$item_id}&dash_page=manage-item" );
+	$args = array(
+		'dash_page'	=> 'manage-item',
+		'item_id'	=> $item_id
+	);
+	
+	return wp_lib_format_dash_url( $args );
 }
 
 // Formats a URL to manage the fine with the given ID
 function wp_lib_format_manage_fine( $fine_id ) {
-	return admin_url( "edit.php?post_type=wp_lib_items&page=dashboard&fine_id={$fine_id}&dash_page=manage-fine" );
+	$args = array(
+		'dash_page'	=> 'manage-fine',
+		'fine_id'	=> $fine_id
+	);
+	
+	return wp_lib_format_dash_url( $args );
+}
+
+// Formats and returns a Library Dashboard URL with any desired variables formatted as GET parameters
+function wp_lib_format_dash_url( $params = false ) {
+	// Constructs base Library Dashboard URL
+	$url = admin_url( 'edit.php?post_type=wp_lib_items&page=dashboard' );
+	
+	// Adds all, if any, parameters to the URL
+	if ( $params ) {
+		foreach ( $params as $key => $value ) {
+			$url .= '&' . $key . '=' . $value;		
+		}
+	}
+
+	return $url;
 }
 
 // Formats script's URL using its name. Presumes default script dir is used
@@ -66,7 +237,7 @@ function wp_lib_style_url( $name ) {
 	return plugins_url( '/css/'. $name . '.css', __FILE__ );
 }
 
-	/* Dates and times */
+	/* -- Dates and times -- */
 
 // Validates given date, checking if it meets any given requirements
 function wp_lib_convert_date( &$date ) {
@@ -111,7 +282,7 @@ function wp_lib_plural( $value, $string, $plural = 's' ) {
 	return $string;
 }
 
-	/* Localisation */
+	/* -- Localisation -- */
 
 // Formats money according to user's preferences
 function wp_lib_format_money( $value ) {
@@ -135,12 +306,172 @@ function wp_lib_format_money( $value ) {
 	return $value;
 }
 
-	/* Miscellaneous */
+	/* -- AJAX -- */
+	/* Functions that assist preparing data for the client/server */
 
-// Fetches member's name and, if needed, formats as a hyperlink. Falls back to archived name if needs be
-function wp_lib_fetch_member_name( $post_id, $hyperlink = true, $array = false, $ending = true ) {
+// Encodes given array as JSON then echos inside of the dropzone div, to be fetched on page load
+function wp_lib_dropzone( $array ) {
+	?>
+	<script>
+	var formDropzone = <?php echo json_encode( $array ); ?>;
+	</script>
+	<?php
+}
+
+// Given item ID, returns rendered item management header
+function wp_lib_prep_item_management_header( $item_id ) {
+	return array();
+}
+
+// Given member object, returns rendered member management header
+function wp_lib_prep_member_management_header( $member ) {
+	return array();
+}
+
+// Given fine ID, returns rendered fine management header
+function wp_lib_prep_fine_management_header( $fine_id ) {
+	return array();
+}
+
+// Renders the header for the Item management page
+function wp_lib_render_item_management_header( $item_id ) {
+	// Fetches title of item e.g. 'Moby-Dick'
+	$title = get_the_title( $item_id );
+	
+	// Fetches status of item e.g. 'On Loan (2 days remaining)'
+	$status = wp_lib_prep_item_available( $item_id, true );
+	?>
+	<!-- Management Header -->
+	<h2>Managing: <?= $title ?></h2>
+	<p>
+		<strong>Item ID:</strong> <?= $item_id ?><br />
+		<strong>Status:</strong> <?= $status ?>
+	</p>
+	<?php
+}
+
+// Renders the header for the Fine management page, displaying information about the fine
+function wp_lib_render_fine_management_header( $fine_id ) {
+	// Fetches and formats fine amount ( e.g. £0.40 )
+	$fine_formatted = wp_lib_format_money( get_post_meta( $fine_id, 'wp_lib_fine', true ) );
+	
+	// Fetches fine status, unformatted ( 1 rather than 'Unpaid' )
+	$fine_status = get_post_meta( $fine_id, 'wp_lib_status', true );
+
+	// Formats fine status
+	$formatted_status = wp_lib_format_fine_status( $fine_status );
+	
+	// Fetches item and loan IDs
+	$item_id = get_post_meta( $fine_id, 'wp_lib_item', true );
+	$loan_id = get_post_meta( $fine_id, 'wp_lib_loan', true );
+	
+	// Fetches member name and if member still exists
+	$member_array = wp_lib_fetch_member_name( $fine_id, true, true );
+	
+	// If member no longer exists, fetches member name from fine meta
+	if ( $member_array['deleted'] )
+		wp_lib_error( 205, array( 'fine', $member_array['name'] ) );
+	
+	// Fetches item title and if the item still exists
+	$title_array = wp_lib_format_item_title( $item_id, $fine_id, true, true );
+	
+	// If item no longer exists, inform user how this limits their options
+	if ( $title_array['deleted'] )
+		wp_lib_error( 205, array( 'item', $title_array['title'] ) );
+	
+	?>
+	<h2>Managing: Fine #<?= $fine_id ?></h2>
+	<p>
+		<strong>Item: </strong><?= $title_array['title'] ?><br />
+		<strong>Member: </strong><?= $member_array['name'] ?><br />
+		<strong>Amount: </strong><?= $fine_formatted ?><br />
+		<strong>Status: </strong><?= $formatted_status ?><br />
+		<strong>Created: </strong><?= get_the_date( '', $fine_id ) ?>
+	</p>
+	<?php
+}
+
+// Renders the header of the member management page, displaying information about the member
+function wp_lib_render_member_management_header( $member_id ) {
+	// Fetches member object using member ID
+	$member = get_term( $member_id, 'wp_lib_member' );
+	
+	?>
+	<h2>Managing: <?= $member->name ?></h2>
+	<strong>Member ID: </strong><?= $member->term_id ?><br />
+	<?php
+	// Sets up loan history parameters
+	$args = array(
+		'post_type' => 'wp_lib_loans',
+		'tax_query' => array(
+			array(
+				'taxonomy'	=> 'wp_lib_member',
+				'field'		=> 'term_id',
+				'terms'		=> $member_id
+			)
+		)
+	);	
+	
+	// Creates query of all loans attached to this member
+	$query = new WP_Query( $args );
+}
+
+// Creates option element for each member in the library, stored as an array
+function wp_lib_prep_member_options() {
+	// Fetches list of all Members
+	$members = get_terms( 'wp_lib_member', 'hide_empty=0' );
+	
+	// Initialises options with default option
+	$options[] = array(
+		'value'	=> '',
+		'html'	=> 'Member'
+	);
+	
+	// Provided there is at least one member
+	if ( $members ) {
+		// Iterates through members, creating an option for each
+		foreach ($members as $member) {
+			$options[] = array(
+				'value'	=> $member->term_id,
+				'html'	=> $member->name
+			);
+		}
+	}
+	
+	return $options;
+}
+
+	/* -- Miscellaneous -- */
+
+// Fetches member object given member ID
+function wp_lib_fetch_member( $member_id ) {
+	// Checks if member ID was given and is non 0
+	if ( !$member_id ) {
+		wp_lib_error( 300, false, 'Member' );
+		return false;
+	}
+	// Checks if member_id is valid
+	if ( !is_numeric( $member_id ) ) {
+		wp_lib_error( 301, false, 'Member' );
+		return false;
+	}
+	
+	// Attempts to fetch member object
+	$member = get_term_by( 'id', absint( $member_id ), 'wp_lib_member' );
+	
+	if ( !$member ) {
+		wp_lib_error( 304 );
+		return false;
+	} else {
+		return $member;
+	}
+}
+
+
+// Fetches member's name and, if needed, formats as a hyperlink. Uses archived member name on failure
+function wp_lib_fetch_member_name( $item_id, $hyperlink = true, $array = false, $ending = true ) {
 	// Fetches member taxonomy as an object
-	$member = get_the_terms( $post_id, 'wp_lib_member' )[0];
+	$member = wp_lib_fetch_member( $member_id );
 	
 	// If member exists
 	if ( $member ) {
@@ -155,7 +486,7 @@ function wp_lib_fetch_member_name( $post_id, $hyperlink = true, $array = false, 
 	// If member has been deleted
 	if ( !$member ) {
 		// Fetches archive from fallback (loan/fine) meta and fetches member's name from that archive
-		$member_name = get_post_meta( $post_id, 'wp_lib_archive', true )['member-name'];
+		$member_name = get_post_meta( $item_id, 'wp_lib_archive', true )['member-name'];
 		
 		// Suffixes member name explaining that the member was deleted
 		if ( $ending )
@@ -205,30 +536,17 @@ function wp_lib_format_item_condition( $number, $full = true ) {
 		return $states[$number];	
 }
 
+// Cancels loan of item that has a since corrupted loan attached to it
+// This function should not be called under regular operation and should definitely not used to return an item
+function wp_lib_clean_item( $item_id ){
+	// Checks if given ID is valid
+	wp_lib_check_item_id( $item_id );
 
+	// Clears item's Member taxonomy
+	wp_delete_object_term_relationships( $item_id, 'wp_lib_member' );
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	// Removes loan ID from item meta
+	delete_post_meta($item_id, 'wp_lib_loan_id' );
+}
 
 ?>

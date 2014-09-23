@@ -18,6 +18,7 @@ if ( wp_lib_is_librarian() ) {
 	add_action( 'wp_ajax_wp_lib_return_past', 'wp_lib_page_return_past' );
 	add_action( 'wp_ajax_wp_lib_resolution_page', 'wp_lib_page_resolution_page' );
 	add_action( 'wp_ajax_wp_lib_scan_item', 'wp_lib_page_scan_item' );
+	add_action( 'wp_ajax_wp_lib_confirm_deletion_page', 'wp_lib_page_confirm_deletion' );
 	
 	/* Library Actions - Loaning/returning items etc. */
 	add_action( 'wp_ajax_wp_lib_loan_item', 'wp_lib_do_loan_item' );
@@ -25,9 +26,9 @@ if ( wp_lib_is_librarian() ) {
 	add_action( 'wp_ajax_wp_lib_return_item', 'wp_lib_do_return_item' );
 	add_action( 'wp_ajax_wp_lib_fine_member', 'wp_lib_do_fine_member' );
 	add_action( 'wp_ajax_wp_lib_modify_fine', 'wp_lib_do_modify_fine' );
+	add_action( 'wp_ajax_wp_lib_delete_object', 'wp_lib_do_delete_object' );
 	
 	/* Misc */
-	add_action( 'wp_ajax_wp_lib_deletion_failed', 'wp_lib_page_deletion_failed' );
 	add_action( 'wp_ajax_wp_lib_clean_item', 'wp_lib_do_clean_item' );
 	add_action( 'wp_ajax_wp_lib_unknown_action', 'wp_lib_do_unknown_action' );
 	add_action( 'wp_ajax_wp_lib_fetch_notifications', 'wp_lib_fetch_notifications' );
@@ -74,20 +75,47 @@ function wp_lib_fetch_notifications() {
 }
 
 // Performs any necessary actions before AJAX request returns data
-function wp_lib_stop_ajax( $boolean = '', $error_code = false, $params = false ) {
+function wp_lib_stop_ajax( $output = '', $error_code = false, $params = false ) {
 	// If specified, calls error with code provided
 	if ( $error_code )
 		wp_lib_error( $error_code, false, $params );
 
-	// Returns boolean result of success
-	if ( is_bool( $boolean ) )
-		echo json_encode( $boolean );
+	// If an output has been specified, render
+	if ( is_bool( $output ) || is_array( $output ) )
+		echo json_encode( $output );
 	
 	// Closes PHP session
 	session_write_close();
 	
 	// Kills execution
 	die();
+}
+
+// Encodes given parameters as an array for client-side JavaScript to render as HTML elements
+function wp_lib_send_page( $page_title, $tab_title, $content = false, $form = false, $page_scripts = false ) {
+	// Creates buffer to be encoded and adds parameters
+	$buffer = array(
+		'pageTitle'	=> $page_title,
+		'title'	=> $tab_title
+	);
+	
+	// Checks if no content has been specified
+	if ( !is_array( $content ) && !is_array( $form ) )
+		wp_lib_stop_ajax( false, 501 );
+	
+	// If content has been specified, add to array
+	if ( $content )
+		$buffer['content'] = $content;
+	
+	// If a form has been specified, add to array
+	if ( $form )
+		$buffer['form'] = $form;
+		
+	if ( $page_scripts ) {
+		$buffer['scripts'] = $page_scripts;
+	}
+	
+	wp_lib_stop_ajax( $buffer );
 }
 
 // Looks for item with given barcode, returns item ID on success and false on failure
@@ -280,33 +308,88 @@ function wp_lib_do_modify_fine() {
 	wp_lib_stop_ajax( $success );
 }
 
+// Deletes Library object and if requested, associated objects (e.g. item and all loans of that item )
+function wp_lib_do_delete_object() {
+	// Fetches library object ID
+	$post_id = $_POST['post_id'];
+	
+	// Validates ID of Library object
+	if ( !wp_lib_get_object_type() )
+		wp_lib_stop_ajax( false );
+	// GGGGG
+	
+	// Deletes post, connected post deletion is handled on the pre_deletion hook 'before_delete_post'
+	wp_delete_post( $post_id );
+}
+
 	/* Pages */
 	/* Renders then returns Dashboard pages */
 
 // Displays Library Dashboard
 function wp_lib_page_dashboard() {
-	
-	wp_lib_dashboard();
-	
-	wp_lib_stop_ajax();
-}
+	// Dashboard icons
+	$buttons = array(
+		array(
+			'title'	=> 'Scan Item',
+			'icon'	=> 'default',
+			'link'	=> 'dash-page',
+			'value'	=> 'scan-item'
+		),
+		array(
+			'title'	=> 'Manage Items',
+			'icon'	=> 'default',
+			'link'	=> 'post-type',
+			'pType'	=> 'wp_lib_items'
+		),
+		array(
+			'title'	=> 'Manage Members',
+			'icon'	=> 'default',
+			'link'	=> 'dash-page',
+			'value'	=> 'browse-members'
+		),
+		array(
+			'title'	=> 'Manage Fines',
+			'icon'	=> 'default',
+			'link'	=> 'post-type',
+			'pType'	=> 'wp_lib_fines'
+		),
+		array(
+			'title'	=> 'Settings',
+			'icon'	=> 'default',
+			'link'	=> 'admin-url',
+			'url'	=> 'edit.php?post_type=wp_lib_items&page=wp-lib-settings'
+		),
+		array(
+			'title'	=> 'Help',
+			'icon'	=> 'default',
+			'link'	=> 'url',
+			'url'	=> 'http://sci1.co.uk/wp-librarian/'
+		)
+	);
 
-// Informs Librarian that item cannot be deleted because it is currently on loan
-function wp_lib_page_deletion_failed() {
-	// Fetches item ID from AJAX request
-	$item_id = $_POST['item_id'];
+	// Adds element type to each button, so it will be rendered correctly client-side
+	foreach ( $buttons as $key => $value ) {
+		$buttons[$key]['type'] = 'dash-button';
+	}
 	
-	// Checks if item ID is valid
-	wp_lib_check_item_id( $item_id );
+	// Prepares Dashboard content
+	$page = array(
+		array(
+			'type'		=> 'paras',
+			'content'	=> array( 'Use the options below to manage your Library' )
+		),
+		array(
+			'type'		=> 'div',
+			'classes'	=> 'dashboard-buttons-wrap',
+			'inner'		=> $buttons
+		)
+	);
 	
-	// Fetches item's title
-	$title = get_the_title( $item_id );
+	// Sets page title and browser page title
+	$page_title = 'Library Dashboard';
 
-	// Calls error to inform user of failed item deletion
-	wp_lib_error( 113, false, $title );
-	
-	// Redirects user to dashboard
-	wp_lib_page_dashboard();
+	// Sends page to client
+	wp_lib_send_page( $page_title, $page_title, $page );
 }
 
 function wp_lib_page_manage_item() {
@@ -333,62 +416,112 @@ function wp_lib_page_manage_item() {
 	if ( $late )
 		wp_lib_add_notification( "{$title} is late, please resolve this issue" );
 	
-	// Displays the management header
-	wp_lib_render_item_management_header( $item_id );
-	?>
-	<form id="library-form">
-		<input type="hidden" name="item_id" value="<?= $item_id; ?>" />
-		<?php
-		// If item is current on loan
-		if ( $loan_id ) {
-			// If item is also late
-			if ( $late ){
-				?>
-				<button class="button button-primary button-large dash-page" name="dash_page" value="resolve">Resolve</button>
-				<?php
-			// If item is not late
-			} else {
-				?>
-				<button class="button button-primary button-large dash-action" name="dash_action" value="return-item">Return</button>
-				<?php
-			}
-			// Regardless of if item is late, user is allowed to return item at a previous date
-			?>
-			<button class="button button-primary button-large dash-page" name="dash_page" value="return-past">Return at a Past Date</button>
-			<?php
+	// Prepares the management header
+	$header = wp_lib_prep_item_management_header( $item_id );
+	
+	// Adds item ID to form
+	$form[] = array(
+		'type'	=> 'hidden',
+		'name'	=> 'item_id',
+		'value'	=> $item_id
+	);
+	
+	// If item is currently on loan
+	if ( $loan_id ) {
+		// Regardless of lateness, provides link to return item at a past date
+		$form[] = array(
+			'type'	=> 'button',
+			'link'	=> 'page',
+			'html'	=> 'Return at a past date',
+			'value'	=> 'return-past'
+		);
+		
+		// If item is late
+		if ( $late ) {
+			// Provides link to resolve late item
+			$form[] = array(
+				'type'	=> 'button',
+				'link'	=> 'page',
+				'html'	=> 'Resolve',
+				'value'	=> 'resolve'
+			);
+		
+		} else {
+			// Provides link to return item today
+			$form[] = array(
+				'type'	=> 'button',
+				'link'	=> 'action',
+				'html'	=> 'Return',
+				'value'	=> 'return-item'
+			);
 		}
-		// If item is not in loan and is allowed to be loaned
-		elseif ( $loanable ) {
-			$members = get_terms( 'wp_lib_member', 'hide_empty=0' );
-			?>
-			<h4>Loan item:</h4>
-			<select name='member_id' id='member_id'>
-				<option class='member-option' value=''>None</option>
-				<?php
-				foreach ($members as $member) {
-					echo "<option class=\"member-option\" value=\"{$member->term_id}\">{$member->name}</option>";
-				}
-				?>
-			</select>
-			<select name='loan_length' id='loan_length'>
-				<option class='loan-length-option' value=''>Default</option>
-				<?php
-				// Temporary code to render days to loan for option
-				$inc = -3;
-				while ( $inc < 12 ) {
-					++$inc;
-					echo "<option class=\"loan-length-option\" value=\"{$inc}\">{$inc} Days</option>";
-				}
-				?>
-			</select>
-			<button class="button button-primary button-large dash-action" name="dash_action" value="loan">Loan Item</button>
-			<button class="button button-primary button-large dash-page" name="dash_page" value="scheduling-page">Schedule Future Loan</button>
-			<?php
+	}
+	elseif ( $loanable ) {
+		$options = wp_lib_prep_member_options();
+		
+		// Adds loan item title
+		$form[] = array(
+			'type'	=> 'header',
+			'size'	=> 4,
+			'html'	=> 'Loan Item:'
+		);
+		
+		// Adds dropdown menu using members options created above
+		$form[] = array(
+			'type'			=> 'select',
+			'options'		=> $options,
+			'optionClass'	=> 'member-choice-option',
+			'classes'		=> array( 'member-choice' ),
+			'name'			=> 'member_id'
+		);
+		
+		// Creates options for loan length
+		$length_options[] = array(
+			'value'	=> '',
+			'html'	=> '0 Days'
+		);
+		
+		// Creates loan length options from 1-12
+		for ($i = 1; $i < 13; $i++){
+			$length_options[] = array(
+				'value'	=> $i,
+				'html'	=> $i . ' Days'
+			);
 		}
-		?>
-	</form>
-	<?php
-	wp_lib_stop_ajax();
+		
+		// Adds dropdown menu for loan length
+		$form[] = array(
+			'type'			=> 'select',
+			'options'		=> $length_options,
+			'optionClass'	=> 'loan-length-option',
+			'classes'		=> array( 'loan-length' ),
+			'name'			=> 'loan_length'
+		);
+		
+		// Button to loan item
+		$form[] = array(
+			'type'	=> 'button',
+			'link'	=> 'action',
+			'value'	=> 'loan',
+			'html'	=> 'Loan Item'
+		);
+		
+		// Button to schedule a loan in the future
+		$form[] = array(
+			'type'	=> 'button',
+			'link'	=> 'page',
+			'html'	=> 'Schedule Future Loan',
+			'value'	=> 'scheduling-page'
+		);
+
+	}
+	
+	// Creates titles for page and browser tab
+	$page_title = 'Managing: ' . $title;
+	$tab_title = 'Managing Item #' . $item_id;
+	
+	// Encodes page as an array to be rendered client-side
+	wp_lib_send_page( $page_title, $tab_title, $header, $form );
 }
 
 // Displays member's details and loan history
@@ -396,15 +529,26 @@ function wp_lib_page_manage_member() {
 	// Fetches member ID from AJAX request
 	$member_id = $_POST['member_id'];
 	
-	// Checks if member ID is valid
-	wp_lib_check_member_id( $member_id );
+	// Attempts to fetch member object
+	$member = wp_lib_fetch_member( $member_id );
+	
+	// If member fetching failed, load Dashboard (causing error will have been added to the buffer)
+	if ( !$member )
+		wp_lib_page_dashboard();
 	
 	// Renders management header
-	wp_lib_render_member_management_header( $member_id );
+	$header = wp_lib_prep_member_management_header( $member );
 
-	echo "<p>Nothing much to see here yet!</p>";
+	$content[] = array(
+		'type'		=> 'paras',
+		'content'	=> array( 'Nothing much to see here yet!' )
+	);
 	
-	wp_lib_stop_ajax();
+	$page_title = 'Managing: ' . $member->name;
+	
+	$tab_title = 'Managing Member #' . $member_id;
+	
+	wp_lib_send_page( $page_title, $tab_title, $content );
 }
 
 // Displays fine details and provides options to modify the fine
@@ -415,38 +559,57 @@ function wp_lib_page_manage_fine() {
 	// Checks if fine ID is valid
 	wp_lib_check_fine_id( $fine_id );
 
-	wp_lib_render_fine_management_header( $fine_id );
+	$header = wp_lib_prep_fine_management_header( $fine_id );
 	
 	// Fetches fine status
 	$fine_status = get_post_meta( $fine_id, 'wp_lib_status', true );
-	?>
-	<form id="library-form">
-		<input type="hidden" name="fine_id" value="<?= $fine_id; ?>" />
-		<?php
-		// If fine is unpaid, provide options to Pay or Cancel fine
-		if ( $fine_status == 1 ) {
-			?>
-			<p>Marking a fine as paid assumes the money has been collected from the relevant member.</p>
-			<button class="button button-primary button-large dash-action" name="dash_action" value="pay-fine">Pay Fine</button>
-			<?php
-		}
-		// If fine is paid, provide options to revert fine to being unpaid
-		elseif ( $fine_status == 2 ) {
-			?>
-			<button class="button button-primary button-large dash-action" name="dash_action" value="revert-fine">Revert to Unpaid</button>
-			<?php
-		}
+	
+	// Adds fine ID to form
+	$form[] = array(
+		'type'	=> 'hidden',
+		'name'	=> 'fine_id',
+		'value'	=> $fine_id
+	);
+	
+	// If fine is unpaid, allows user to mark a fine as paid
+	if ( $fine_status == 1 ) {
+		$form[] = array(
+			'type'		=> 'paras',
+			'content'	=> array( 'Marking a fine as paid assumes the money has been collected from the relevant member.' )
+		);
 		
-		// If fine has not been cancelled, display option to cancel fine
-		if ( $fine_status != 3 ) {
-			?>
-			<button class="button button-primary button-large dash-action" name="dash_action" value="cancel-fine">Cancel Fine</button>
-			<?php
-		}
-		?>
-	</form>
-	<?php
-	wp_lib_stop_ajax();
+		$form[] = array(
+			'type'	=> 'button',
+			'link'	=> 'action',
+			'value'	=> 'pay-fine',
+			'html'	=> 'Pay Fine'
+		);
+	}
+	// If fine is paid, allows Librarian to revert fine to being unpaid
+	elseif ( $fine_status == 2 ) {
+		$form[] = array(
+			'type'	=> 'button',
+			'link'	=> 'action',
+			'value'	=> 'revert-fine',
+			'html'	=> 'Revert to Unpaid'
+		);
+	}
+	
+	// If fine has not already been cancelled, allows fine to be cancelled
+	if ( $fine_status != 3 ) {
+		$form[] = array(
+			'type'	=> 'button',
+			'link'	=> 'action',
+			'value'	=> 'cancel-fine',
+			'html'	=> 'Cancel Fine'
+		);
+	}
+	
+	// Creates browser window and page title
+	$title = 'Managing Fine #' . $fine_id;
+	
+	// Sends entire page to be encoded in JSON
+	wp_lib_send_form( $title, $title, $header, $form );
 }
 
 // Displays lack of loan management page
@@ -458,27 +621,32 @@ function wp_lib_page_manage_loan() {
 	wp_lib_check_loan_id( $loan_id );
 	
 	// Returns error
-	wp_lib_stop_ajax( '', 202);
+	wp_lib_stop_ajax( false, 202 );
 }
 
 // Page for looking up an item by its barcode
 function wp_lib_page_scan_item() {
-
-	$script_url = plugins_url( '/scripts/admin-barcode-scanner.js', __FILE__ );
-	?>
-	<script>
-		jQuery.getScript( <?php echo json_encode( $script_url ); ?> )
-		.fail( function( jqxhr, settings, exception ) {
-			wp_lib_local_error( "Failed to load JavaScript needed for this page" );
-		});
-	</script>
-	<h2>Scan Item Barcode</h2>
-	<p>Once the barcode is scanned the item will be retried automatically</p>
-	<form id="library-form">
-		<input type="text" id="barcode-input" name="item_barcode" autofocus="autofocus" />
-	</form>
-	<?php
-	wp_lib_stop_ajax();
+	// Enqueues barcode page script
+	$scripts[] = plugins_url( '/scripts/admin-barcode-scanner.js', __FILE__ );
+	
+	$form = array(
+		array(
+			'type'		=> 'paras',
+			'content'	=> array( 'Once the barcode is scanned the item will be retried automatically' )
+		),
+		array(
+			'type'		=> 'text',
+			'id'		=> 'barcode-input',
+			'name'		=> 'item_barcode',
+			'autofocus'	=> true
+		)
+	);
+	
+	// Sets item title
+	$title = 'Scan Item Barcode';
+	
+	// Sends form to client to be rendered
+	wp_lib_send_page( $title, $title, false, $form, $scripts );
 }
 
 // Allows user to schedule a loan to happen in the future, to be fulfilled when the time comes
@@ -490,54 +658,86 @@ function wp_lib_page_scheduling_page() {
 	wp_lib_check_item_id( $item_id );
 	
 	// Displays the management header
-	wp_lib_render_item_management_header( $item_id );
-
-	// Fetches list of all Members
-	$members = get_terms( 'wp_lib_member', 'hide_empty=0' );
+	$header = wp_lib_prep_item_management_header( $item_id );
+	
+	$member_options = wp_lib_prep_member_options();
 	
 	// Formats placeholder loan start date (current date)
 	$start_date = Date( 'Y-m-d' );
 	
-	// Adds default loan length to current date
-	$time = current_time( 'timestamp' ) + ( get_option( 'wp_lib_loan_length', 12 ) * 24 * 60 * 60);
-	
 	// Formats placeholder loan end date (current date + default loan length)
-	$end_date = Date( 'Y-m-d', $time );
-	?>
-	<form id="library-form">
-		<input type="hidden" name="item_id" value="<?= $item_id; ?>" />
-		<h4>Schedule Loan:</h4>
-		<div class="member-select manage-item">
-			<label for="member-select">
-				<strong>Member:</strong>
-			</label>
-			<select name='member_id' class='member-select'>
-				<option class='member-option' value=''>None</option>
-				<?php
-				foreach ($members as $member) {
-					echo "<option class=\"member-option\" value=\"{$member->term_id}\">{$member->name}</option>";
-				}
-			   ?>
-			</select>
-		</div>
-		
-		<div class="loan-start manage-item">
-			<label for="loan-start">
-				<strong>Start Date:</strong>
-			</label>
-			<input type="date" name="loan_start_date" id="loan-start-date" class="loan-date datepicker ll-skin-melon" value="<?= $start_date ?>" />
-		</div>
-		
-		<div class="loan-end manage-item">
-			<label for="loan-end">
-				<strong>End Date:</strong>
-			</label>
-			<input type="date" name="loan_end_date" id="loan-end-date" class="loan-date datepicker ll-skin-melon" value="<?= $end_date ?>" />
-		</div>
-		<button class="button button-primary button-large dash-action" name="dash_action" value="schedule-loan">Schedule Loan</button>
-	</form>
-	<?php
-	wp_lib_stop_ajax();
+	$end_date = Date( 'Y-m-d', current_time( 'timestamp' ) + ( get_option( 'wp_lib_loan_length', 12 ) * 24 * 60 * 60) );
+	
+	$form = array(
+		array(
+			'type'	=> 'hidden',
+			'name'	=> 'item_id',
+			'value'	=> $item_id
+		),
+		array(
+			'type'		=> 'div',
+			'classes'	=> array( 'member-select', 'manage-item' ),
+			'inner'		=> array(
+				array(
+					'type'	=> 'strong',
+					'html'	=> 'Member:',
+					'label'	=> 'member-select'
+				),
+				array(
+					'type'			=> 'select',
+					'id'			=> 'member-select',
+					'name'			=> 'member_id',
+					'options'		=> $member_options,
+					'optionClass'	=> 'member-select-option',
+					'class'			=> 'member-select'
+				)
+			)
+		),
+		array(
+			'type'	=> 'div',
+			'inner'	=> array(
+				array(
+					'type'	=> 'strong',
+					'html'	=> 'Start Date:',
+					'label'	=> 'loan-start'
+				),
+				array(
+					'type'	=> 'date',
+					'name'	=> 'start_date',
+					'id'	=> 'loan-start',
+					'value'	=> $start_date
+				)
+			)
+		),
+		array(
+			'type'	=> 'div',
+			'inner'	=> array(
+				array(
+					'type'	=> 'strong',
+					'html'	=> 'End Date:',
+					'label'	=> 'loan-end'
+				),
+				array(
+					'type'	=> 'date',
+					'name'	=> 'end_date',
+					'id'	=> 'loan-end',
+					'value'	=> $end_date
+				)
+			)
+		),
+		array(
+			'type'	=> 'button',
+			'html'	=> 'Schedule Loan',
+			'link'	=> 'action',
+			'value'	=> 'schedule'
+		)
+	);
+	
+	$page_title = 'Scheduling loan of ' . get_the_title( $item_id );
+	
+	$tab_title = 'Scheduling loan of #' . $item_id;
+	
+	wp_lib_send_page( $page_title, $tab_title, $header, $form );
 }
 
 // Displays page for returning an item in the past
@@ -550,28 +750,46 @@ function wp_lib_page_return_past() {
 
 	// Checks if item is on loan
 	if ( !wp_lib_on_loan( $item_id ) )
-		wp_lib_error( 402, true );
+		wp_lib_stop_ajax( 402 );
 	
 	// Renders the management header
-	wp_lib_render_item_management_header( $item_id );
+	$header = wp_lib_prep_item_management_header( $item_id );
 	
-	// Creates placeholder for return date as current date (formatted)
-	$date = Date( 'Y-m-d' );
-	?>
+	$form = array(
+		array(
+			'type'	=> 'hidden',
+			'name'	=> 'item_id',
+			'value'	=> $item_id
+		),
+		array(
+			'type'	=> 'div',
+			'inner'	=> array(
+				array(
+					'type'	=> 'strong',
+					'html'	=> 'Date:',
+					'label'	=> 'loan-end-date'
+				),
+				array(
+					'type'	=> 'date',
+					'name'	=> 'loan_end_date',
+					'id'	=> 'loan-end-date',
+					'value'	=> Date( 'Y-m-d' )
+				)
+			)
+		),
+		array(
+			'type'	=> 'button',
+			'link'	=> 'action',
+			'value'	=> 'return',
+			'html'	=> 'Return Item'
+		)
+	);
 	
-	<h4>Return item at a past date:</h4>
-	<form id="library-form">
-		<input type="hidden" name="item_id" value="<?= $item_id; ?>" />
-		<div class="loan-end manage-item">
-			<label for="loan-end">
-				<strong>Date:</strong>
-			</label>
-			<input type="date" name="loan_end_date" id="loan-end-date" class="loan-date datepicker ll-skin-melon" value="<?= $date ?>" />
-		</div>
-		<button class="button button-primary button-large dash-action" name="dash_action" value="return">Return Item</button>
-	</form>
-	<?php
-	wp_lib_stop_ajax();
+	$page_title = 'Returning: ' . get_the_title( $item_id );
+	
+	$tab_title = 'Returning item #' . $item_id;
+	
+	wp_lib_send_page( $page_title, $tab_title, $header, $form );
 }
 
 // Informs librarian of details of item lateness and provides options to resolve the issue
@@ -587,30 +805,252 @@ function wp_lib_page_resolution_page() {
 	
 	// Ensures item is actually late
 	if ( !wp_lib_item_late( $loan_id ) )
-		wp_lib_error( 406, true );
+		wp_lib_stop_ajax( 406 );
 	
-	// Creates formatted string containing item lateness
-	$args = array( 'late' => '\d day\p' );
-	$days_late = wp_lib_prep_item_due( $item_id, $date, $args );
+	// Renders item management header
+	$header = wp_lib_prep_item_management_header( $item_id );
 	
-	// Renders 'Managing: $item' header
-	wp_lib_render_item_management_header( $item_id );
-	
-	// Prepares useful variables
+	// Useful variables:
+	// Formatted string of item lateness
+	$days_late = wp_lib_prep_item_due( $item_id, $date, array( 'late' => '\d day\p' ) );
+	// Item's title
 	$title = get_the_title( $item_id );
-	$daily_fine = get_option( 'wp_lib_fine_daily' );
+	// Librarian set charge for each day an item is late
+	$fine_per_day = get_option( 'wp_lib_fine_daily' );
+	// Days item is late
 	$late = -wp_lib_cherry_pie( $loan_id, false );
-	$fine = wp_lib_format_money( $daily_fine * $late );
-	$daily_fine = wp_lib_format_money( $daily_fine );
-	?>
-	<p><?= $title ?> is late by <?= $days_late ?>. If charged, a fine of <?= $fine ?> would be incurred (<?= $daily_fine ?> per day x <?= $days_late?>)</p>
-	<form id="library-form">
-		<input type="hidden" name="item_id" value="<?= $item_id; ?>" />
-		<button class="button button-primary button-large dash-action" name="dash_action" value="return-item-no-fine">Fine</button>
-		<button class="button button-primary button-large dash-action" name="dash_action" value="no-fine">Return Without Fine</button>
-	</form>
-	<?php
-	wp_lib_stop_ajax();
+	// Total fine member member is facing, if charged
+	$fine = wp_lib_format_money( $fine_per_day * $late );
+	// Fine per day formatted
+	$fine_per_day_formatted = wp_lib_format_money( $fine_per_day );
+	
+	$form = array(
+		array(
+			'type'		=> 'paras',
+			'content'	=> array( "{$title} is late by {$days_late}. If fined, the member would incur a fine of {$fine} ({$fine_per_day_formatted} per day x {$days_late})" )
+		),
+		array(
+			'type'	=> 'hidden',
+			'name'	=> 'item_id',
+			'value'	=> $item_id
+		),
+		array(
+			'type'	=> 'button',
+			'link'	=> 'action',
+			'value'	=> 'fine-member',
+			'html'	=> 'Fine'
+		),
+		array(
+			'type'	=> 'button',
+			'link'	=> 'action',
+			'value'	=> 'return-item-no-fine',
+			'html'	=> 'Return with no Fine'
+		)
+	);
+	
+	$page_title = 'Resolving Late Item: ' . $title;
+	
+	$tab_title = 'Resolving Item #' . $item_id;
+	
+	wp_lib_send_page( $page_title, $tab_title, $header, $form );
+}
+
+// Confirmation page to make sure the Librarian knows what deleting the item/loan/fine/member will do
+// This page is not visited if the option wp_lib_mass_deletion is set to true
+function wp_lib_page_confirm_deletion() {
+	// Fetches Library object ID
+	$post_id = $_POST['obj_id'];
+	
+	// Switch to determine the object being deleted
+	switch ( $_POST['obj_type'] ) {
+		case 'item':
+			$item_id = $_POST['item_id'];
+			
+			wp_lib_check_item_id( $item_id );
+			
+			$header = wp_lib_prep_item_management_header( $item_id );
+			
+			$page_title = 'Deleting: ' . get_the_title( $item_id );
+			
+			$tab_title = 'Deleting Item #' . $item_id;
+			
+			// Passes array to client-side JavaScript to render form
+			$form = array(
+				array(
+					'type'	=> 'hidden',
+					'name'	=> 'post_id',
+					'value'	=> $item_id
+				),
+				array(
+					'type'		=> 'paras',
+					'content'	=> array(
+						'Deleting items is a permanent action. You can also delete all loans/fines linked to this item.',
+						'If you want to delete items in bulk, without this prompt, allow bulk deletion via WP-Librarian\'s settings'
+					)
+				),
+				array(
+					'type'	=> 'button',
+					'link'	=> 'page',
+					'value'	=> '',
+					'html'	=> 'Cancel'
+				),
+				array(
+					'type'	=> 'button',
+					'link'	=> 'action',
+					'value'	=> 'delete-object-et-al',
+					'html'	=> 'Delete connected Loans/Fines and Item'
+				),
+				array(
+					'type'	=> 'button',
+					'link'	=> 'action',
+					'value'=> 'delete-object',
+					'html'	=> 'Delete Item Only'
+				)
+			);
+			
+		break;
+		
+		case 'loan':
+			
+			$loan_id = $_POST['loan_id'];
+			
+			wp_lib_check_loan_id( $loan_id );
+			
+			$header = false;
+			
+			$page_title = 'Deleting: Loan #' . $loan_id;
+			
+			$tab_title = 'Deleting Loan #' . $loan_id;
+			
+			$form = array(
+				array(
+					'type'	=> 'hidden',
+					'name'	=> 'post_id',
+					'value'	=> $loan_id
+				),
+				array(
+					'type'		=> 'paras',
+					'content'	=> array(
+						'Deleting a loan is a permanent action. You can choose to also delete any fine connected to this loan.',
+						'If you want to delete loans in bulk, without this prompt, allow bulk deletion via WP-Librarian\'s settings'
+					)
+				),
+				array(
+					'type'	=> 'button',
+					'link'	=> 'page',
+					'value'	=> '',
+					'html'	=> 'Cancel'
+				),
+				array(
+					'type'	=> 'button',
+					'link'	=> 'action',
+					'value'	=> 'delete-object-et-al',
+					'html'	=> 'Delete Fine/Loan'
+				),
+				array(
+					'type'	=> 'button',
+					'link'	=> 'action',
+					'value'	=> 'delete-object',
+					'html'	=> 'Delete Loan Only'
+				)
+			);
+		break;
+		
+		case 'fine':
+			$fine_id = $_POST['fine_id'];
+			
+			wp_lib_check_fine_id( $fine_id );
+			
+			$header = wp_lib_prep_fine_management_header( $fine_id );
+			
+			$page_title = 'Deleting: Fine #' . $fine_id;
+			
+			$tab_title = 'Deleting Fine #' . $fine_id;
+			
+			$form = array(
+				array(
+					'type'	=> 'hidden',
+					'name'	=> 'post_id',
+					'value'	=> $fine_id
+				),
+				array(
+					'type'		=> 'paras',
+					'content'	=> array(
+						'Deleting a fine is a permanent action, this will change the connected loan to state that no fine was charged.',
+						'If you want to delete fines in bulk, without this prompt, allow bulk deletion via WP-Librarian\'s settings'
+					)
+				),
+				array(
+					'type'	=> 'button',
+					'link'	=> 'page',
+					'value'	=> '',
+					'html'	=> 'Cancel'
+				),
+				array(
+					'type'	=> 'button',
+					'link'	=> 'action',
+					'value'	=> 'delete-object-et-al',
+					'html'	=> 'Delete Fine'
+				)
+			);
+		break;
+		
+		case 'member':
+			$member_id = $_POST['member_id'];
+			
+			wp_lib_check_member_id( $member_id );
+			
+			$member = wp_lib_fetch_member( $member_id );
+			
+			if ( !$member )
+				wp_lib_stop_ajax( false );
+			
+			$header = wp_lib_prep_member_management_header( $member_id );
+			
+			$page_title = 'Deleting: ' . $member->name;
+			
+			$tab_title = 'Deleting Member #' . $member_id;
+			
+			$form = array(
+				array(
+					'type'	=> 'hidden',
+					'name'	=> 'post_id',
+					'value'	=> $member_id
+				),
+				array(
+					'type'		=> 'paras',
+					'content'	=> array(
+						'Deleting a member is a permanent action. You can choose to also delete all loans/fines tied to this member',
+						'If you want to delete members in bulk, without this prompt, allow bulk deletion via WP-Librarian\'s settings'
+					)
+				),
+				array(
+					'type'	=> 'button',
+					'link'	=> 'page',
+					'value'	=> '',
+					'html'	=> 'Cancel'
+				),
+				array(
+					'type'	=> 'button',
+					'link'	=> 'action',
+					'value'	=> 'delete-object-et-al',
+					'html'	=> 'Delete connected loans/fines and Member'
+				),
+				array(
+					'type'	=> 'button',
+					'link'	=> 'action',
+					'value'	=> 'delete-object',
+					'html'	=> 'Delete Member Only'
+				)
+			);
+		break;
+		
+		default:
+			wp_lib_stop_ajax( false, 315 );
+		break;
+	}
+	
+	wp_lib_send_page( $page_title, $tab_title, $header, $form );
 }
 
 ?>
