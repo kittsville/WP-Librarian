@@ -19,7 +19,7 @@ if ( isset( $_GET['settings-updated'] ) ) {
 	// If settings were successfully updated, notifies user
 	if ( $updated == 'true' ) {
 		// Flushes permalink rules so new slugs work
-		flush_rewrite_rules();
+		wp_lib_flush_permalinks();
 		
 		// Notifies user settings have been updated
 		?>
