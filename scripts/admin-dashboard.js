@@ -474,6 +474,63 @@ function wp_lib_render_page( pageArray ) {
 				$('<strong/>', elementObject ).appendTo( theParent );
 			break;
 			
+			case 'metabox':
+				// Adds default meta box classes
+				elementObject.class += add_classes( [ 'lib-metabox' ] );
+			
+				// Creates wrapper for meta box, attached to DOM, and sets as parent
+				var theParent = $('<dl/>', elementObject ).appendTo( theParent );
+				
+				// Sets title of meta box
+				$('<strong/>', {
+					'html'	: pageItem.title
+				}).appendTo( theParent );
+				
+				// Iterates through meta fields, rendering them to the meta box
+				$( pageItem.fields ).each( function( i, e ) {
+					// Fetches field's name and contents
+					var fieldName = e[0];
+					var fieldData = e[1];
+					
+					// If meta field is array of tax terms, format into hyperlinks
+					if ( fieldData instanceof Array ) {
+						// If array has more than one tax term, pluralises tax term name
+						if ( fieldData.length > 1 ) {
+							fieldName += 's';
+						}
+					
+						// Initialises Output
+						var taxTermOutput = '';
+						
+						// Iterates through tax terms, creating hyperlink and adding to output
+						$( fieldData ).each( function( i, taxData ) {
+							// If term is higher than the 1st term, adds separator before term
+							if ( i > 0 ) {
+								taxTermOutput += ', ';
+							}
+							taxTermOutput += '<a href="' + taxData[1] + '">' + taxData[0] + '</a>';
+						});
+						
+						// Sets output variable to actual output
+						fieldData = taxTermOutput;
+					}
+					
+					var localParent = $('<div/>', {
+						'class'	: 'meta-row'
+					}).appendTo( theParent );
+					
+					// Renders meta field's name
+					$('<dt/>', {
+						'html'	: fieldName + ':'
+					}).appendTo( localParent );
+					
+					// Renders meta field's value
+					$('<dd/>', {
+						'html'	: fieldData
+					}).appendTo( localParent );
+				});
+			break;
+			
 			default:
 				$('<strong/>', {
 					'html'	: 'UNKNOWN ELEMENT TYPE<br/>',

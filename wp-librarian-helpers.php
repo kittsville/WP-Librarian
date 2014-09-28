@@ -309,20 +309,6 @@ function wp_lib_format_money( $value ) {
 	/* -- AJAX -- */
 	/* Functions that assist preparing data for the client/server */
 
-// Encodes given array as JSON then echos inside of the dropzone div, to be fetched on page load
-function wp_lib_dropzone( $array ) {
-	?>
-	<script>
-	var formDropzone = <?php echo json_encode( $array ); ?>;
-	</script>
-	<?php
-}
-
-// Given item ID, returns rendered item management header
-function wp_lib_prep_item_management_header( $item_id ) {
-	return array();
-}
-
 // Given member object, returns rendered member management header
 function wp_lib_prep_member_management_header( $member ) {
 	return array();
@@ -333,21 +319,66 @@ function wp_lib_prep_fine_management_header( $fine_id ) {
 	return array();
 }
 
-// Renders the header for the Item management page
-function wp_lib_render_item_management_header( $item_id ) {
+// Given item ID, returns rendered item management header
+function wp_lib_prep_item_management_header( $item_id ) {
 	// Fetches title of item e.g. 'Moby-Dick'
 	$title = get_the_title( $item_id );
 	
-	// Fetches status of item e.g. 'On Loan (2 days remaining)'
-	$status = wp_lib_prep_item_available( $item_id, true );
-	?>
-	<!-- Management Header -->
-	<h2>Managing: <?= $title ?></h2>
-	<p>
-		<strong>Item ID:</strong> <?= $item_id ?><br />
-		<strong>Status:</strong> <?= $status ?>
-	</p>
-	<?php
+	// Fetches post meta
+	$meta = get_post_meta( $item_id );
+	
+	// Item meta fields to be displayed in management header
+	$meta_fields = array(
+		array( 'Item ID', $item_id),
+		array( 'Condition', wp_lib_format_item_condition( $meta['wp_lib_item_condition'][0] ) )
+	);
+	
+	// Taxonomy terms to be fetched
+	$tax_terms = array(
+		'Media Type'=> 'wp_lib_media_type',
+		'Author'	=> 'wp_lib_author'
+	);
+	
+	// Iterates through taxonomies, fetching their terms and adding them to the meta field array
+	foreach ( $tax_terms as $tax_name => $tax_key ) {
+		// Fetches terms for given taxonomy
+		$terms = get_the_terms( $item_id, $tax_key );
+		
+		// If no terms or an error were returned, skip
+		if ( !$terms || is_wp_error( $terms ) )
+			continue;
+			
+		// Iterates through tax terms, formatting them
+		foreach ( $terms as $term ) {
+			// Adds tax term to term array
+			$terms_array[] = array( $term->name, get_term_link( $term ) );
+		}
+		
+		// Adds tax terms to meta fields
+		$meta_fields[] = array( $tax_name, $terms_array );
+		
+		unset( $terms_array );
+	}
+	
+	// Adds item status as last meta field
+	$meta_fields[] = array( 'Status', wp_lib_prep_item_available( $item_id, true ) );
+	
+	// Prepares management header
+	$header = array(
+		array(
+			'type'		=> 'div',
+			'classes'	=> 'item-man',
+			'inner'		=> array(
+				array(
+					'type'	=> 'metabox',
+					'title'	=> 'Details',
+					'fields'=> $meta_fields
+				)
+			)
+		)
+	);
+	
+	return $header;
 }
 
 // Renders the header for the Fine management page, displaying information about the fine
@@ -527,7 +558,7 @@ function wp_lib_format_item_condition( $number, $full = true ) {
 	);
 	
 	// If item has not been given a state, return placeholder
-	if ( !$states[$number] )
+	if ( !array_key_exists( $number, $states ) )
 		return '-';
 	
 	if ( $full )
@@ -547,6 +578,64 @@ function wp_lib_clean_item( $item_id ){
 
 	// Removes loan ID from item meta
 	delete_post_meta($item_id, 'wp_lib_loan_id' );
+}
+
+// Prepares taxonomy and metabox information for theme use
+function wp_lib_fetch_meta( $item_id ) {
+	// Metabox data is fetched and relevant functions are called to format the data
+	$meta_array = array(
+		'media type'	=> wp_lib_prep_meta( get_the_terms( $item_id, 'wp_lib_media_type' ), 'Media Type' ),
+		'authors'		=> wp_lib_prep_meta( get_the_terms( $item_id, 'wp_lib_author' ), 'Author' ),
+		'donor'			=> wp_lib_prep_meta( get_the_terms( $item_id, 'wp_lib_donor' ), 'Donor' ),
+		'isbn'			=> wp_lib_prep_meta( get_post_meta( $item_id, 'wp_lib_item_isbn', true ), 'ISBN' ),
+		'available'		=> wp_lib_prep_meta( wp_lib_prep_item_available( $item_id ), 'Status' ),
+	);
+	$all_meta = '';
+	// Runs through each meta value and, if the meta exists, adds it to the end of the $all_meta string
+	foreach ( $meta_array as $value ) {
+		if ( $value != false )
+			$all_meta .= $value . '<br />';
+	}
+	
+	return $all_meta;
+}
+
+// Formats author/media type/donor arrays and formats them as a comma separated list with hyperlinks
+function wp_lib_prep_meta( $tax_array, $bold_name ) {
+	// If tax array doesn't exist, return empty string
+	if ( $tax_array == false )
+		return '';
+	
+	// If there is one than one of a taxonomy item it makes the term plural (Author -> Authors)
+	if ( count( $tax_array ) > 1 )
+		$bold_name .= 's';
+	
+	// Formats meta name
+	$item_string = '<strong>' . $bold_name . ': </strong>';
+	
+	// If $tax_array is not an array, return formatted string before foreach loop
+	if ( !is_array( $tax_array ) )
+		return $item_string . $tax_array;
+	
+	// Iterates through tax items 
+	foreach ( $tax_array as $tax_item ) {
+		// Gets tax term's URL
+		$tax_url = get_term_link( $tax_item );
+		
+		// Skips term if error occurred
+		if ( is_wp_error( $tax_url ) )
+			continue;
+		
+		// Formats tax item as link
+		$formatted_values[] = '<a href="' . esc_url( $tax_url ) . '">' . $tax_item->name . '</a>';
+	}
+	
+	// If there are no formatted values, return empty string
+	if ( !isset( $formatted_values ) )
+		return '';
+	
+	// Implodes array into string separated by users preferred spacer
+	return $item_string . implode( get_option( 'wp_lib_taxonomy_spacer', ', ' ), $formatted_values );
 }
 
 ?>

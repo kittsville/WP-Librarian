@@ -6,63 +6,6 @@
  * and rely on post types and taxonomies set up in wp-librarian.php
  */
 
-// Prepares taxonomy and metabox information for theme use
-function wp_lib_fetch_meta( $item_id ) {
-	// Metabox data is fetched and relevant functions are called to format the data
-	$meta_array = array(
-		'media type'	=> wp_lib_prep_meta( get_the_terms( $item_id, 'wp_lib_media_type' ), 'wp_lib_media_type_slug', 'media-type', 'Media Type' ),
-		'authors'		=> wp_lib_prep_meta( get_the_terms( $item_id, 'wp_lib_author' ), 'wp_lib_authors_slug', 'authors', 'Author' ),
-		'donor'			=> wp_lib_prep_meta( get_the_terms( $item_id, 'wp_lib_donor' ), 'wp_lib_donors_slug', 'donors', 'Donor' ),
-		'isbn'			=> wp_lib_prep_meta( get_post_meta( $item_id, 'wp_lib_item_isbn', true ), false, false, 'ISBN' ),
-		'available'		=> wp_lib_prep_meta( wp_lib_prep_item_available( $item_id ), false, false, 'Status' ),
-	);
-	$all_meta = '';
-	// Runs through each meta value and, if the meta exists, adds it to the end of the $all_meta string
-	foreach ( $meta_array as $value ) {
-		if ( $value != false )
-			$all_meta .= $value . '<br />';
-	}
-	
-	return $all_meta;
-}
-
-// Formats author/media type/donor arrays and formats them as a comma separated list with hyperlinks
-function wp_lib_prep_meta( $raw_array, $option_name, $option_default_slug, $bold_name ) {
-	if ( $raw_array != false ){
-		// If there is one than one of a taxonomy item it makes the term plural (Author -> Authors)
-		if ( count( $raw_array ) > 1 ) {
-			$plural = 's:</strong> ';
-		} else {
-			$plural = ':</strong> ';
-		}
-		
-		// The beginning of a meta value is composed using the meta name e.g. 'ISBN: '
-		$item_string = '<strong>' . $bold_name . $plural;
-		
-		// If $raw_array is not an array, return formatted string before foreach loop
-		if ( !is_array( $raw_array ) )
-			return $item_string . $raw_array;
-
-		// Each taxonomy item is formatted as a hyperlink
-		// Every item after the first is preceded with (by default) a comma via $spacer
-		$count = 0;
-		foreach ( $raw_array as $item ) {
-			$count++;
-			$spacer = '';
-			if ( $count > 1 )
-				$spacer .= get_option( 'wp_lib_taxonomy_spacer', ', ' );
-			if ( isset( $item->slug ) ) {
-				$tax_url = get_option( 'siteurl', 'example.com/' );
-				$tax_slug = wp_lib_prefix_url( $option_name, $option_default_slug );
-				$item_string .= "{$spacer}<a href=\"{$tax_url}/{$tax_slug}/{$item->slug}\">{$item->name}</a>";
-			}
-			else
-				$item_string .= $spacer . $item;
-		}
-		return $item_string;
-	}
-}
-
 // Checks if user has permission to loan/return books
 function wp_lib_is_librarian() {
 	return true;
