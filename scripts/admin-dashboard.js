@@ -399,17 +399,21 @@ function wp_lib_render_page( pageArray ) {
 				// Creates button and appends to document, setting parent to button
 				var theParent = $('<button/>', elementObject ).appendTo( theParent );
 				
-				// Creates top half of button: the icon
+				// Creates dash icon wrapper
+				var localParent = $('<div/>', {
+					'class'	: 'dash-button-top'
+				}).appendTo( theParent );
+				
+				// Creates dash icon
 				$('<img/>', {
 					'class'	: 'dashboard-icon',
 					'src'	: wp_lib_vars.pluginsurl + '/images/dash-icons/' + pageItem.icon + '.png',
 					'alt'	: pageItem.title + ' Icon',
-				}).appendTo('<div/>', {
-					'class'	: 'dash-button-top'
-				}).appendTo( theParent );
+				}).appendTo( localParent );
 				
 				// Creates bottom half of button: the label
 				$('<div/>', {
+					'class'	: 'dash-button-bottom',
 					'html'	: pageItem.title
 				}).appendTo( theParent );
 			break;
