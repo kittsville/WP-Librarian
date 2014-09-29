@@ -314,11 +314,6 @@ function wp_lib_prep_member_management_header( $member ) {
 	return array();
 }
 
-// Given fine ID, returns rendered fine management header
-function wp_lib_prep_fine_management_header( $fine_id ) {
-	return array();
-}
-
 // Given item ID, returns rendered item management header
 function wp_lib_prep_item_management_header( $item_id ) {
 	// Fetches title of item e.g. 'Moby-Dick'
@@ -364,7 +359,7 @@ function wp_lib_prep_item_management_header( $item_id ) {
 	$meta_fields[] = array( 'Status', wp_lib_prep_item_available( $item_id, true ) );
 	
 	// Prepares management header
-	$header = array(
+	return array(
 		array(
 			'type'		=> 'div',
 			'classes'	=> 'item-man',
@@ -377,24 +372,21 @@ function wp_lib_prep_item_management_header( $item_id ) {
 			)
 		)
 	);
-	
-	return $header;
 }
 
-// Renders the header for the Fine management page, displaying information about the fine
-function wp_lib_render_fine_management_header( $fine_id ) {
-	// Fetches and formats fine amount ( e.g. £0.40 )
-	$fine_formatted = wp_lib_format_money( get_post_meta( $fine_id, 'wp_lib_fine', true ) );
-	
-	// Fetches fine status, unformatted ( 1 rather than 'Unpaid' )
-	$fine_status = get_post_meta( $fine_id, 'wp_lib_status', true );
+// Given fine ID, returns rendered fine management header
+function wp_lib_prep_fine_management_header( $fine_id ) {
+	$meta = get_post_meta( $fine_id );
 
-	// Formats fine status
-	$formatted_status = wp_lib_format_fine_status( $fine_status );
+	// Fetches and formats fine amount ( e.g. £0.40 )
+	$fine_formatted = wp_lib_format_money( $meta['wp_lib_fine'][0] );
+
+	// Fetches and formats fine status
+	$formatted_status = wp_lib_format_fine_status( $meta['wp_lib_status'][0] );
 	
 	// Fetches item and loan IDs
-	$item_id = get_post_meta( $fine_id, 'wp_lib_item', true );
-	$loan_id = get_post_meta( $fine_id, 'wp_lib_loan', true );
+	$item_id = $meta['wp_lib_item'][0];
+	$loan_id = $meta['wp_lib_loan'][0];
 	
 	// Fetches member name and if member still exists
 	$member_array = wp_lib_fetch_member_name( $fine_id, true, true );
@@ -410,16 +402,26 @@ function wp_lib_render_fine_management_header( $fine_id ) {
 	if ( $title_array['deleted'] )
 		wp_lib_error( 205, array( 'item', $title_array['title'] ) );
 	
-	?>
-	<h2>Managing: Fine #<?= $fine_id ?></h2>
-	<p>
-		<strong>Item: </strong><?= $title_array['title'] ?><br />
-		<strong>Member: </strong><?= $member_array['name'] ?><br />
-		<strong>Amount: </strong><?= $fine_formatted ?><br />
-		<strong>Status: </strong><?= $formatted_status ?><br />
-		<strong>Created: </strong><?= get_the_date( '', $fine_id ) ?>
-	</p>
-	<?php
+	// Prepares management header
+	return array(
+		array(
+			'type'		=> 'div',
+			'classes'	=> 'fine-man',
+			'inner'		=> array(
+				array(
+					'type'	=> 'metabox',
+					'title'	=> 'Details',
+					'fields'=> array(
+						array( 'Item', $title_array['title'] ),
+						array( 'Member', $member_array['name'] ),
+						array( 'Amount', $fine_formatted ),
+						array( 'Status', $formatted_status ),
+						array( 'Created', get_the_date( '', $fine_id ) )
+					)
+				)
+			)
+		)
+	);
 }
 
 // Renders the header of the member management page, displaying information about the member
