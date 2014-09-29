@@ -396,7 +396,7 @@ add_action( 'manage_wp_lib_loans_posts_custom_column' , function ( $column, $loa
 			echo wp_lib_prep_date_column( $loan_id, 'wp_lib_returned_date' );
 		break;
 	}
-});
+}, 10, 2 );
 
 // Add custom columns to wp-admin fines table and removes unneeded ones
 add_filter( 'manage_wp_lib_fines_posts_columns', function ( $columns ) {
