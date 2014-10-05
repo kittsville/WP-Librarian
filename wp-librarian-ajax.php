@@ -537,17 +537,74 @@ function wp_lib_page_manage_member() {
 	
 	// Renders management header
 	$header = wp_lib_prep_member_management_header( $member );
-
+	
+	// Renders first part of member management page
 	$content[] = array(
 		'type'		=> 'paras',
 		'content'	=> array( 'Nothing much to see here yet!' )
 	);
 	
+	// Sets up loan history query arguments
+	$args = array(
+		'post_type' => 'wp_lib_loans',
+		'tax_query' => array(
+			array(
+				'taxonomy'	=> 'wp_lib_member',
+				'field'		=> 'term_id',
+				'terms'		=> $member->term_id
+			)
+		)
+	);
+	
+	// Creates query of all loans attached to this member
+	$loan_query = new WP_Query( $args );
+	
+	// Checks for any loans attached to member
+	if ( $loan_query->have_posts() ){
+		// Initialises loans array
+		$loans = array();
+		
+		// Iterates through loans
+		while ( $loan_query->have_posts() ) {
+			// Selects current post (loan)
+			$loan_query->the_post();
+			
+			// Fetches loan ID
+			$loan_id = get_the_ID();
+			
+			// Fetches all loan's meta
+			$meta = get_post_meta( $loan_id );
+			
+			// Gets item ID of loan
+			$item_id = $meta['wp_lib_item'][0];
+			
+			$loans[] = array(
+				'loan'		=> array( '#' . get_the_ID(), wp_lib_format_manage_loan( $loan_id ) ),
+				'item'		=> array( get_the_title( $item_id ), wp_lib_format_manage_item( $item_id ) ),
+				'startDate'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_start_date'][0] ),
+				'endDate'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_end_date'][0] )
+			);
+		}
+		
+		// Adds loans (rows) to table
+		$content[] = array(
+			'type'		=> 'dtable',
+			'id'		=> 'member-loans',
+			'headers'	=> array(
+				'Loan',
+				'Item',
+				'Start Date',
+				'End Date'
+			),
+			'data'		=> $loans
+		);
+	}
+
 	$page_title = 'Managing: ' . $member->name;
 	
 	$tab_title = 'Managing Member #' . $member_id;
 	
-	wp_lib_send_page( $page_title, $tab_title, $content );
+	wp_lib_send_page( $page_title, $tab_title, array_merge( $header, $content ) );
 }
 
 // Displays fine details and provides options to modify the fine

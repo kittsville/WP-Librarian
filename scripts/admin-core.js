@@ -3,7 +3,7 @@ var notificationCount = 0;
 
 jQuery( document ).ready(function($) {
 	// Selects the notification holder
-	window.notificationHolder = jQuery( '#notifications-holder' );
+	window.notificationHolder = jQuery( '#wp-lib-notifications' );
 });
 
 // Collects of a submitted form's parameters, removes the blank ones, then returns the result as an object

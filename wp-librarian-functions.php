@@ -693,7 +693,7 @@ function wp_lib_create_fine( $item_id, $date = false, $return = true ) {
 	add_post_meta( $loan_id, 'wp_lib_fine', $fine_id );
 	
 	// Fetches member meta, saved as an option owing to WordPress limitations
-	$meta = get_option( "wp_lib_tax_{$member->term_id}", false );
+	$meta = wp_lib_fetch_member_meta( $member_id );
 	
 	// If option did not exist, it is set as a blank array
 	if ( !$meta )
@@ -710,7 +710,7 @@ function wp_lib_create_fine( $item_id, $date = false, $return = true ) {
 	$meta['debt'] += $fine;
 	
 	// Member meta is saved
-	update_option( "wp_lib_tax_{$member->term_id}", $meta );
+	wp_lib_update_member_meta( $member->term_id, $meta );
 	
 	// Debugging
 	wp_lib_add_notification( "{$member->name} has been charged {$fine_formatted} for the late return of {$title}" );
@@ -954,27 +954,6 @@ function wp_lib_error( $error_id, $die = false, $param = 'NULL' ) {
 	
 	// Otherwise adds error to notification buffer
 	wp_lib_add_notification( $error_text, $error_id );
-}
-
-// Dumps variables in a pretty way
-function wp_lib_var_dump() {
-	// Gets all given params
-	$args = func_get_args();
-	
-	// For each param, var_dump between <pre> tags to format code properly in browser
-	foreach ( $args as $arg ){
-		echo '<pre>';
-		echo var_dump( $arg );
-		echo '</pre>';
-	}
-}
-
-// Santizes HTML POST data from a checkbox
-function wp_lib_sanitize_checkbox( $raw ) {
-	if ( $raw == 'true' )
-		return true;
-	else
-		return false;
 }
 
 // Removes unwanted description field from taxonomies list

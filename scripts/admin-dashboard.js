@@ -147,7 +147,10 @@ function wp_lib_load_page( page, ajaxData ) {
 		break;
 		
 		case undefined:
-			ajaxData['action'] = 'wp_lib_dashboard';
+			// If page is undefined, ajaxData will not exist and must be defined!
+			ajaxData = {
+				action	: 'wp_lib_dashboard'
+			}
 		break;
 		
 		default:
@@ -164,12 +167,16 @@ function wp_lib_load_page( page, ajaxData ) {
 			var ajaxResult = JSON.parse( response );
 		}
 		catch(e) {
-			wp_lib_local_error( "Failed to render data returned by server" );
+			wp_lib_local_error( "Server returned invalid JSON (possible server error/warning)" );
 			
 			// Debugging - Renders un-parseable returned data to workspace
-			jQuery('<pre/>', {
+			jQuery('<div/>', {
+				'style'	: 'background:grey;',
 				'html'	: response
-			}).appendTo( '#library-workspace' );
+			}).appendTo( '#wp-lib-workspace' );
+			
+			// Stops further execution of function
+			return false;
 		}
 		
 		// If server response was false, call error
@@ -220,7 +227,7 @@ function wp_lib_after_load() {
 	});
 	
 	// Adds listener for action performing buttons
-	jQuery('#library-workspace').on('click', '[name="dash_action"]', function ( e ){
+	jQuery('#wp-lib-workspace').on('click', '[name="dash_action"]', function ( e ){
 		// Fetches action to be performed
 		var action = e.currentTarget.value;
 		
@@ -235,7 +242,7 @@ function wp_lib_after_load() {
 	});
 	
 	// Adds listener for page loading buttons
-	jQuery('#library-workspace').on('click', '[name="dash_page"]', function ( e ){
+	jQuery('#wp-lib-workspace').on('click', '[name="dash_page"]', function ( e ){
 		// Fetches form parameters that have been set
 		var params = wp_lib_collect_form_params( '#library-form' );
 		
@@ -271,7 +278,7 @@ function wp_lib_render_page( pageArray ) {
 	}
 	
 	// Clears and selects Library workspace in preparation of new page
-	var libWorkspace = jQuery( '#library-workspace' ).empty();
+	var libWorkspace = jQuery( '#wp-lib-workspace' ).empty();
 	
 	// If page has any non-form content, render each element to the Library workspace
 	if ( pageArray.content ) {
@@ -535,6 +542,63 @@ function wp_lib_render_page( pageArray ) {
 				});
 			break;
 			
+			case 'dtable':
+				// If dev is an idiot and forgets to give the table a class, assigns one randomly
+				if (typeof( pageItem.id ) === 'undefined' ) {
+					elementObject.id = 'dynamic-table-' + Math.floor((Math.random() * 100) + 1);
+				}
+				
+				// Creates/selects base element
+				var theParent = $('<table/>', elementObject ).appendTo( theParent );
+				
+				// Adds head to table
+				var tableHead = $('<thead/>', {} ).appendTo( theParent );
+				
+				// Iterates through given table columns, adding them to the table head
+				$( pageItem.headers ).each( function( i, header ) {
+					$('<th/>', {
+						'html'	: header
+					} ).appendTo( tableHead );
+				});
+				
+				// Renders table body, to be dynamically populated
+				$('<tbody/>', {} ).appendTo( theParent );
+				
+				/* Prepares data for Dynatable */
+				
+				// Initialises output
+				var tableRecords = [];
+				
+				// Iterates through table data, adding it to output in correct format
+				$.each( pageItem.data, function( i, row ) {
+					// Initialises row output
+					var tableRow = {};
+					
+					// Iterates through row's data, setting up values for Dynatable
+					$.each( row, function( columnName, columnData ) {
+						// If row is a hyperlink, formats
+						if ( columnData instanceof Array ) {
+							columnData = '<a href="' + columnData[1] + '">' + columnData[0] + '</a>'; // Dynatable, Y U NO ACCEPT DOM OBJECTS?
+						}
+						
+						// Creates entry in table row named with column's slug (e.g. load-id) and sets value to 
+						tableRow[columnName] = columnData;
+					});
+					
+					// Adds row to table records
+					tableRecords.push( tableRow );
+				});
+				
+				//'#' + elementObject.id
+				
+				// Fills table with formatted data
+				$( '#' + elementObject.id ).dynatable({ 
+					dataset: {
+						records: tableRecords
+					}
+				});
+			break;
+			
 			default:
 				$('<strong/>', {
 					'html'	: 'UNKNOWN ELEMENT TYPE<br/>',
@@ -552,6 +616,13 @@ function wp_lib_format_tab_title( title ) {
 
 // Loads page content on page load. Only used if page is visited from a non-Dashboard page
 jQuery( document ).ready(function($) {
+	$.dynatableSetup({
+		table: {
+			headRowSelector: 'thead'
+		}
+	});
+
+
 	var GetVars = wp_lib_vars.getparams;
 	
 	// Removes default GET params as they are no longer needed
