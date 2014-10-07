@@ -111,7 +111,7 @@ function wp_lib_valid_loan_id( $loan_id ) {
 	}
 	
 	// Checks if ID belongs to a published loan (a loan in any other state is not valid)
-	if ( get_post_type( $loan_id ) != 'wp_lib_loans' || !get_post_status( $loan_id ) != 'publish' ) {
+	if ( get_post_type( $loan_id ) != 'wp_lib_loans' ) {
 		wp_lib_error( 306 );
 		return false;
 	}
@@ -134,7 +134,7 @@ function wp_lib_valid_fine_id( $fine_id ){
 	}
 	
 	// Checks if ID belongs to a published loan (a loan in any other state is not valid)
-	if ( get_post_type( $fine_id ) != 'wp_lib_fines' || get_post_status( $fine_id ) != 'publish' ) {
+	if ( get_post_type( $fine_id ) != 'wp_lib_fines' ) {
 		wp_lib_error( 308 );
 		return false;
 	}
