@@ -822,6 +822,7 @@ function wp_lib_check_post_pre_trash( $post_id ) {
 						'obj_type'	=> 'item'
 					)
 				));
+				exit;
 			break;
 			
 			case 'wp_lib_loans':
@@ -832,6 +833,7 @@ function wp_lib_check_post_pre_trash( $post_id ) {
 						'obj_type'	=> 'loan'
 					)
 				));
+				exit;
 			break;
 			
 			case 'wp_lib_fines':
@@ -842,6 +844,7 @@ function wp_lib_check_post_pre_trash( $post_id ) {
 						'obj_type'	=> 'fine'
 					)
 				));
+				exit;
 			break;
 		}
 	} elseif ( $GLOBALS['post_type'] == 'wp_lib_items' ) {
@@ -865,6 +868,9 @@ register_activation_hook( __FILE__, function() {
 	// Creates various options used by WP-Librarian
 	require_once (plugin_dir_path(__FILE__) . '/wp-librarian-options.php');
 });
+
+// Removes traces of plugin on deactivation
+register_deactivation_hook( __FILE__, 'flush_rewrite_rules' );
 
 // Adds row of metadata to taxonomy field
 add_action('wp_lib_member_add_form_fields','wp_lib_member_add_form_fields');
