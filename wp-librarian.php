@@ -24,7 +24,9 @@ require_once (plugin_dir_path(__FILE__) . '/wp-librarian-ajax.php');
 add_action( 'init', 'wp_lib_register_post_and_tax' );
 function wp_lib_register_post_and_tax() {
 
-	// Creates post type for library items
+	/* Registers Items as custom post type */
+	/* Items represent physical item in the Library, such as a single copy of a book */
+	
 	$args =	array(
 		'labels' => array(
 			'name'					=> 'Library',
@@ -40,7 +42,6 @@ function wp_lib_register_post_and_tax() {
 			'search_items'			=> 'Search Library Items',
 			'not_found'				=> 'No Items found',
 			'not_found_in_trash'	=> 'No Items found in Trash',
-			'parent_item_colon'		=> 'Parent Library Item'
 		),
 
 		'public'				=> true,
@@ -54,7 +55,8 @@ function wp_lib_register_post_and_tax() {
 	);
 	register_post_type( 'wp_lib_items', $args );
 	
-	// Creates post type to manage loaned items
+	/* Registers Loans as custom post type */
+	/* Loans represent the lending of an Item to a Member */
 	$args =	array(
 		'labels' => array(
 			'name'				=> 'Loans',
@@ -68,20 +70,19 @@ function wp_lib_register_post_and_tax() {
 			'search_items'		=> 'Search Loans',
 			'not_found'			=> 'No Loans found',
 			'not_found_in_trash'=> 'No Loans found in Trash',
-			'parent'			=> 'Parent Loan',
 		),
 
-		'public'		=> true,
-		'show_in_menu' 	=> 'edit.php?post_type=wp_lib_items',
-		'supports'		=> array( '' ),
-		'taxonomies'	=> array( '' ),
-		'menu_icon'		=> 'dashicons-book-alt',
-		'has_archive'	=> true,
-		'rewrite'		=> array('slug' => get_option( 'wp_lib_loans_slug', 'loans' ) ),
+		'public'				=> true,
+		'exclude_from_search'	=> true,
+		'publicly_queryable'	=> true,
+		'show_in_menu'		 	=> 'edit.php?post_type=wp_lib_items',
+		'supports'				=> array( '' ),
+		'rewrite'				=> array('slug' => get_option( 'wp_lib_loans_slug', 'loans' ) )
 	);
 	register_post_type( 'wp_lib_loans', $args );
 	
-	// Creates post type to manage fines
+	/* Registers Fines as custom post type */
+	/* Fines represent the monetary cost incurred if an Item is returned late (after the Loan specified) */
 	$args =	array(
 		'labels' => array(
 			'name'				=> 'Fines',
@@ -95,16 +96,14 @@ function wp_lib_register_post_and_tax() {
 			'search_items'		=> 'Search Fines',
 			'not_found'			=> 'No Fines found',
 			'not_found_in_trash'=> 'No Fines found in Trash',
-			'parent'			=> 'Parent Fine',
 		),
 
-		'public'		=> true,
-		'show_in_menu'	=> 'edit.php?post_type=wp_lib_items',
-		'supports'		=> array( '' ),
-		'taxonomies'	=> array( '' ),
-		'menu_icon'		=> 'dashicons-book-alt',
-		'has_archive'	=> true,
-		'rewrite'		=> array('slug' => get_option( 'wp_lib_fines_slug', 'fines' ) ),
+		'public'				=> true,
+		'exclude_from_search'	=> true,
+		'publicly_queryable'	=> true,
+		'show_in_menu'			=> 'edit.php?post_type=wp_lib_items',
+		'supports'				=> array( '' ),
+		'rewrite'				=> array('slug' => get_option( 'wp_lib_fines_slug', 'fines' ) )
 	);
 	register_post_type( 'wp_lib_fines', $args );
 }
