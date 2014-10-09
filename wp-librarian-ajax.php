@@ -246,10 +246,9 @@ function wp_lib_do_return_item() {
 		$no_fine = true;
 	else
 		$no_fine = false;
-		
-	$result = wp_lib_return_item( $item_id, $end_date, $no_fine );
-	// GGGG
-	wp_lib_stop_ajax( $result );
+	
+	// Attempts to return item, returning success/failure
+	wp_lib_stop_ajax( wp_lib_return_item( $item_id, $end_date, $no_fine ) );
 }
 
 // Charges a member a fine for returning an item late

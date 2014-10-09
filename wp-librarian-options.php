@@ -15,9 +15,6 @@ add_option( 'wp_lib_loan_length', 12 );
 // Fine length (per day)
 add_option( 'wp_lib_fine_daily', 0.20 );
 
-// If to prompt on each item's deletion or simply follow the default deletion behaviour
-add_option( 'wp_lib_bulk_deletion', '0' ); // GGGGG
-
 	/* -- Slugs -- */
 	/* Sections of site urls used when accessing plugin pages e.g. my-site.com/wp-librarian */
 
