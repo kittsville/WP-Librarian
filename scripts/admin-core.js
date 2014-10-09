@@ -21,7 +21,6 @@ function wp_lib_collect_form_params( selector ) {
 			result[object.name] = object.value;
 		}
 	});
-
 	return result;
 }
 
@@ -161,4 +160,23 @@ function wp_lib_hide_notification( element ) {
 function wp_lib_click_button( e ) {
 	// Redirects page to clicked button's href attribute
 	location.href = jQuery( e ).attr('href');
+}
+
+// Attempts to parse JSON and catches any failures
+function wp_lib_parse_json( rawJSON ) {
+	try {
+		var parsedJSON = JSON.parse( rawJSON );
+	}
+	catch(e) {
+		wp_lib_local_error( "Server returned invalid JSON (possible server error/warning)" );
+		
+		// Debugging - Renders un-parseable returned data to workspace
+		jQuery('<div/>', {
+			'style'	: 'background:grey;',
+			'html'	: '<strong style="color:red;">Server Response</strong></br/>' + rawJSON
+		}).appendTo( '#wp-lib-workspace' );
+		
+		parsedJSON = 0;
+	}
+	return parsedJSON;
 }

@@ -260,7 +260,7 @@ function wp_lib_style_url( $name ) {
 // Validates given date, checking if it meets any given requirements
 function wp_lib_convert_date( &$date ) {
 	// Attempts to convert date into Unix timestamp
-	return strtotime( $date );
+	$date = strtotime( $date );
 }
 
 // Fetches date from meta then formats

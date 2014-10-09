@@ -166,7 +166,7 @@ function wp_lib_fetch_item_by_barcode() {
 
 // Informs user that action requested does not exist
 function wp_lib_do_unknown_action() {
-	wp_lib_stop_ajax( '', 500, $_POST['given_action'] );
+	wp_lib_stop_ajax( '', 500 );
 }
 
 	/* Actions */
@@ -227,7 +227,7 @@ function wp_lib_do_return_item() {
 	
 	// If item ID fails to validate, return false
 	if ( !wp_lib_valid_item_id( $item_id ) )
-		wp_lib_stop_ajax( false );	
+		wp_lib_stop_ajax( false );
 	
 	// If the date is given (item is not being returned currently)
 	if ( $end_date ) {
@@ -237,6 +237,8 @@ function wp_lib_do_return_item() {
 		// If date failed to convert
 		if ( !$end_date )
 			wp_lib_stop_ajax( false, 310 );
+	} else {
+		$end_date = false;
 	}
 	
 	// Converts 'no fine' to boolean
@@ -244,9 +246,10 @@ function wp_lib_do_return_item() {
 		$no_fine = true;
 	else
 		$no_fine = false;
-	
-	// Attempts to return item, returning result
-	wp_lib_stop_ajax( wp_lib_return_item( $item_id, $end_date, $no_fine ) );
+		
+	$result = wp_lib_return_item( $item_id, $end_date, $no_fine );
+	// GGGG
+	wp_lib_stop_ajax( $result );
 }
 
 // Charges a member a fine for returning an item late
@@ -827,7 +830,7 @@ function wp_lib_page_return_past() {
 				),
 				array(
 					'type'	=> 'date',
-					'name'	=> 'loan_end_date',
+					'name'	=> 'end_date',
 					'id'	=> 'loan-end-date',
 					'value'	=> Date( 'Y-m-d' )
 				)
@@ -836,8 +839,8 @@ function wp_lib_page_return_past() {
 		array(
 			'type'	=> 'button',
 			'link'	=> 'action',
-			'value'	=> 'return',
-			'html'	=> 'Return Item'
+			'value'	=> 'return-item',
+			'html'	=> 'Return'
 		)
 	);
 	

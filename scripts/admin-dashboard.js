@@ -77,33 +77,31 @@ function wp_lib_send_form( action, params ) {
 		
 		default:
 			data.action = 'wp_lib_unknown_action';
-			data.given_action = action;
 		break;
 	}
 	
 	// Submits action with all given form parameters
 	jQuery.post( ajaxurl, data, function( response ) {
-		// Fetches and renders any new notifications
-		wp_lib_display_notifications();
-	
 		// Parses response
-		var success = JSON.parse( response );
+		var success = wp_lib_parse_json( response );
 		
-		// If action completed successfully, redirects to dashboard
+		// If action completed successfully, redirects to Dashboard or given preferred page
 		if ( success ) {
 			if ( successPage ) {
 				wp_lib_load_page( successPage, {} );
+				return;
 			} else {
 				wp_lib_load_page();
+				return;
 			}
-		} else {
-			// Otherwise load notifications to display explanatory errors
-			wp_lib_display_notifications();
 		}
 	})
 	.fail( function() {
 		wp_lib_ajax_fail();
 	});
+	
+	// Fetches and renders any new notifications
+	wp_lib_display_notifications();
 }
 
 // Fetches page, using given parameters
@@ -162,20 +160,11 @@ function wp_lib_load_page( page, ajaxData ) {
 	// Sends AJAX page request with given params, fills workspace div with response
 	jQuery.post( ajaxurl, ajaxData )
 	.done( function( response ) {
-		// Attempts to encode result, calls error on failure
-		try {
-			var ajaxResult = JSON.parse( response );
-		}
-		catch(e) {
-			wp_lib_local_error( "Server returned invalid JSON (possible server error/warning)" );
-			
-			// Debugging - Renders un-parseable returned data to workspace
-			jQuery('<div/>', {
-				'style'	: 'background:grey;',
-				'html'	: response
-			}).appendTo( '#wp-lib-workspace' );
-			
-			// Stops further execution of function
+		// Parses response
+		var ajaxResult = wp_lib_parse_json( response );
+		
+		// If page load failed, stops function execution
+		if ( ajaxResult === 0 ) {
 			return false;
 		}
 		

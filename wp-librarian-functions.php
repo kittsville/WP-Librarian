@@ -176,7 +176,7 @@ function wp_lib_cherry_pie( $loan_id, $date ) {
 	$due_date = get_post_meta( $loan_id, 'wp_lib_end_date', true );
 	
 	// If loan doesn't have a due date, error is thrown
-	if ( $due_date == '' ) {
+	if ( $due_date == '' || !is_numeric( $due_date ) ) {
 		wp_lib_error( 405 );
 		return false;
 	}
@@ -213,12 +213,12 @@ function wp_lib_cherry_pie( $loan_id, $date ) {
 function wp_lib_item_late( $loan_id, $date = false ) {
 	// Sets date to current time if unspecified
 	wp_lib_prep_date( $date );
-
+	
 	// Fetches number of days late
 	$late = wp_lib_cherry_pie( $loan_id, $date );
 	
-	// If cherry pie failed, kill execution
-	if ( !$late )
+	// If cherry pie failed, kill thread
+	if ( $late === false )
 		die();
 	
 	// Function returns if item is late as boolean if $boolean is set to true
