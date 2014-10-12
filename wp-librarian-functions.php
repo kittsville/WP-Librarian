@@ -11,63 +11,6 @@ function wp_lib_is_librarian() {
 	return true;
 }
 
-// Creates "Available" or "Unavailable" string depending on if item if available to loan
-function wp_lib_prep_item_available( $item_id, $no_url = false, $short = false ) {
-	// Checks if the current user was the permissions of a Librarian
-	$librarian = wp_lib_is_librarian();
-	
-	// Fetches if item is allowed to be loaned
-	$loan_allowed = wp_lib_loan_allowed( $item_id );
-	
-	// Fetches if item is currently on loan
-	$on_loan = wp_lib_on_loan( $item_id );
-	
-	// If item can be loaned and is available, url is made to take user to loans Dashboard to loan item
-	if ( $loan_allowed && !$on_loan )
-		$status = 'Available';
-	
-	// If item is on loan link is composed to return item
-	elseif ( $on_loan ) {
-		// Sets item status accordingly
-		$status = 'On Loan';
-		
-		// Checks if user has permission to see full details of current loan
-		if ( $librarian ) {
-			// If user wants full item status, member that item is loaned to is fetched
-			if ( !$short ) {
-				$details = ' to ' . wp_lib_fetch_member_name( $item_id );
-			}
-			$args = array(
-			'due'	=> 'due in \d day\p',
-			'today'	=> 'due today',
-			'late'	=> '\d day\p late',
-			);
-			$details .= ' (' . wp_lib_prep_item_due( $item_id, false, $args ) . ')';
-		}
-	}
-	
-	// If item isn't allowed to be loaned item is marked as unavailable
-	else {
-		$use_url = false;
-		$status = 'Unavailable';
-	}
-	
-	// If user has the relevant permissions, availability will contain link to loan/return item
-	if ( $librarian && !$no_url ) {
-		// String preparation
-		$url = wp_lib_manage_item_url( $item_id );
-		$url = "<a href=\"{$url}\">";
-		$end = '</a>';
-	}
-	else {
-		$url = '';
-		$end = '';
-	}
-	
-	// String is concatenated and returned
-	return $url . $status . $details . $end;
-}
-
 // Checks if item will be on loan between given dates. Given no dates, checks if item is currently on loan
 function wp_lib_on_loan( $item_id, $start_date = false, $end_date = false ) {
 	// If dates weren't given then the schedule doesn't need to be checked

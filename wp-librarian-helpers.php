@@ -627,6 +627,53 @@ function wp_lib_prep_admin_meta( $post_id, $formatting ) {
 	return $meta;
 }
 
+// Returns "Available" or "Unavailable" string depending on if item if available to loan
+function wp_lib_prep_item_available( $item_id, $no_url = false, $short = false ) {
+	// Checks if the current user was the permissions of a Librarian
+	$is_librarian = wp_lib_is_librarian();
+	
+	// Fetches if item is currently on loan
+	$on_loan = wp_lib_on_loan( $item_id );
+	
+	// If item can be loaned and is available, url is made to take user to loans Dashboard to loan item
+	if ( wp_lib_loan_allowed( $item_id ) && !$on_loan )
+		$status = 'Available';
+	
+	// If item is on loan link is composed to return item
+	elseif ( $on_loan ) {
+		// Sets item status accordingly
+		$status = 'On Loan';
+		
+		// Checks if user has permission to see full details of current loan
+		if ( $is_librarian ) {
+			// If user wants full item status, member that item is loaned to is fetched
+			if ( !$short ) {
+				$status .= ' to ' . wp_lib_fetch_member_name( $item_id );
+			}
+			$args = array(
+			'due'	=> 'due in \d day\p',
+			'today'	=> 'due today',
+			'late'	=> '\d day\p late',
+			);
+			$status .= ' (' . wp_lib_prep_item_due( $item_id, false, $args ) . ')';
+		}
+	}
+	
+	// If item isn't allowed to be loaned item is marked as unavailable
+	else {
+		$use_url = false;
+		$status = 'Unavailable';
+	}
+	
+	// If user has the relevant permissions, availability will contain link to manage item
+	if ( $is_librarian && !$no_url ) {
+		return wp_lib_hyperlink( wp_lib_manage_item_url( $item_id ), $status );
+	}
+	
+	// String is concatenated and returned
+	return $url . $status . $end;
+}
+
 // Prepares taxonomy and metabox information for theme use
 function wp_lib_fetch_meta( $item_id ) {
 	// Metabox data is fetched and relevant functions are called to format the data
