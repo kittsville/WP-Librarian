@@ -321,6 +321,8 @@ function wp_lib_do_delete_object() {
 	
 	// Deletes post, connected post deletion is handled on the pre_deletion hook 'before_delete_post'
 	wp_delete_post( $post_id );
+	
+	// Requires further work
 }
 
 	/* Pages */
@@ -345,8 +347,8 @@ function wp_lib_page_dashboard() {
 		array(
 			'title'	=> 'Manage Members',
 			'icon'	=> 'default',
-			'link'	=> 'dash-page',
-			'value'	=> 'browse-members'
+			'link'	=> 'post-type',
+			'pType'	=> 'wp_lib_members'
 		),
 		array(
 			'title'	=> 'Manage Fines',
@@ -400,23 +402,6 @@ function wp_lib_page_manage_item() {
 	// Checks if item ID is valid
 	wp_lib_check_item_id( $item_id );
 	
-	// Fetches loan ID and member if item is on loan
-	if ( wp_lib_on_loan( $item_id ) ) {
-		$loan_id = wp_lib_fetch_loan( $item_id );
-		$member = wp_get_post_terms( $item_id, 'wp_lib_member' )[0];
-		$late = wp_lib_item_late( $loan_id );
-	}
-	else
-		$loan_id = false;
-		$loanable = wp_lib_loanable( $item_id );
-	
-	// Fetches title
-	$title = get_the_title( $item_id );
-	
-	// If item is late, display error bar
-	if ( $late )
-		wp_lib_add_notification( "{$title} is late, please resolve this issue" );
-	
 	// Prepares the management header
 	$header = wp_lib_prep_item_management_header( $item_id );
 	
@@ -428,7 +413,10 @@ function wp_lib_page_manage_item() {
 	);
 	
 	// If item is currently on loan
-	if ( $loan_id ) {
+	if ( wp_lib_on_loan( $item_id ) ) {
+		// Fetches loan ID from Item meta
+		$loan_id = wp_lib_fetch_loan( $item_id );
+		
 		// Regardless of lateness, provides link to return item at a past date
 		$form[] = array(
 			'type'	=> 'button',
@@ -438,7 +426,7 @@ function wp_lib_page_manage_item() {
 		);
 		
 		// If item is late
-		if ( $late ) {
+		if ( wp_lib_item_late( $loan_id ) ) {
 			// Provides link to resolve late item
 			$form[] = array(
 				'type'	=> 'button',
@@ -457,7 +445,7 @@ function wp_lib_page_manage_item() {
 			);
 		}
 	}
-	elseif ( $loanable ) {
+	elseif ( wp_lib_loanable( $item_id ) ) {
 		$options = wp_lib_prep_member_options();
 		
 		// Adds loan item title
@@ -518,7 +506,7 @@ function wp_lib_page_manage_item() {
 	}
 	
 	// Creates titles for page and browser tab
-	$page_title = 'Managing: ' . $title;
+	$page_title = 'Managing: ' . get_the_title( $item_id );
 	$tab_title = 'Managing Item #' . $item_id;
 	
 	// Encodes page as an array to be rendered client-side
@@ -530,30 +518,28 @@ function wp_lib_page_manage_member() {
 	// Fetches member ID from AJAX request
 	$member_id = $_POST['member_id'];
 	
-	// Attempts to fetch member object
-	$member = wp_lib_fetch_member( $member_id );
-	
-	// If member fetching failed, load Dashboard (causing error will have been added to the buffer)
-	if ( !$member )
-		wp_lib_page_dashboard();
+	// Checks ID
+	wp_lib_check_member_id( $member_id );
 	
 	// Renders management header
-	$header = wp_lib_prep_member_management_header( $member );
+	$header = wp_lib_prep_member_management_header( $member_id );
 	
 	// Renders first part of member management page
 	$content[] = array(
 		'type'		=> 'paras',
-		'content'	=> array( 'Nothing much to see here yet!' )
+		'content'	=> array( 'Below are all loans tied to this member.' )
 	);
 	
 	// Sets up loan history query arguments
 	$args = array(
-		'post_type' => 'wp_lib_loans',
-		'tax_query' => array(
+		'post_type' 	=> 'wp_lib_loans',
+		'post_status'	=> 'publish',
+		'meta_key'		=> 'wp_lib_member',
+		'meta_query'	=> array(
 			array(
-				'taxonomy'	=> 'wp_lib_member',
-				'field'		=> 'term_id',
-				'terms'		=> $member->term_id
+				'key'		=> 'wp_lib_member',
+				'value'		=> $member_id,
+				'compare'	=> 'IN'
 			)
 		)
 	);
@@ -581,8 +567,8 @@ function wp_lib_page_manage_member() {
 			$item_id = $meta['wp_lib_item'][0];
 			
 			$loans[] = array(
-				'loan'		=> array( '#' . get_the_ID(), wp_lib_format_manage_loan( $loan_id ) ),
-				'item'		=> array( get_the_title( $item_id ), wp_lib_format_manage_item( $item_id ) ),
+				'loan'		=> array( '#' . get_the_ID(), wp_lib_manage_loan_url( $loan_id ) ),
+				'item'		=> array( get_the_title( $item_id ), wp_lib_manage_item_url( $item_id ) ),
 				'startDate'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_start_date'][0] ),
 				'endDate'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_end_date'][0] )
 			);
@@ -602,7 +588,7 @@ function wp_lib_page_manage_member() {
 		);
 	}
 
-	$page_title = 'Managing: ' . $member->name;
+	$page_title = 'Managing: ' . get_the_title( $member_id );
 	
 	$tab_title = 'Managing Member #' . $member_id;
 	
@@ -1058,14 +1044,9 @@ function wp_lib_page_confirm_deletion() {
 			
 			wp_lib_check_member_id( $member_id );
 			
-			$member = wp_lib_fetch_member( $member_id );
-			
-			if ( !$member )
-				wp_lib_stop_ajax( false );
-			
 			$header = wp_lib_prep_member_management_header( $member_id );
 			
-			$page_title = 'Deleting: ' . $member->name;
+			$page_title = 'Deleting: ' . get_the_title( $member_id );
 			
 			$tab_title = 'Deleting Member #' . $member_id;
 			

@@ -27,9 +27,6 @@ add_option( 'wp_lib_authors_slug', 'authors' );
 // The slug for viewing media types
 add_option( 'wp_lib_media_type_slug', 'type' );
 
-// The slug for viewing donors
-add_option( 'wp_lib_donors_slug', 'donors' );
-
 // The slug for viewing members
 add_option( 'wp_lib_members_slug', 'members' );
 

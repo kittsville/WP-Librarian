@@ -180,3 +180,39 @@ function wp_lib_parse_json( rawJSON ) {
 	}
 	return parsedJSON;
 }
+
+// Concatenates array into string with spaces, can handle string if needed
+function wp_lib_add_classes( newClasses ) {
+	if ( newClasses instanceof Array ){
+		return newClasses.join(' ');
+	}
+	else if ( typeof newClasses === "string" ) {
+		return ' ' + newClasses;
+	} else {
+		return '';
+	}
+}
+
+// Configures basic DOM object properties
+function wp_lib_init_object( pageItem ) {
+	var $ = jQuery;
+	
+	// Initialises object that will contain element's arguments (ID, Value, Class, etc. )
+	var elementObject = {
+		'class'	: ''
+	};
+
+	// Iterates through common html properties and sets them if they exist
+	$( [ 'id', 'name', 'value', 'html' ] ).each( function( i, e ) {
+		if ( pageItem[e] ) {
+			elementObject[e] = pageItem[e];
+		}
+	});
+
+	// If page element has classes, sets
+	if ( pageItem.classes ) {
+		elementObject.class += wp_lib_add_classes( pageItem.classes );
+	}
+	
+	return elementObject;
+}

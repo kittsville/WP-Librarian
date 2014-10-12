@@ -1,15 +1,15 @@
 <?php
 /* 
- * WP-LIBRARIAN META BOX
- * This renders the meta box that displays below the item description on the item editing page
- * On submission, these values are saved via 
+ * WP-LIBRARIAN ITEM META BOX
+ * This renders the meta box that displays below the item description on the item editing page.
+ * These vales are saved with the post in wp-librarian.php
  */
 
 // Loads meta box css
-wp_enqueue_style( 'wp_lib_admin_meta' );
+wp_enqueue_style( 'wp_lib_admin_item_meta' );
 
 // Nonce, to verify user authenticity
-wp_nonce_field( "Updating item {$item->ID} meta", 'wp_lib_item_nonce' );
+wp_nonce_field( "Updating item {$item->ID} meta", 'wp_lib_item_meta_nonce' );
 
 // Fetches list of media types
 $media_type_objects = get_terms( 'wp_lib_media_type', 'hide_empty=0' );
@@ -40,8 +40,7 @@ $meta_formatting = array(
 				'name'		=> 'wp_lib_item_loanable',
 				'type'		=> 'checkbox',
 				'alt-text'	=> 'Check if item can be loaned',
-				'default'	=> 'checked',
-				'value'		=> 'true'
+				'default'	=> 'checked'
 			),
 			array(
 				'title'		=> 'Hide from listing',
@@ -81,7 +80,6 @@ $meta_formatting = array(
 	),
 	array(
 		'title'	=> 'Book Details',
-		'class'	=> 'meta-media-type-section',
 		'value'	=> 'books',
 		'fields'=> array(
 			array(
@@ -109,7 +107,6 @@ $meta_formatting = array(
 	),
 	array(
 		'title'	=> 'DVD Details',
-		'class'	=> 'meta-media-type-section',
 		'value'	=> 'dvds',
 		'fields'=> array(
 			array(
@@ -121,15 +118,8 @@ $meta_formatting = array(
 	),
 );
 
-// Fetches all item meta
-$all_meta = get_post_meta( $item->ID );
-
-// Iterates through meta formatting and fetches needed meta values for all item meta
-foreach ( $meta_formatting as $meta_area ) {
-	foreach ( $meta_area['fields'] as $field ) {
-		$meta[$field['name']] = $all_meta[ $field['name'] ][0];
-	}
-}
+// Fetches all post meta then strips away any meta not needed by the meta formatting
+$meta = wp_lib_prep_admin_meta( $item->ID, $meta_formatting );
 
 // Adds media type meta to meta array
 $meta['wp_lib_media_type'] = wp_get_object_terms($item->ID, 'wp_lib_media_type', array("fields" => "slugs") )[0];

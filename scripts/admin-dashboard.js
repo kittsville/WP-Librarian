@@ -290,37 +290,11 @@ function wp_lib_render_page( pageArray ) {
 		});
 	}
 	
-	// Concatenates array into string with spaces, can handle string if needed
-	function add_classes( newClasses ) {
-		if ( newClasses instanceof Array ){
-			return newClasses.join(' ');
-		}
-		else if ( typeof newClasses === "string" ) {
-			return newClasses;
-		} else {
-			return '';
-		}
-	}
-	
 	// Renders a page element to the specified parent
 	// Function is recursive and will render a div's child nodes using itself
 	function render_page_element( pageItem, theParent ) {
-		// Initialises object that will contain element's arguments (ID, Value, Class, etc. )
-		var elementObject = {
-			'class'	: ''
-		};
-		
-		// Iterates through common html properties and sets them if they exist
-		$( [ 'id', 'name', 'value', 'html' ] ).each( function( i, e ) {
-			if ( pageItem[e] ) {
-				elementObject[e] = pageItem[e];
-			}
-		});
-		
-		// If page element has classes, sets
-		if ( pageItem.classes ) {
-			elementObject.class += add_classes( pageItem.classes );
-		}
+		// Sets up basic properties of object such as class/ID/name
+		elementObject = wp_lib_init_object( pageItem );
 		
 		// If element has a label, creates
 		if ( pageItem.label ) {
@@ -339,7 +313,7 @@ function wp_lib_render_page( pageArray ) {
 			break;
 			
 			case 'button':
-				elementObject.class += add_classes( [ 'button', 'button-primary', 'button-large' ] );
+				elementObject.class += wp_lib_add_classes( [ 'button', 'button-primary', 'button-large' ] );
 				
 				// Sets up button properties based on the button type
 				switch ( pageItem.link ) {
@@ -366,7 +340,7 @@ function wp_lib_render_page( pageArray ) {
 			
 			case 'dash-button':
 				// Merges dash button's classes with default dash button classes
-				elementObject.class += add_classes( [ 'dashboard-button' ] );
+				elementObject.class += wp_lib_add_classes( [ 'dashboard-button' ] );
 				
 				var onClick = "wp_lib_click_button( this )";
 				
@@ -425,7 +399,7 @@ function wp_lib_render_page( pageArray ) {
 			
 			case 'date':
 				elementObject.type = pageItem.type;
-				elementObject.class += add_classes( [ 'datepicker', 'll-skin-melon' ] );
+				elementObject.class += wp_lib_add_classes( [ 'datepicker', 'll-skin-melon' ] );
 				$('<input/>', elementObject ).appendTo( theParent );
 			break;
 			
@@ -476,7 +450,7 @@ function wp_lib_render_page( pageArray ) {
 			
 			case 'metabox':
 				// Adds default meta box classes
-				elementObject.class += add_classes( [ 'lib-metabox' ] );
+				elementObject.class += wp_lib_add_classes( [ 'lib-metabox' ] );
 			
 				// Creates wrapper for meta box, attached to DOM, and sets as parent
 				var theParent = $('<dl/>', elementObject ).appendTo( theParent );

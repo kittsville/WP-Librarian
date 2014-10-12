@@ -3,7 +3,7 @@
  * Template Name: Library Item Archive
  */
 
-wp_enqueue_style( 'wp_lib_template' );
+wp_enqueue_style( 'wp_lib_frontend' );
 
 get_header();
 
@@ -16,6 +16,10 @@ get_header();
 		
 		// Loops posts
 		while ( $loop->have_posts() ) : $loop->the_post();
+		
+		// If item is set not to be publicly displayed, skip displaying item
+		if ( get_post_meta( get_the_ID(), 'wp_lib_item_delist', true ) )
+			continue;
 		
 		?>
 		<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
