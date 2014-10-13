@@ -313,7 +313,11 @@ function wp_lib_render_page( pageArray ) {
 			break;
 			
 			case 'button':
+				// Sets button classes to hook admin WordPress styles
 				elementObject.class += wp_lib_add_classes( [ 'button', 'button-primary', 'button-large' ] );
+				
+				// Sets button type to button to stop default behavior (form submission)
+				elementObject.type = 'button';
 				
 				// Sets up button properties based on the button type
 				switch ( pageItem.link ) {
@@ -330,7 +334,18 @@ function wp_lib_render_page( pageArray ) {
 					// Button that links to an external URL
 					case 'url':
 						elementObject.href = pageItem.href;
-						elementObject.onclick = 'wp_lib_click_button( this )';
+						elementObject.onclick = wp_lib_vars.onClick;
+					break;
+					
+					case 'edit':
+						elementObject.href = wp_lib_vars.adminurl + 'post.php?action=edit&post=' + wp_lib_vars.getparams.item_id;
+						elementObject.onclick = wp_lib_vars.onClick;
+					break;
+					
+					// If button has no known type, render error
+					default:
+						render_page_element({}, theParent);
+						return;
 					break;
 				}
 				
@@ -342,8 +357,6 @@ function wp_lib_render_page( pageArray ) {
 				// Merges dash button's classes with default dash button classes
 				elementObject.class += wp_lib_add_classes( [ 'dashboard-button' ] );
 				
-				var onClick = "wp_lib_click_button( this )";
-				
 				// Sets button's click behaviour based on its link type
 				switch ( pageItem.link ) {
 					case 'dash-page':
@@ -352,17 +365,17 @@ function wp_lib_render_page( pageArray ) {
 					
 					case 'post-type':
 						elementObject.href = wp_lib_vars.adminurl + 'edit.php?post_type=' + pageItem.pType;
-						elementObject.onclick = onClick;
+						elementObject.onclick = wp_lib_vars.onClick;
 					break;
 					
 					case 'admin-url':
 						elementObject.href = wp_lib_vars.adminurl + pageItem.url;
-						elementObject.onclick = onClick;
+						elementObject.onclick = wp_lib_vars.onClick;
 					break;
 					
 					case 'url':
 						elementObject.href = pageItem.url;
-						elementObject.onclick = onClick;
+						elementObject.onclick = wp_lib_vars.onClick;
 					break;
 				}
 				
@@ -587,8 +600,8 @@ jQuery( document ).ready(function($) {
 			headRowSelector: 'thead'
 		}
 	});
-
-
+	
+	// Fetches GET parameters from global variables
 	var GetVars = wp_lib_vars.getparams;
 	
 	// Removes default GET params as they are no longer needed

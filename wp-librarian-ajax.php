@@ -504,6 +504,13 @@ function wp_lib_page_manage_item() {
 
 	}
 	
+	// Button to edit to item
+	$form[] = array(
+		'type'	=> 'button',
+		'link'	=> 'edit',
+		'html'	=> 'Edit',
+	);
+	
 	// Sets up loan history query arguments
 	$args = array(
 		'post_type' 	=> 'wp_lib_loans',
@@ -539,13 +546,20 @@ function wp_lib_page_manage_item() {
 			// Gets member ID from loan meta
 			$member_id = $meta['wp_lib_member'][0];
 			
+			$loan_status = wp_lib_format_loan_status( $meta['wp_lib_status'][0] );
 			
+			// If loan incurred fine, change loan status to include a link to manage said fine
+			if ( $meta['wp_lib_status'][0] == 4 ) {
+				$loan_status = array( $loan_status, wp_lib_manage_fine_url( $meta['wp_lib_fine'][0] ) );
+			}
 			
 			$loans[] = array(
 				'loan'		=> array( '#' . get_the_ID(), wp_lib_manage_loan_url( $loan_id ) ),
 				'member'	=> array( get_the_title( $member_id ), wp_lib_manage_member_url( $member_id ) ),
-				'startDate'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_start_date'][0] ),
-				'endDate'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_end_date'][0] )
+				'status'	=> $loan_status,
+				'loaned'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_start_date'][0] ),
+				'expected'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_end_date'][0] ),
+				'returned'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_returned_date'][0] )
 			);
 		}
 		
@@ -556,8 +570,10 @@ function wp_lib_page_manage_item() {
 			'headers'	=> array(
 				'Loan',
 				'Member',
-				'Start Date',
-				'End Date'
+				'Status',
+				'Loaned',
+				'Expected',
+				'Returned'
 			),
 			'data'		=> $loans
 		);
@@ -623,11 +639,20 @@ function wp_lib_page_manage_member() {
 			// Gets item ID from loan meta
 			$item_id = $meta['wp_lib_item'][0];
 			
+			$loan_status = wp_lib_format_loan_status( $meta['wp_lib_status'][0] );
+			
+			// If loan incurred fine, change loan status to include a link to manage said fine
+			if ( $meta['wp_lib_status'][0] == 4 ) {
+				$loan_status = array( $loan_status, wp_lib_manage_fine_url( $meta['wp_lib_fine'][0] ) );
+			}
+			
 			$loans[] = array(
 				'loan'		=> array( '#' . get_the_ID(), wp_lib_manage_loan_url( $loan_id ) ),
 				'item'		=> array( get_the_title( $item_id ), wp_lib_manage_item_url( $item_id ) ),
-				'startDate'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_start_date'][0] ),
-				'endDate'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_end_date'][0] )
+				'status'	=> $loan_status,
+				'loaned'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_start_date'][0] ),
+				'expected'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_end_date'][0] ),
+				'returned'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_returned_date'][0] )
 			);
 		}
 		
@@ -638,8 +663,10 @@ function wp_lib_page_manage_member() {
 			'headers'	=> array(
 				'Loan',
 				'Item',
-				'Start Date',
-				'End Date'
+				'Status',
+				'Loaned',
+				'Expected',
+				'Returned'
 			),
 			'data'		=> $loans
 		);

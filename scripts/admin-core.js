@@ -1,5 +1,6 @@
 // Counter used as part of simple UID for notifications
 var notificationCount = 0;
+wp_lib_vars.onClick = 'wp_lib_click_button( this )';
 
 jQuery( document ).ready(function($) {
 	// Selects the notification holder

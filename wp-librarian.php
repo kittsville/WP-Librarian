@@ -292,11 +292,8 @@ add_action( 'manage_wp_lib_loans_posts_custom_column' , function ( $column, $loa
 		
 		// Displays member that item has been loaned to
 		case 'loan_member':
-			// Fetches member object from loan taxonomy
-			$member_id = get_post_meta( $loan_id, 'wp_lib_member', true );
-			
 			// Renders member's name as a link to manage that member
-			echo wp_lib_manage_member_hyperlink( $member_id );
+			echo wp_lib_fetch_member_name( $loan_id, true );
 		break;
 		
 		// Displays loan status (Open/Closed)
@@ -347,7 +344,7 @@ add_filter( 'manage_wp_lib_fines_posts_columns', function ( $columns ) {
 	$new_columns = array(
 		'fine_item'			=> 'Item',
 		'fine_member'		=> 'Member',
-		'fine_amount'		=> 'Charge',
+		'fine_amount'		=> 'Amount',
 		'fine_status'		=> 'Status',
 	);
 	
@@ -370,11 +367,8 @@ add_action( 'manage_wp_lib_fines_posts_custom_column', function ( $column, $fine
 		
 		// Displays member that has been fined
 		case 'fine_member':
-			// Fetches member ID
-			$member_id = get_post_meta( $fine_id, 'wp_lib_member', true );
-			
-			// Renders member name with hyperlink to manage member
-			echo wp_lib_manage_member_hyperlink( $member_id );
+			// Renders member's name with link to manage said member
+			echo wp_lib_fetch_member_name( $fine_id, true );
 		break;
 
 		case 'fine_amount':

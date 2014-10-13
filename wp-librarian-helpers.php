@@ -303,21 +303,26 @@ function wp_lib_convert_date( &$date ) {
 	$date = strtotime( $date );
 }
 
-// Fetches date from meta then formats
-function wp_lib_prep_date_column( $id, $key ) {
+// Fetches date from post meta and, if it exists, formats it
+function wp_lib_prep_date_column( $post_id, $key ) {
 	// Fetches date from post meta using given key
-	$date = get_post_meta( $id, $key, true );
+	$date = get_post_meta( $post_id, $key, true );
 	
 	// If date is valid returns formatted date
 	if ( is_numeric( $date ) )
 		return wp_lib_format_unix_timestamp( $date );
-	// Otherwise return dash to show missing information
+	// Otherwise return dash to indicate missing/unknown information
 	else
 		return '-';
 }
 
 function wp_lib_format_unix_timestamp( $timestamp ) {
-	return '<abbr title="' . date( 'Y/m/d g:i:s A', $timestamp ) . '">' . date( 'Y/m/d', $timestamp ) . '</abbr>';
+	// If date is valid returns formatted date
+	if ( is_numeric( $timestamp ) )
+		return '<abbr title="' . date( 'Y/m/d g:i:s A', $timestamp ) . '">' . date( 'Y/m/d', $timestamp ) . '</abbr>';
+	// Otherwise return dash to indicate missing/unknown information
+	else
+		return '-';
 }
 
 // If a date is false, sets to current date
@@ -485,6 +490,7 @@ function wp_lib_prep_member_management_header( $member_id ) {
 	// Sets up header's meta fields
 	$meta_fields = array(
 		array( 'Member ID', $member_id ),
+		array( 'Email', $meta['wp_lib_member_email'][0] ),
 		array( 'Phone', $meta['wp_lib_member_phone'][0] ),
 		array( 'Mobile', $meta['wp_lib_member_mobile'][0] ),
 		array( 'Total Fines', $fine_total )
