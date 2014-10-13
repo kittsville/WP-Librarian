@@ -671,7 +671,7 @@ function wp_lib_prep_item_available( $item_id, $no_url = false, $short = false )
 	}
 	
 	// String is concatenated and returned
-	return $url . $status . $end;
+	return $status;
 }
 
 // Prepares taxonomy and metabox information for theme use
