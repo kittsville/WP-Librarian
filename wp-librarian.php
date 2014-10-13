@@ -27,145 +27,175 @@ function wp_lib_register_post_and_tax() {
 	/* Registers Items as custom post type */
 	/* Items represent physical item in the Library, such as a single copy of a book */
 	
-	$args =	array(
-		'labels' => array(
-			'name'					=> 'Library',
-			'singular_name'			=> 'Library Item',
-			'name_admin_bar'		=> 'Add New Item',
-			'all_items'				=> 'All Items',
-			'add_new'				=> 'New Item',
-			'add_new_item'			=> 'New Item',
-			'edit'					=> 'Edit',
-			'edit_item'				=> 'Edit Item',
-			'new_item'				=> 'New Item',
-			'view_item'				=> 'View Library Item',
-			'search_items'			=> 'Search Library Items',
-			'not_found'				=> 'No Items found',
-			'not_found_in_trash'	=> 'No Items found in Trash',
-		),
-
-		'public'				=> true,
-		'menu_position'			=> 15,
-		'supports'				=> array( 'title', 'editor', 'thumbnail'),
-		'taxonomies'			=> array( '' ),
-		'menu_icon'				=> 'dashicons-book-alt',
-		'has_archive'			=> true,
-		'rewrite'				=> array('slug' => get_option( 'wp_lib_main_slug', 'wp-librarian' ) ),
-		'register_meta_box_cb'	=> 'wp_lib_setup_item_meta_box'
+	register_post_type( 'wp_lib_items',
+		array(
+			'labels' => array(
+				'name'					=> 'Library',
+				'singular_name'			=> 'Library Item',
+				'name_admin_bar'		=> 'Add New Item',
+				'all_items'				=> 'All Items',
+				'add_new'				=> 'New Item',
+				'add_new_item'			=> 'New Item',
+				'edit'					=> 'Edit',
+				'edit_item'				=> 'Edit Item',
+				'new_item'				=> 'New Item',
+				'view_item'				=> 'View Library Item',
+				'search_items'			=> 'Search Library Items',
+				'not_found'				=> 'No Items found',
+				'not_found_in_trash'	=> 'No Items found in Trash',
+			),
+			'public'				=> true,
+			'menu_position'			=> 15,
+			'supports'				=> array( 'title', 'editor', 'thumbnail'),
+			'taxonomies'			=> array( '' ),
+			'menu_icon'				=> 'dashicons-book-alt',
+			'has_archive'			=> true,
+			'rewrite'				=> array('slug' => get_option( 'wp_lib_main_slug', 'wp-librarian' ) ),
+			'register_meta_box_cb'	=> 'wp_lib_setup_item_meta_box'
+		)
 	);
-	register_post_type( 'wp_lib_items', $args );
 	
 	/* Registers Members as custom post type */
 	/* Members represent people who may borrow items from the Library, or donate items to the Library */
 	
-	$args =	array(
-		'labels' => array(
-			'name'					=> 'Members',
-			'singular_name'			=> 'Member',
-			'add_new'				=> 'Add New',
-			'add_new_item'			=> 'Add New',
-			'edit'					=> 'Edit',
-			'edit_item'				=> 'Edit Member',
-			'new_item'				=> 'New Member',
-			'view_item'				=> 'View Member',
-			'search_items'			=> 'Search All Members',
-			'not_found'				=> 'No Members found',
-			'not_found_in_trash'	=> 'No Members found in Trash',
-		),
-
-		'public'				=> true,
-		'exclude_from_search'	=> true,
-		'publicly_queryable'	=> true,
-		'show_in_menu' 			=> 'edit.php?post_type=wp_lib_items',
-		'supports'				=> array( 'title' ),
-		'rewrite'				=> array('slug' => get_option( 'wp_lib_members_slug', 'members' ) ),
-		'register_meta_box_cb'	=> 'wp_lib_setup_member_meta_box'
+	register_post_type( 'wp_lib_members',
+		array(
+			'labels' => array(
+				'name'					=> 'Members',
+				'singular_name'			=> 'Member',
+				'add_new'				=> 'Add New',
+				'add_new_item'			=> 'Add New',
+				'edit'					=> 'Edit',
+				'edit_item'				=> 'Edit Member',
+				'new_item'				=> 'New Member',
+				'view_item'				=> 'View Member',
+				'search_items'			=> 'Search All Members',
+				'not_found'				=> 'No Members found',
+				'not_found_in_trash'	=> 'No Members found in Trash',
+			),
+			'public'				=> true,
+			'exclude_from_search'	=> true,
+			'publicly_queryable'	=> true,
+			'show_in_menu' 			=> 'edit.php?post_type=wp_lib_items',
+			'supports'				=> array( 'title' ),
+			'rewrite'				=> array('slug' => get_option( 'wp_lib_members_slug', 'members' ) ),
+			'register_meta_box_cb'	=> 'wp_lib_setup_member_meta_box'
+		)
 	);
-	register_post_type( 'wp_lib_members', $args );
 	
 	/* Registers Loans as custom post type */
 	/* Loans represent the lending of an Item to a Member */
 	
-	$args =	array(
-		'labels' => array(
-			'name'				=> 'Loans',
-			'singular_name'		=> 'Loan',
-			'add_new'			=> 'Add New Loan',
-			'add_new_item'		=> 'Add New Loan',
-			'edit'				=> 'Edit',
-			'edit_item'			=> 'Edit Loan',
-			'new_item'			=> 'New Loan',
-			'view_item'			=> 'View Loan',
-			'search_items'		=> 'Search Loans',
-			'not_found'			=> 'No Loans found',
-			'not_found_in_trash'=> 'No Loans found in Trash',
-		),
-
-		'public'				=> true,
-		'exclude_from_search'	=> true,
-		'publicly_queryable'	=> true,
-		'show_in_menu'		 	=> 'edit.php?post_type=wp_lib_items',
-		'supports'				=> array( '' ),
-		'rewrite'				=> array('slug' => get_option( 'wp_lib_loans_slug', 'loans' ) )
+	register_post_type( 'wp_lib_loans',
+		array(
+			'labels' => array(
+				'name'				=> 'Loans',
+				'singular_name'		=> 'Loan',
+				'add_new'			=> 'Add New Loan',
+				'add_new_item'		=> 'Add New Loan',
+				'edit'				=> 'Edit',
+				'edit_item'			=> 'Edit Loan',
+				'new_item'			=> 'New Loan',
+				'view_item'			=> 'View Loan',
+				'search_items'		=> 'Search Loans',
+				'not_found'			=> 'No Loans found',
+				'not_found_in_trash'=> 'No Loans found in Trash',
+			),
+			'public'				=> true,
+			'exclude_from_search'	=> true,
+			'publicly_queryable'	=> true,
+			'show_in_menu'		 	=> 'edit.php?post_type=wp_lib_items',
+			'supports'				=> array( '' ),
+			'rewrite'				=> array('slug' => get_option( 'wp_lib_loans_slug', 'loans' ) )
+		)
 	);
-	register_post_type( 'wp_lib_loans', $args );
 	
 	/* Registers Fines as custom post type */
 	/* Fines represent the monetary cost incurred if an Item is returned late (after the Loan specified) */
 	
-	$args =	array(
-		'labels' => array(
-			'name'				=> 'Fines',
-			'singular_name'		=> 'Fine',
-			'add_new'			=> 'Add New Fine',
-			'add_new_item'		=> 'Add New Fine',
-			'edit'				=> 'Edit',
-			'edit_item'			=> 'Edit Fine',
-			'new_item'			=> 'New Fine',
-			'view_item'			=> 'View Fine',
-			'search_items'		=> 'Search Fines',
-			'not_found'			=> 'No Fines found',
-			'not_found_in_trash'=> 'No Fines found in Trash',
-		),
-
-		'public'				=> true,
-		'exclude_from_search'	=> true,
-		'publicly_queryable'	=> true,
-		'show_in_menu'			=> 'edit.php?post_type=wp_lib_items',
-		'supports'				=> array( '' ),
-		'rewrite'				=> array('slug' => get_option( 'wp_lib_fines_slug', 'fines' ) )
+	register_post_type( 'wp_lib_fines',
+		array(
+			'labels' => array(
+				'name'				=> 'Fines',
+				'singular_name'		=> 'Fine',
+				'add_new'			=> 'Add New Fine',
+				'add_new_item'		=> 'Add New Fine',
+				'edit'				=> 'Edit',
+				'edit_item'			=> 'Edit Fine',
+				'new_item'			=> 'New Fine',
+				'view_item'			=> 'View Fine',
+				'search_items'		=> 'Search Fines',
+				'not_found'			=> 'No Fines found',
+				'not_found_in_trash'=> 'No Fines found in Trash',
+			),
+			'public'				=> true,
+			'exclude_from_search'	=> true,
+			'publicly_queryable'	=> true,
+			'show_in_menu'			=> 'edit.php?post_type=wp_lib_items',
+			'supports'				=> array( '' ),
+			'rewrite'				=> array('slug' => get_option( 'wp_lib_fines_slug', 'fines' ) )
+		)
 	);
-	register_post_type( 'wp_lib_fines', $args );
 }
 
 // Registers all Taxonomies used by the plugin
 add_action( 'init', function() {
+
+	/* Registers Authors as a taxonomy */
+	/* Authors are the creators of the item, such as the author of a book */
 	
-	// Registers Taxonomy: Media Type - The type of item in the library (book, CD, DVD, etc.)
-	$labels = array(
-		'name'				=> 'Media Types',
-		'singular_name'		=> 'Media Type',
-		'search_items'		=> 'Search Media Types',
-		'all_items'			=> 'All Media Types',
-		'parent_item'		=> 'Parent Media Type',
-		'parent_item_colon'	=> 'Parent Media Type:',
-		'edit_item'			=> 'Edit Media Type',
-		'update_item'		=> 'Update Media Type',
-		'add_new_item'		=> 'Add New Media Type',
-		'new_item_name'		=> 'New Media Type Name',
-		'menu_name'			=> 'Media Type'
+	register_taxonomy( 'wp_lib_author', 'wp_lib_items',
+		array(
+			'hierarchical'			=> false,
+			'show_ui'				=> true,
+			'show_admin_column'		=> true,
+			'update_count_callback'	=> '_update_post_term_count',
+			'query_var'				=> true,
+			'rewrite'				=> array('slug' => wp_lib_prefix_url( 'wp_lib_authors_slug', 'authors' ) ),
+			'labels'				=> array(
+				'name'						=> 'Authors',
+				'singular_name'				=> 'Author',
+				'search_items'				=> 'Search Authors',
+				'popular_items'				=> 'Popular Authors',
+				'all_items'					=> 'All Authors',
+				'edit_item'					=> 'Edit Author',
+				'update_item'				=> 'Update Author',
+				'add_new_item'				=> 'Add New Author',
+				'new_item_name'				=> 'New Author Name',
+				'separate_items_with_commas'=> 'Separate authors with commas',
+				'add_or_remove_items'		=> 'Add or remove authors',
+				'choose_from_most_used'		=> 'Choose from the most used authors',
+				'not_found'					=> 'No authors found.',
+				'menu_name'					=> 'Authors'
+			)
+		)
 	);
-
-	$args = array(
-		'hierarchical'		=> true,
-		'labels'			=> $labels,
-		'show_ui'			=> true,
-		'show_admin_column'	=> true,
-		'query_var'			=> true,
-		'rewrite'			=> array('slug' => wp_lib_prefix_url( 'wp_lib_media_type_slug', 'type' ) ),
+	
+	/* Registers media type as a taxonomy */
+	/* An item's media type defines wether it is a book, CD, comic etc. */
+	
+	register_taxonomy( 'wp_lib_media_type', 'wp_lib_items',
+		array(
+			'hierarchical'		=> true,
+			'show_ui'			=> true,
+			'show_admin_column'	=> true,
+			'query_var'			=> true,
+			'rewrite'			=> array('slug' => wp_lib_prefix_url( 'wp_lib_media_type_slug', 'type' ) ),
+			'labels'			=> array(
+				'name'				=> 'Media Types',
+				'singular_name'		=> 'Media Type',
+				'search_items'		=> 'Search Media Types',
+				'all_items'			=> 'All Media Types',
+				'parent_item'		=> 'Parent Media Type',
+				'parent_item_colon'	=> 'Parent Media Type:',
+				'edit_item'			=> 'Edit Media Type',
+				'update_item'		=> 'Update Media Type',
+				'add_new_item'		=> 'Add New Media Type',
+				'new_item_name'		=> 'New Media Type Name',
+				'menu_name'			=> 'Media Type'
+			)
+		)
 	);
-
-	register_taxonomy( 'wp_lib_media_type', 'wp_lib_items', $args );
 	
 	// Creates Default Media Type entries if they don't already exist, unless configured otherwise
 	if ( get_option( 'wp_lib_default_media_types', true ) ) {
@@ -194,36 +224,6 @@ add_action( 'init', function() {
 			}
 		}
 	}
-
-	// Registers Taxonomy: Authors - For the people who created the physical library item e.g. H.G. Wells or Terry Pratchett
-	$labels = array(
-		'name'						=> 'Authors',
-		'singular_name'				=> 'Author',
-		'search_items'				=> 'Search Authors',
-		'popular_items'				=> 'Popular Authors',
-		'all_items'					=> 'All Authors',
-		'edit_item'					=> 'Edit Author',
-		'update_item'				=> 'Update Author',
-		'add_new_item'				=> 'Add New Author',
-		'new_item_name'				=> 'New Author Name',
-		'separate_items_with_commas'=> 'Separate authors with commas',
-		'add_or_remove_items'		=> 'Add or remove authors',
-		'choose_from_most_used'		=> 'Choose from the most used authors',
-		'not_found'					=> 'No authors found.',
-		'menu_name'					=> 'Authors',
-	);
-	
-	$args = array(
-		'hierarchical'			=> false,
-		'labels'				=> $labels,
-		'show_ui'				=> true,
-		'show_admin_column'		=> true,
-		'update_count_callback'	=> '_update_post_term_count',
-		'query_var'				=> true,
-		'rewrite'				=> array('slug' => wp_lib_prefix_url( 'wp_lib_authors_slug', 'authors' ) ),
-	);
-
-	register_taxonomy( 'wp_lib_author', 'wp_lib_items', $args );
 });
 
 	/* -- Custom Post Table Columns -- */
@@ -238,7 +238,7 @@ add_filter( 'manage_wp_lib_items_posts_columns', function ( $columns ) {
 	);
 	
 	// Adds new columns between existing ones
-	$columns = array_slice( $columns, 0, 5, true ) + $new_columns + array_slice( $columns, 5, NULL, true );
+	$columns = array_slice( $columns, 0, 4, true ) + $new_columns + array_slice( $columns, 4, NULL, true );
 	
 	return $columns;
 });

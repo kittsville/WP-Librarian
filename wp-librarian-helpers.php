@@ -608,6 +608,13 @@ function wp_lib_update_meta( $post_id, $meta_array ) {
 	}
 }
 
+// Adds multiple meta values of a post
+function wp_lib_add_meta( $post_id, $meta_array ) {
+	foreach ( $meta_array as $key => $value ) {
+		add_post_meta( $post_id, $key, $value );
+	}
+}
+
 // Fetches post's meta and then fetches the desired meta values from the meta array
 function wp_lib_prep_admin_meta( $post_id, $formatting ) {
 	// Fetches all post meta

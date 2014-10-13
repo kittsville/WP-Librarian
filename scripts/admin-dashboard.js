@@ -511,6 +511,9 @@ function wp_lib_render_page( pageArray ) {
 					elementObject.id = 'dynamic-table-' + Math.floor((Math.random() * 100) + 1);
 				}
 				
+				// Wraps table in div for styling purposes
+				var theParent = $('<div/>', {} ).appendTo( theParent );
+				
 				// Creates/selects base element
 				var theParent = $('<table/>', elementObject ).appendTo( theParent );
 				

@@ -131,7 +131,6 @@ function wp_lib_fetch_item_by_barcode() {
 	$args = array(
 		'post_type'		=> 'wp_lib_items',
 		'post_status'	=> 'publish',
-		'meta_key'		=> 'wp_lib_item_barcode',
 		'meta_query'	=> array(
 			array(
 				'key'		=> 'wp_lib_item_barcode',
@@ -505,6 +504,65 @@ function wp_lib_page_manage_item() {
 
 	}
 	
+	// Sets up loan history query arguments
+	$args = array(
+		'post_type' 	=> 'wp_lib_loans',
+		'post_status'	=> 'publish',
+		'meta_query'	=> array(
+			array(
+				'key'		=> 'wp_lib_item',
+				'value'		=> $item_id,
+				'compare'	=> 'IN'
+			)
+		)
+	);
+	
+	// Creates query of all loans of this item
+	$loan_query = new WP_Query( $args );
+	
+	// Checks for any loans in query
+	if ( $loan_query->have_posts() ){
+		// Initialises loans array
+		$loans = array();
+		
+		// Iterates through loans
+		while ( $loan_query->have_posts() ) {
+			// Selects current post (loan)
+			$loan_query->the_post();
+			
+			// Fetches loan ID
+			$loan_id = get_the_ID();
+			
+			// Fetches all loan's meta
+			$meta = get_post_meta( $loan_id );
+			
+			// Gets member ID from loan meta
+			$member_id = $meta['wp_lib_member'][0];
+			
+			
+			
+			$loans[] = array(
+				'loan'		=> array( '#' . get_the_ID(), wp_lib_manage_loan_url( $loan_id ) ),
+				'member'	=> array( get_the_title( $member_id ), wp_lib_manage_member_url( $member_id ) ),
+				'startDate'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_start_date'][0] ),
+				'endDate'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_end_date'][0] )
+			);
+		}
+		
+		// Adds loans (rows) to table
+		$form[] = array(
+			'type'		=> 'dtable',
+			'id'		=> 'member-loans',
+			'headers'	=> array(
+				'Loan',
+				'Member',
+				'Start Date',
+				'End Date'
+			),
+			'data'		=> $loans
+		);
+	}
+	
 	// Creates titles for page and browser tab
 	$page_title = 'Managing: ' . get_the_title( $item_id );
 	$tab_title = 'Managing Item #' . $item_id;
@@ -534,7 +592,6 @@ function wp_lib_page_manage_member() {
 	$args = array(
 		'post_type' 	=> 'wp_lib_loans',
 		'post_status'	=> 'publish',
-		'meta_key'		=> 'wp_lib_member',
 		'meta_query'	=> array(
 			array(
 				'key'		=> 'wp_lib_member',
@@ -563,7 +620,7 @@ function wp_lib_page_manage_member() {
 			// Fetches all loan's meta
 			$meta = get_post_meta( $loan_id );
 			
-			// Gets item ID of loan
+			// Gets item ID from loan meta
 			$item_id = $meta['wp_lib_item'][0];
 			
 			$loans[] = array(

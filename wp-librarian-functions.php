@@ -425,17 +425,18 @@ function wp_lib_give_item( $item_id, $loan_id, $member_id, $date = false ) {
 	
 	/* Updates other meta */
 	
-	// Assigns the item to the member, signifying the item is in their physical possession
-	add_post_meta( $item_id, 'wp_lib_member', $member_id );
-	
 	// Updates loan status from 'Scheduled' to 'On Loan'
 	update_post_meta( $loan_id, 'wp_lib_status', 1 );	
 	
-	// Saves loan ID to the item's meta
-	add_post_meta( $item_id, 'wp_lib_loan', $loan_id );
-	
 	// Sets date item was loaned
 	add_post_meta( $loan_id, 'wp_lib_loaned_date', $date );
+	
+	wp_lib_add_meta( $item_id,
+		array(
+			'wp_lib_member'	=> $member_id, // Assigns item to member to signify the physical item is in their possession
+			'wp_lib_loan'	=> $loan_id
+		)
+	);
 
 	return true;
 }
