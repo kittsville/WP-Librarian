@@ -280,6 +280,21 @@ function wp_lib_style_url( $name ) {
 	return plugins_url( '/css/'. $name . '.css', __FILE__ );
 }
 
+// Returns item's title formatted as a hyperlink to manage that item
+function wp_lib_manage_item_hyperlink( $item_id ) {
+	return wp_lib_hyperlink( wp_lib_manage_item_url( $item_id ), get_the_title( $item_id ) );
+}
+
+// Returns member's name formatted as a hyperlink to manage that member
+function wp_lib_manage_member_hyperlink( $member_id ) {
+	return wp_lib_hyperlink( wp_lib_manage_member_url( $member_id ), get_the_title( $member_id ) );
+}
+
+// Creates a hyperlink given a url and some text
+function wp_lib_hyperlink( $link, $text ) {
+	return '<a href="' . $link . '">' . $text . '</a>';
+}
+
 	/* -- Dates and times -- */
 
 // Validates given date, checking if it meets any given requirements
@@ -554,19 +569,6 @@ function wp_lib_fetch_member_name( $post_id, $hyperlink = false ) {
 	} else {
 		return $member_name;
 	}
-}
-
-// Returns item's title formatted as a hyperlink to manage that item
-function wp_lib_manage_item_hyperlink( $item_id ) {
-	return wp_lib_hyperlink( wp_lib_manage_item_url( $item_id ), get_the_title( $item_id ) );
-}
-
-function wp_lib_manage_member_hyperlink( $member_id ) {
-	return wp_lib_hyperlink( wp_lib_manage_member_url( $member_id ), get_the_title( $member_id ) );
-}
-
-function wp_lib_hyperlink( $link, $text ) {
-	return '<a href="' . $link . '">' . $text . '</a>';
 }
 
 // Returns formatted item condition given item number
