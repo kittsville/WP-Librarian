@@ -504,7 +504,7 @@ function wp_lib_page_manage_item() {
 
 	}
 	
-	// Button to edit to item
+	// Button to edit item
 	$form[] = array(
 		'type'	=> 'button',
 		'link'	=> 'edit',
@@ -597,6 +597,13 @@ function wp_lib_page_manage_member() {
 	
 	// Renders management header
 	$header = wp_lib_prep_member_management_header( $member_id );
+	
+	// Button to edit member
+	$content[] = array(
+		'type'	=> 'button',
+		'link'	=> 'edit',
+		'html'	=> 'Edit',
+	);
 	
 	// Renders first part of member management page
 	$content[] = array(

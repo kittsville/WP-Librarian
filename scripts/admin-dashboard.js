@@ -338,7 +338,13 @@ function wp_lib_render_page( pageArray ) {
 					break;
 					
 					case 'edit':
-						elementObject.href = wp_lib_vars.adminurl + 'post.php?action=edit&post=' + wp_lib_vars.getparams.item_id;
+						var postID = 0;
+						if ( wp_lib_vars.getparams.item_id ) {
+							postID = wp_lib_vars.getparams.item_id;
+						} else if ( wp_lib_vars.getparams.member_id ) {
+							postID = wp_lib_vars.getparams.member_id;
+						}
+						elementObject.href = wp_lib_vars.adminurl + 'post.php?action=edit&post=' + postID;
 						elementObject.onclick = wp_lib_vars.onClick;
 					break;
 					
@@ -567,8 +573,6 @@ function wp_lib_render_page( pageArray ) {
 					// Adds row to table records
 					tableRecords.push( tableRow );
 				});
-				
-				//'#' + elementObject.id
 				
 				// Fills table with formatted data
 				$( '#' + elementObject.id ).dynatable({ 
