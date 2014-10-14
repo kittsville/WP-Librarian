@@ -75,7 +75,7 @@ function wp_lib_register_post_and_tax() {
 			),
 			'public'				=> true,
 			'exclude_from_search'	=> true,
-			'publicly_queryable'	=> true,
+			'publicly_queryable'	=> false,
 			'show_in_menu' 			=> 'edit.php?post_type=wp_lib_items',
 			'supports'				=> array( 'title' ),
 			'rewrite'				=> array('slug' => get_option( 'wp_lib_members_slug', 'members' ) ),
@@ -619,7 +619,7 @@ add_action( 'admin_init', function () {
 		$slug['url'] = $site_url;
 		$slug['main'] = $main_slug;
 		add_settings_field( $slug['name'], $slug['title'], 'wp_lib_render_field_slug', 'wp_lib_items_page_wp-lib-settings', 'wp_lib_slug_group', $slug );
-		register_setting( 'wp_lib_slug_group', $slug['name'], 'wp_lib_sanitize_settings_slugs' );
+		register_setting( 'wp_lib_slug_group', $slug['name'], 'sanitize_title' );
 	}
 });
 
@@ -645,11 +645,6 @@ function wp_lib_render_field_slug( $args ) {
 	else
 		echo "{$args['url']}/<span class=\"wp_lib_main_slug-text\">{$args['main']}</span>/<span class=\"{$args['name']}-text\">{$current_slug}</span>/{$args['end']}/";
 	echo '</label>';
-}
-
-// Sanitizes updated slugs submitted from the plugin settings page
-function wp_lib_sanitize_settings_slugs( $slugs ) {
-	return sanitize_title( $slugs );
 }
 
 // Renders plugin settings page

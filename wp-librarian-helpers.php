@@ -747,4 +747,14 @@ function wp_lib_prep_meta( $tax_array, $bold_name ) {
 	return $item_string . implode( get_option( 'wp_lib_taxonomy_spacer', ', ' ), $formatted_values );
 }
 
+// Renders notification to page, to send notification to cl
+function wp_lib_add_notification_on_load( $text ) {
+	?>
+	<script type="text/javascript">
+		jQuery( document ).ready(function($) {
+			wp_lib_local_notification( <?php echo json_encode( $text ); ?> );
+		});
+	</script>
+	<?php
+}
 ?>

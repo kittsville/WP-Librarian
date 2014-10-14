@@ -22,22 +22,10 @@ if ( isset( $_GET['settings-updated'] ) ) {
 		wp_lib_flush_permalinks();
 		
 		// Notifies user settings have been updated
-		?>
-		<script type="text/javascript">
-			jQuery( document ).ready(function($) {
-				wp_lib_local_notification( 'Settings updated successfully' );
-			});
-		</script>
-		<?php
+		wp_lib_add_notification_on_load( 'Settings updated successfully' );
 	} elseif ( $updated == 'false' ) {
 		// Calls error to inform user that settings update failed
-		?>
-		<script type="text/javascript">
-			jQuery( document ).ready(function($) {
-				wp_lib_local_error( 'Settings failed to update' );
-			});
-		</script>
-		<?php
+		wp_lib_add_notification_on_load( 'Settings failed to update' );
 	}
 }
 ?>
@@ -46,7 +34,7 @@ if ( isset( $_GET['settings-updated'] ) ) {
 		<h2>WP-Librarian Settings</h2>
 	</div>
 	<!-- Filled with any notifications waiting in a session -->
-	<div id="notifications-holder"></div>
+	<div id="wp-lib-notifications"></div>
 
 	<div id="wp-lib-main-content">
 		<form method="POST" action="options.php">
