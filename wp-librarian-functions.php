@@ -336,10 +336,8 @@ function wp_lib_schedule_loan( $item_id, $member_id, $start_date, $end_date ) {
 	
 	// Creates arguments for loan
 	$args = array(
-
 		'post_status'		=> 'publish',
-		'post_type'			=> 'wp_lib_loans',
-		'ping_status'		=> 'closed'
+		'post_type'			=> 'wp_lib_loans'
 	);
 	
 	// Creates the loan, a custom post type that holds useful meta about the loan
@@ -558,8 +556,7 @@ function wp_lib_create_fine( $item_id, $date = false, $return = true ) {
 	$args = array(
 
 		'post_status'		=> 'publish',
-		'post_type'			=> 'wp_lib_fines',
-		'ping_status'		=> 'closed'
+		'post_type'			=> 'wp_lib_fines'
 	);
 	
 	// Creates the fine, a custom post type that holds useful meta about the fine
