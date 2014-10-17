@@ -768,6 +768,7 @@ function wp_lib_error( $error_id, $die = false, $param = 'NULL' ) {
 		412 => 'Unable to check if item is late',
 		500 => "Action requested does not exist. Given action: {$params}",
 		501	=> 'No content has been specified for the given page, as such page cannot be rendered',
+		502 => 'No page of that name found',
 		901 => 'Error encountered while processing error (error code not a number)',
 		902 => 'Error encountered while processing error (error does not exist)'
 	);

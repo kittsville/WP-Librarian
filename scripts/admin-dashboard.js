@@ -1,9 +1,6 @@
-function wp_lib_send_form( action, params ) {
+function wp_lib_do_action( action, params ) {
 	// Initialising AJAX object
 	var data = {};
-	
-	// Initialising default page to load on success
-	var successPage = '';
 	
 	// AJAX action switch, decides what action should be taken
 	switch ( action ) {
@@ -85,77 +82,35 @@ function wp_lib_send_form( action, params ) {
 		// Parses response
 		var success = wp_lib_parse_json( response );
 		
-		// If action completed successfully, redirects to Dashboard or given preferred page
+		// If action completed successfully, loads Dashboard
 		if ( success ) {
-			if ( successPage ) {
-				wp_lib_load_page( successPage, {} );
-				return;
-			} else {
-				wp_lib_load_page();
-				return;
-			}
+			wp_lib_load_page();
 		}
 	})
 	.fail( function() {
 		wp_lib_ajax_fail();
 	});
-	
-	// Fetches and renders any new notifications
-	wp_lib_display_notifications();
 }
 
 // Fetches page, using given parameters
-function wp_lib_load_page( page, ajaxData ) {
-	// AJAX page switch, decides which page should be loaded
-	switch ( page ) {
-		case 'manage-item':
-			ajaxData['action'] = 'wp_lib_manage_item';
-		break;
-		
-		case 'manage-member':
-			ajaxData['action'] = 'wp_lib_manage_member';
-		break;
-		
-		case 'manage-fine':
-			ajaxData['action'] = 'wp_lib_manage_fine';
-		break;
-		
-		case 'manage-loan':
-			ajaxData['action'] = 'wp_lib_manage_loan';
-		break;
-		
-		case 'scan-item':
-			ajaxData['action'] = 'wp_lib_scan_item';
-		break;
-		
-		case 'scheduling-page':
-			ajaxData['action'] = 'wp_lib_scheduling_page';
-		break;
-		
-		case 'return-past':
-			ajaxData['action'] = 'wp_lib_return_past';
-		break;
-		
-		case 'resolve-loan':
-			ajaxData['action'] = 'wp_lib_resolution_page';
-		break;
-		
-		case 'object-deletion':
-			ajaxData['action'] = 'wp_lib_confirm_deletion_page';
-		break;
-		
-		case undefined:
-			// If page is undefined, ajaxData will not exist and must be defined!
-			ajaxData = {
-				action	: 'wp_lib_dashboard'
-			}
-		break;
-		
-		default:
-			wp_lib_local_error( "Unknown Page" );
-			return;
-		break;
+function wp_lib_load_page( ajaxData, stateLoad ) {
+	// If page was loaded without a state defined, assumes page is replacing existing page
+	if ( typeof stateLoad === 'undefined' ) {
+		var stateLoad = 'dynamic';
 	}
+	
+	// If data (page to load/params) was unspecified, initialise
+	if ( typeof ajaxData === 'undefined' ) {
+		var ajaxData = {};
+	}
+	
+	// If page to load wasn't specified, load Dashboard
+	if ( !ajaxData.hasOwnProperty( 'dash_page' ) ) {
+		ajaxData.dash_page = 'dashboard';
+	}
+	
+	// Sets action, which specifies the name of the hook it will have in WordPress ( wp_ajax_{$hook} )
+	ajaxData.action = 'wp_lib_page';
 	
 	// Sends AJAX page request with given params, fills workspace div with response
 	jQuery.post( ajaxurl, ajaxData )
@@ -163,33 +118,52 @@ function wp_lib_load_page( page, ajaxData ) {
 		// Parses response
 		var ajaxResult = wp_lib_parse_json( response );
 		
-		// If page load failed, stops function execution
+		// If page load failed, stops function execution, see wp_lib_parse_json
 		if ( ajaxResult === 0 ) {
 			return false;
 		}
 		
 		// If server response was false, call error
-		if ( !ajaxResult ) {
+		if ( ajaxResult == false ) {
 			wp_lib_local_error( 'Server encounted error while loading page' );
 		} else {
+			// Clears existing params in preparation of new page
+			wp_lib_vars.getParams = {};
+			
 			// Renders page using AJAX returned data
 			wp_lib_render_page( ajaxResult );
 			
-			// Deletes redundant parameter
-			delete ajaxData['action'];
-
-			// Serializes page parameters
-			var urlString = jQuery.param( ajaxData );
-			
-			// Creates current page title
-			var currentPage = wp_lib_vars.dashurl + '&' + urlString;
-			
-			// Changes URL to reflect new page (also creates browser history entry)
-			history.pushState( ajaxData, wp_lib_format_tab_title( ajaxResult.title ), currentPage );
-			
-			// Sets trigger for the back button being used
-			window.onpopstate = function( event ) {
-				wp_lib_load_page( event.state.dash_page, event.state );
+			// Checks if new page is replacing existing dynamically loaded page
+			// If it isn't then there's no need to add a new history entry
+			if ( stateLoad != 'history' ) {
+				// Deletes redundant parameter
+				delete ajaxData.action;
+				
+				// Deletes dash page if it's redundant
+				if ( ajaxData.dash_page == 'dashboard' ) {
+					delete ajaxData.dash_page;
+				}
+				
+				// Creates base url for history entry
+				var currentPage = wp_lib_vars.dashUrl;
+				
+				// Serializes page parameters
+				var serialAjaxData = jQuery.param( ajaxData );
+				
+				// If there was any output, add parameters to page URL
+				if ( serialAjaxData != '' ) {
+					currentPage += '&'+ serialAjaxData;
+				}
+				
+				if ( stateLoad == 'first' ) {
+					// Saves essential data to history entry for use if page navigation is used
+					history.replaceState( ajaxData, wp_lib_format_tab_title( ajaxResult.title ), currentPage );
+				} else if ( stateLoad == 'dynamic' ) {
+					// Changes URL to reflect new page (also creates browser history entry)
+					history.pushState( ajaxData, wp_lib_format_tab_title( ajaxResult.title ), currentPage );
+				} else {
+					return;
+				}
 			}
 		}
 	})
@@ -224,7 +198,7 @@ function wp_lib_after_load() {
 		var params = wp_lib_collect_form_params( '#library-form' );
 		
 		// Performs action
-		wp_lib_send_form( action, params );
+		wp_lib_do_action( action, params );
 		
 		// Prevents regular form submission
 		return false;
@@ -239,7 +213,7 @@ function wp_lib_after_load() {
 		params.dash_page = e.currentTarget.value;
 
 		// Loads page
-		wp_lib_load_page( params.dash_page, params );
+		wp_lib_load_page( params );
 		
 		// Prevents regular form submission
 		return false;
@@ -248,6 +222,7 @@ function wp_lib_after_load() {
 
 // Renders form from an array
 function wp_lib_render_page( pageArray ) {
+	
 	// jQuery setup
 	var $ = jQuery;
 
@@ -255,7 +230,7 @@ function wp_lib_render_page( pageArray ) {
 	jQuery( '#page-title' ).html( pageArray.pageTitle );
 	
 	// Changes title of browser tab
-	document.title = wp_lib_format_tab_title( pageArray.title )
+	document.title = wp_lib_format_tab_title( pageArray.title );
 	
 	if ( pageArray.scripts ) {
 		$( pageArray.scripts ).each( function( i, scriptURL ) {
@@ -310,6 +285,8 @@ function wp_lib_render_page( pageArray ) {
 				elementObject.type = pageItem.type;
 				
 				$('<input/>', elementObject ).appendTo( theParent );
+				
+				wp_lib_vars.getParams[elementObject.name] = elementObject.value;
 			break;
 			
 			case 'button':
@@ -338,13 +315,18 @@ function wp_lib_render_page( pageArray ) {
 					break;
 					
 					case 'edit':
+						// Initialises item/member ID
 						var postID = 0;
-						if ( wp_lib_vars.getparams.item_id ) {
-							postID = wp_lib_vars.getparams.item_id;
-						} else if ( wp_lib_vars.getparams.member_id ) {
-							postID = wp_lib_vars.getparams.member_id;
+						
+						// Sets post ID as item or member ID based off existing params
+						if ( wp_lib_vars.getParams.hasOwnProperty( 'item_id' ) ) {
+							postID = wp_lib_vars.getParams.item_id;
+						} else if ( wp_lib_vars.getParams.hasOwnProperty( 'member_id' ) ) {
+							postID = wp_lib_vars.getParams.member_id;
 						}
-						elementObject.href = wp_lib_vars.adminurl + 'post.php?action=edit&post=' + postID;
+						
+						// Creates link to edit item/member
+						elementObject.href = wp_lib_vars.adminUrl + 'post.php?action=edit&post=' + postID;
 						elementObject.onclick = wp_lib_vars.onClick;
 					break;
 					
@@ -370,12 +352,12 @@ function wp_lib_render_page( pageArray ) {
 					break;
 					
 					case 'post-type':
-						elementObject.href = wp_lib_vars.adminurl + 'edit.php?post_type=' + pageItem.pType;
+						elementObject.href = wp_lib_vars.adminUrl + 'edit.php?post_type=' + pageItem.pType;
 						elementObject.onclick = wp_lib_vars.onClick;
 					break;
 					
 					case 'admin-url':
-						elementObject.href = wp_lib_vars.adminurl + pageItem.url;
+						elementObject.href = wp_lib_vars.adminUrl + pageItem.url;
 						elementObject.onclick = wp_lib_vars.onClick;
 					break;
 					
@@ -396,7 +378,7 @@ function wp_lib_render_page( pageArray ) {
 				// Creates dash icon
 				$('<img/>', {
 					'class'	: 'dashboard-icon',
-					'src'	: wp_lib_vars.pluginsurl + '/images/dash-icons/' + pageItem.icon + '.png',
+					'src'	: wp_lib_vars.pluginsUrl + '/images/dash-icons/' + pageItem.icon + '.png',
 					'alt'	: pageItem.title + ' Icon',
 				}).appendTo( localParent );
 				
@@ -594,7 +576,7 @@ function wp_lib_render_page( pageArray ) {
 }
 
 function wp_lib_format_tab_title( title ) {
-	return title + ' ‹ ' + wp_lib_vars.sitename;
+	return title + ' ‹ ' + wp_lib_vars.siteName;
 }
 
 // Loads page content on page load. Only used if page is visited from a non-Dashboard page
@@ -602,16 +584,24 @@ jQuery( document ).ready(function($) {
 	$.dynatableSetup({
 		table: {
 			headRowSelector: 'thead'
+		},
+		features: {
+			pushState: false
 		}
 	});
 	
 	// Fetches GET parameters from global variables
-	var GetVars = wp_lib_vars.getparams;
+	var GetVars = wp_lib_vars.getParams;
 	
 	// Removes default GET params as they are no longer needed
 	delete GetVars["post_type"];
 	delete GetVars["page"];
 	
 	// Loads relevant page
-	wp_lib_load_page( GetVars['dash_page'], GetVars, true );
+	wp_lib_load_page( GetVars, 'first' );
+	
+	// Sets trigger for the back button being used
+	window.onpopstate = function( event ) {
+		wp_lib_load_page( event.state, 'history' );
+	}
 });

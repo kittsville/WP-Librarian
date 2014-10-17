@@ -27,6 +27,7 @@ function wp_lib_collect_form_params( selector ) {
 
 // General purpose AJAX failed message, probably a network issue, unless the server is hosted off some terrible cloud server
 function wp_lib_ajax_fail() {
+	console.log( "WP-Librarian: AJAX Request failed" );
 	wp_lib_local_error( "Unable to complete request. The website might be down or you may be having connection issues." );
 }
 
@@ -159,8 +160,12 @@ function wp_lib_hide_notification( element ) {
 
 // JavaScript to allow buttons to act as hyperlinks
 function wp_lib_click_button( e ) {
+	console.log( jQuery( e ).attr('href') );
 	// Redirects page to clicked button's href attribute
 	location.href = jQuery( e ).attr('href');
+	
+	// Prevents default behaviour of form submission
+	return false; // GGGG
 }
 
 // Attempts to parse JSON and catches any failures
@@ -169,7 +174,8 @@ function wp_lib_parse_json( rawJSON ) {
 		var parsedJSON = JSON.parse( rawJSON );
 	}
 	catch(e) {
-		wp_lib_local_error( "Server returned invalid JSON (possible server error/warning)" );
+		console.log( "WP-Librarian: Server returned invalid JSON" );
+		wp_lib_local_error( "Unable to complete request. Server returned invalid response" );
 		
 		// Debugging - Renders un-parseable returned data to workspace
 		jQuery('<div/>', {

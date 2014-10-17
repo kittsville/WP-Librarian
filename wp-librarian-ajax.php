@@ -9,16 +9,57 @@
 // Ensures only authorised users can access data via AJAX
 if ( wp_lib_is_librarian() ) {
 	/* Page Requests - Dynamically loaded pages */
-	add_action( 'wp_ajax_wp_lib_dashboard', 'wp_lib_page_dashboard' );
-	add_action( 'wp_ajax_wp_lib_manage_item', 'wp_lib_page_manage_item' );
-	add_action( 'wp_ajax_wp_lib_manage_member', 'wp_lib_page_manage_member' );
-	add_action( 'wp_ajax_wp_lib_manage_fine', 'wp_lib_page_manage_fine' );
-	add_action( 'wp_ajax_wp_lib_manage_loan', 'wp_lib_page_manage_loan' );
-	add_action( 'wp_ajax_wp_lib_scheduling_page', 'wp_lib_page_scheduling_page' );
-	add_action( 'wp_ajax_wp_lib_return_past', 'wp_lib_page_return_past' );
-	add_action( 'wp_ajax_wp_lib_resolution_page', 'wp_lib_page_resolution_page' );
-	add_action( 'wp_ajax_wp_lib_scan_item', 'wp_lib_page_scan_item' );
-	add_action( 'wp_ajax_wp_lib_confirm_deletion_page', 'wp_lib_page_confirm_deletion' );
+	add_action( 'wp_ajax_wp_lib_page', function() {
+		// Sets dash page to nothing if unspecified
+		$dash_page = isset( $_POST['dash_page'] ) ? $_POST['dash_page'] : null;
+		
+		// Calls relevant function to load requested page
+		switch( $_POST['dash_page'] ) {
+			case 'dashboard':
+				wp_lib_page_dashboard();
+			break;
+			
+			case 'manage-item':
+				wp_lib_page_manage_item();
+			break;
+			
+			case 'manage-member':
+				wp_lib_page_manage_member();
+			break;
+			
+			case 'manage-fine':
+				wp_lib_page_manage_fine();
+			break;
+			
+			case 'manage-loan':
+				wp_lib_page_manage_loan();
+			break;
+			
+			case 'scan-item':
+				wp_lib_page_scan_item();
+			break;
+			
+			case 'scheduling-page':
+				wp_lib_page_scheduling_page();
+			break;
+			
+			case 'return-past':
+				wp_lib_page_return_past();
+			break;
+			
+			case 'resolve-loan':
+				wp_lib_page_resolution_page();
+			break;
+			
+			case 'object-deletion':
+				wp_lib_page_confirm_deletion();
+			break;
+			
+			default:
+				wp_lib_stop_ajax( false, 502 );
+			break;
+		}
+	});
 	
 	/* Library Actions - Loaning/returning items etc. */
 	add_action( 'wp_ajax_wp_lib_loan_item', 'wp_lib_do_loan_item' );

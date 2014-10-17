@@ -665,12 +665,12 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
 
 	// Sets up array of variables to be passed to JavaScript
 	$vars = array(
-			'siteurl' 	=> get_option( 'siteurl' ),
-			'adminurl'	=> admin_url(),
-			'pluginsurl'=> plugins_url( '', __FILE__ ),
-			'dashurl'	=> wp_lib_format_dash_url(),
-			'sitename'	=> get_bloginfo( 'name' ),
-			'getparams'	=> $_GET
+			'siteUrl' 	=> get_option( 'siteurl' ),
+			'adminUrl'	=> admin_url(),
+			'pluginsUrl'=> plugins_url( '', __FILE__ ),
+			'dashUrl'	=> wp_lib_format_dash_url(),
+			'siteName'	=> get_bloginfo( 'name' ),
+			'getParams'	=> $_GET
 	);
 	
 	// Sends variables to user
