@@ -244,16 +244,65 @@ add_filter( 'manage_wp_lib_items_posts_columns', function ( $columns ) {
 });
 
 // Adds data to custom columns in item table
-add_action( 'manage_wp_lib_items_posts_custom_column' , function ( $column, $post_id ) {
+add_action( 'manage_wp_lib_items_posts_custom_column' , function ( $column, $item_id ) {
 	switch ( $column ) {
 		// Displays the current status of the item (On Loan/Available/Late)
 		case 'item_status':
-			echo wp_lib_prep_item_available( $post_id, false, true );
+			echo wp_lib_prep_item_available( $item_id, false, true );
 		break;
 		
 		// Fetches and formats the condition the item is in, using a placeholder if the condition is unspecified
 		case 'item_condition':
-			echo wp_lib_format_item_condition( get_post_meta( $post_id, 'wp_lib_item_condition', true ) );
+			echo wp_lib_format_item_condition( get_post_meta( $item_id, 'wp_lib_item_condition', true ) );
+		break;
+	}
+}, 10, 2 );
+
+// Adds custom columns to wp-admin member table and removes unneeded ones
+add_filter( 'manage_wp_lib_members_posts_columns', function ( $columns ) {
+	// Initialises new columns
+	$new_columns = array(
+		'member_name'		=> 'Name',
+		'member_loans'		=> 'Items on Loan',
+		'member_fines'		=> 'Late Fines Owed'
+	);
+	
+	// Adds new columns between existing ones
+	return array_slice( $columns, 0, 1, true ) + $new_columns;
+});
+
+// Adds data to custom columns in member table
+add_action( 'manage_wp_lib_members_posts_custom_column' , function ( $column, $member_id ) {
+	switch ( $column ) {
+		// Displays the current status of the item (On Loan/Available/Late)
+		case 'member_name':
+			echo wp_lib_manage_member_hyperlink( $member_id );
+		break;
+		
+		// Displays number of items currently in the possession of the member
+		case 'member_loans':
+			// Sets up meta query arguments
+			$args = array(
+				'post_type'		=> 'wp_lib_items',
+				'post_status'	=> 'publish',
+				'meta_query'	=> array(
+					array(
+						'key'		=> 'wp_lib_member',
+						'value'		=> $member_id,
+						'compare'	=> 'IN'
+					)
+				)
+			);
+			
+			// Queries post table for all items marked as currently in member's possession
+			$query = NEW WP_Query( $args );
+
+			// Renders number of items to post table
+			echo $query->post_count;
+		break;
+		
+		case 'member_fines':
+			echo wp_lib_format_money( wp_lib_fetch_member_owed( $member_id ) );
 		break;
 	}
 }, 10, 2 );

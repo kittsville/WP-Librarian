@@ -485,15 +485,13 @@ function wp_lib_prep_member_management_header( $member_id ) {
 	// Fetches member meta
 	$meta = get_post_meta( $member_id );
 	
-	$fine_total = "£0.00";
-	
 	// Sets up header's meta fields
 	$meta_fields = array(
 		array( 'Member ID', $member_id ),
 		array( 'Email', $meta['wp_lib_member_email'][0] ),
 		array( 'Phone', $meta['wp_lib_member_phone'][0] ),
 		array( 'Mobile', $meta['wp_lib_member_mobile'][0] ),
-		array( 'Total Fines', $fine_total )
+		array( 'Total Fines', wp_lib_format_money( wp_lib_fetch_member_owed( $member_id ) ) )
 	);
 	
 	// Finalises and returns management header
@@ -561,6 +559,18 @@ function wp_lib_var_dump() {
 }
 
 	/* -- Miscellaneous -- */
+
+// Fetches amount member owes Library in fines
+function wp_lib_fetch_member_owed( $member_id ) {
+	// Fetches total money owed by member to Library
+	$owed = get_post_meta( $member_id, 'wp_lib_owed', true );
+	
+	// If blank, assumes nothing is owed
+	if ( $owed == '' )
+		$owed = 0;
+	
+	return $owed;
+}
 
 // Fetches member's name given a connected Library object (item/loan/fine)
 function wp_lib_fetch_member_name( $post_id, $hyperlink = false ) {

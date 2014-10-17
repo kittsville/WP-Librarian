@@ -594,6 +594,12 @@ function wp_lib_create_fine( $item_id, $date = false, $return = true ) {
 	// Saves fine ID to loan meta
 	add_post_meta( $loan_id, 'wp_lib_fine', $fine_id );
 	
+	// Fetches member's current fine total and adds fine to it
+	$fine_total = wp_lib_fetch_member_owed( $member_id ) + $fine;
+	
+	// Saves new total to member meta
+	update_post_meta( $fine_total, 'wp_lib_owed' );
+	
 	// Notifies user of successful fine creation
 	wp_lib_add_notification( get_the_title( $member_id ) . ' has been charged ' . wp_lib_format_money( $fine ) . ' for the late return of ' . get_the_title( $item_id ) );
 	
@@ -602,67 +608,13 @@ function wp_lib_create_fine( $item_id, $date = false, $return = true ) {
 		wp_lib_return_item( $item_id );
 }
 
-// Changes fine from unpaid to paid
-function wp_lib_charge_fine( $fine_id ) {
-	// Fetches (unformatted) fine status
-	$fine_status = get_post_meta( $fine_id, 'wp_lib_status', true );
-	
-	// If fine is not currently unpaid, calls error
-	if ( $fine_status != 1 ) {
-		// Formats desired fine status
-		$desired_status = wp_lib_format_fine_status( 1 );
-		
-		// Formats current fine status for error message
-		$actual_status = wp_lib_format_fine_status( $fine_status );
-		
-		// Calls error
-		wp_lib_error( 309, false, array( $desired_status, $actual_status ) );
-		return false;
-	}
-	
-	// Changes fine status to paid
-	update_post_meta( $fine_id, 'wp_lib_status', 2 );
-	
-	// Notifies user that fine has been paid
-	wp_lib_add_notification( "Fine #{$fine_id} has been marked as paid" );
-	
-	return true;
-}
-
-// Changes fine from paid to unpaid
-function wp_lib_revert_fine( $fine_id ) {
-	// Fetches (unformatted) fine status
-	$fine_status = get_post_meta( $fine_id, 'wp_lib_status', true );
-	
-	// If fine status is not currently paid, call error
-	if ( $fine_status != 2 ) {
-		// Formats desired fine status
-		$desired_status = wp_lib_format_fine_status( 2 );
-		
-		// Formats current fine status for error message
-		$actual_status = wp_lib_format_fine_status( $fine_status );
-		
-		// Calls error
-		wp_lib_error( 309, false, array( $desired_status, $actual_status ) );
-		return false;
-	}
-
-	// Changes fine status to paid
-	update_post_meta( $fine_id, 'wp_lib_status', 1 );
-	
-	// Notifies user that fine has been paid
-	wp_lib_add_notification( "Fine #{$fine_id} has been reverted from 'Paid' to 'Unpaid'" );
-	
-	return true;
-}
-
 // Cancels fine so that it is no longer is required to be paid
 function wp_lib_cancel_fine( $fine_id ) {
 	// Fetches (unformatted) fine status
 	$fine_status = get_post_meta( $fine_id, 'wp_lib_status', true );
 
 	// If fine has already been cancelled
-	if ( $fine_status == 3 ) {
+	if ( $fine_status == 2 ) {
 		// Calls error
 		wp_lib_error( 313 );
 		return false;
@@ -701,9 +653,8 @@ function wp_lib_format_fine_status( $status ) {
 	// Array of all possible states of the fine
 	$strings = array(
 		0	=> '',
-		1	=> 'Unpaid',
-		2	=> 'Paid',
-		3	=> 'Cancelled',
+		1	=> 'Active',
+		2	=> 'Cancelled'
 	);
 	
 	// If given number refers to a status that doesn't exist, throw error

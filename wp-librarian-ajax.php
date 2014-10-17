@@ -326,16 +326,6 @@ function wp_lib_do_modify_fine() {
 	
 	// Modifies fine based off requested action
 	switch ( $action ) {
-		// Marks fine as paid, returning success/failure
-		case 'pay':
-			$success = wp_lib_charge_fine( $fine_id );
-		break;
-		
-		// Reverts fine status from paid to unpaid, returning success/failure
-		case 'revert':
-			$success = wp_lib_revert_fine( $fine_id );
-		break;
-		
 		// Cancels fine, returning success/failure
 		case 'cancel':
 			$success = wp_lib_cancel_fine( $fine_id );
@@ -759,32 +749,8 @@ function wp_lib_page_manage_fine() {
 		'value'	=> $fine_id
 	);
 	
-	// If fine is unpaid, allows user to mark a fine as paid
-	if ( $fine_status == 1 ) {
-		$form[] = array(
-			'type'		=> 'paras',
-			'content'	=> array( 'Marking a fine as paid assumes the money has been collected from the relevant member.' )
-		);
-		
-		$form[] = array(
-			'type'	=> 'button',
-			'link'	=> 'action',
-			'value'	=> 'pay-fine',
-			'html'	=> 'Pay Fine'
-		);
-	}
-	// If fine is paid, allows Librarian to revert fine to being unpaid
-	elseif ( $fine_status == 2 ) {
-		$form[] = array(
-			'type'	=> 'button',
-			'link'	=> 'action',
-			'value'	=> 'revert-fine',
-			'html'	=> 'Revert to Unpaid'
-		);
-	}
-	
 	// If fine has not already been cancelled, allows fine to be cancelled
-	if ( $fine_status != 3 ) {
+	if ( $fine_status != 2 ) {
 		$form[] = array(
 			'type'	=> 'button',
 			'link'	=> 'action',

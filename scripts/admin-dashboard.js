@@ -38,24 +38,11 @@ function wp_lib_do_action( action, params ) {
 			data.end_date = params['end_date'];
 		break;
 		
-		case 'pay-fine':
-			data.action = 'wp_lib_modify_fine';
-			data.fine_id = params['fine_id'];
-			data.fine_action = params['pay'];
-		break;
-		
-		case 'revert-fine':
-			data.action = 'wp_lib_modify_fine';
-			data.fine_id = params['fine_id'];
-			data.fine_action = params['revert'];
-		break;
-		
 		case 'cancel-fine':
 			data.action = 'wp_lib_modify_fine';
 			data.fine_id = params['fine_id'];
 			data.fine_action = params['cancel'];
 		break;
-		
 		
 		case 'delete-object-et-al':
 			data.et_al = true;
