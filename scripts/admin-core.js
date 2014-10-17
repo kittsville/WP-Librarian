@@ -160,12 +160,8 @@ function wp_lib_hide_notification( element ) {
 
 // JavaScript to allow buttons to act as hyperlinks
 function wp_lib_click_button( e ) {
-	console.log( jQuery( e ).attr('href') );
 	// Redirects page to clicked button's href attribute
 	location.href = jQuery( e ).attr('href');
-	
-	// Prevents default behaviour of form submission
-	return false; // GGGG
 }
 
 // Attempts to parse JSON and catches any failures
