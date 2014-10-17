@@ -27,12 +27,12 @@ if ( wp_lib_is_librarian() ) {
 				wp_lib_page_manage_member();
 			break;
 			
-			case 'manage-fine':
-				wp_lib_page_manage_fine();
-			break;
-			
 			case 'manage-loan':
 				wp_lib_page_manage_loan();
+			break;
+			
+			case 'manage-fine':
+				wp_lib_page_manage_fine();
 			break;
 			
 			case 'scan-item':
@@ -727,6 +727,18 @@ function wp_lib_page_manage_member() {
 	wp_lib_send_page( $page_title, $tab_title, array_merge( $header, $content ) );
 }
 
+// Displays lack of loan management page
+function wp_lib_page_manage_loan() {
+	// Fetches loan ID from AJAX request
+	$loan_id = $_POST['loan_id'];
+	
+	// Checks if loan ID is valid
+	wp_lib_check_loan_id( $loan_id );
+	
+	// Returns error
+	wp_lib_stop_ajax( false, 202 );
+}
+
 // Displays fine details and provides options to modify the fine
 function wp_lib_page_manage_fine() {
 	// Fetches fine ID from AJAX request
@@ -786,18 +798,6 @@ function wp_lib_page_manage_fine() {
 	
 	// Sends entire page to be encoded in JSON
 	wp_lib_send_form( $title, $title, $header, $form );
-}
-
-// Displays lack of loan management page
-function wp_lib_page_manage_loan() {
-	// Fetches loan ID from AJAX request
-	$loan_id = $_POST['loan_id'];
-	
-	// Checks if loan ID is valid
-	wp_lib_check_loan_id( $loan_id );
-	
-	// Returns error
-	wp_lib_stop_ajax( false, 202 );
 }
 
 // Page for looking up an item by its barcode
@@ -1223,5 +1223,4 @@ function wp_lib_page_confirm_deletion() {
 	
 	wp_lib_send_page( $page_title, $tab_title, $header, $form );
 }
-
 ?>
