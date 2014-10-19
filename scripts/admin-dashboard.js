@@ -69,9 +69,12 @@ function wp_lib_do_action( action, params ) {
 		// Parses response
 		var success = wp_lib_parse_json( response );
 		
-		// If action completed successfully, loads Dashboard
+		// If action completed successfully, loads Dashboard. Otherwise fetches notifications
 		if ( success ) {
 			wp_lib_load_page();
+		} else {
+			// Fetches and renders any new notifications
+			wp_lib_display_notifications();
 		}
 	})
 	.fail( function() {

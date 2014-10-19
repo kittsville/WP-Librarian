@@ -68,12 +68,26 @@ if ( wp_lib_is_librarian() ) {
 	add_action( 'wp_ajax_wp_lib_fine_member', 'wp_lib_do_fine_member' );
 	add_action( 'wp_ajax_wp_lib_modify_fine', 'wp_lib_do_modify_fine' );
 	add_action( 'wp_ajax_wp_lib_delete_object', 'wp_lib_do_delete_object' );
+	add_action( 'wp_ajax_wp_lib_clean_item', 'wp_lib_do_clean_item' );
 	
 	/* Misc */
-	add_action( 'wp_ajax_wp_lib_clean_item', 'wp_lib_do_clean_item' );
 	add_action( 'wp_ajax_wp_lib_unknown_action', 'wp_lib_do_unknown_action' );
 	add_action( 'wp_ajax_wp_lib_fetch_notifications', 'wp_lib_fetch_notifications' );
 	add_action( 'wp_ajax_wp_lib_lookup_barcode', 'wp_lib_fetch_item_by_barcode' );
+}
+
+function wp_lib_do_clean_item() {
+	$item_id = $_POST['item_id'];
+	
+	// If item ID fails to validate, return false
+	if ( !wp_lib_valid_item_id( $item_id ) )
+		wp_lib_stop_ajax( false );
+	
+	// Strips any loan or member currently attached to item
+	if ( wp_lib_clean_item( $item_id ) )
+		wp_lib_stop_ajax( true );
+	else
+		wp_lib_stop_ajax( false );
 }
 
 	/* Misc AJAX Functions */
@@ -252,11 +266,21 @@ function wp_lib_do_schedule_loan() {
 	if ( !$start_date || !$end_date )
 		wp_lib_stop_ajax( false, 312 );
 	
-	// Passes parameters to scheduling function
-	$success = wp_lib_schedule_loan_wrapper( $item_id, $member_id, $start_date, $end_date );
+	// If loan starts before it sends or ends before current time, calls an error and The Doctor
+	if ( $start_date > $end_date || $end_date < current_time( 'timestamp' ) ) {
+		wp_lib_error( 307 );
+		return false;
+	}
+	
+	// Schedules loan of item. If function returns new loan's ID then scheduling succeeded
+	$result = ( is_numeric( wp_lib_schedule_loan( $item_id, $member_id, $start_date, $end_date ) ) ? true : false );
+	
+	// If scheduling succeeded, notifies user of successful loan
+	if ( $result )
+		wp_lib_add_notification( 'A loan of ' . get_the_title( $item_id ) . ' has been scheduled' );
 	
 	// Returns result (boolean)
-	wp_lib_stop_ajax( $success );
+	wp_lib_stop_ajax( $result );
 }
 
 // Returns an item currently on loan
@@ -445,7 +469,7 @@ function wp_lib_page_manage_item() {
 	// If item is currently on loan
 	if ( wp_lib_on_loan( $item_id ) ) {
 		// Fetches loan ID from Item meta
-		$loan_id = wp_lib_fetch_loan( $item_id );
+		$loan_id = wp_lib_fetch_loan_id( $item_id );
 		
 		// Regardless of lateness, provides link to return item at a past date
 		$form[] = array(
@@ -563,6 +587,13 @@ function wp_lib_page_manage_item() {
 		// Initialises loans array
 		$loans = array();
 		
+		// Title of Loans list
+		$form[] = array(
+			'type'	=> 'header',
+			'size'	=> '4',
+			'html'	=> 'Loans:'
+		);
+		
 		// Iterates through loans
 		while ( $loan_query->have_posts() ) {
 			// Selects current post (loan)
@@ -608,6 +639,11 @@ function wp_lib_page_manage_item() {
 			),
 			'data'		=> $loans
 		);
+	} else {
+		$form[] = array(
+			'type'		=> 'paras',
+			'content'	=> array( 'No loans to display' )
+		);
 	}
 	
 	// Creates titles for page and browser tab
@@ -629,17 +665,11 @@ function wp_lib_page_manage_member() {
 	// Renders management header
 	$header = wp_lib_prep_member_management_header( $member_id );
 	
-	// Button to edit member
+	// Initialises page content with button to edit member
 	$content[] = array(
 		'type'	=> 'button',
 		'link'	=> 'edit',
 		'html'	=> 'Edit',
-	);
-	
-	// Renders first part of member management page
-	$content[] = array(
-		'type'		=> 'paras',
-		'content'	=> array( 'Below are all loans tied to this member.' )
 	);
 	
 	// Sets up loan history query arguments
@@ -662,6 +692,12 @@ function wp_lib_page_manage_member() {
 	if ( $loan_query->have_posts() ){
 		// Initialises loans array
 		$loans = array();
+		
+		$content[] = array(
+			'type'	=> 'header',
+			'size'	=> '4',
+			'html'	=> 'Loans:'
+		);
 		
 		// Iterates through loans
 		while ( $loan_query->have_posts() ) {
@@ -707,6 +743,11 @@ function wp_lib_page_manage_member() {
 				'Returned'
 			),
 			'data'		=> $loans
+		);
+	} else {
+		$content[] = array(
+			'type'		=> 'paras',
+			'content'	=> array( 'No loans to display' )
 		);
 	}
 
@@ -943,7 +984,7 @@ function wp_lib_page_resolution_page() {
 	wp_lib_check_item_id( $item_id );
 
 	// Fetches loan ID using item ID
-	$loan_id = wp_lib_fetch_loan( $item_id );
+	$loan_id = wp_lib_fetch_loan_id( $item_id );
 	
 	// Ensures item is actually late
 	if ( !wp_lib_item_late( $loan_id ) )

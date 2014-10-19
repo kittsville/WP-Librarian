@@ -613,10 +613,23 @@ function wp_lib_format_item_condition( $number, $full = true ) {
 function wp_lib_clean_item( $item_id ){
 	// Checks if given ID is valid
 	wp_lib_check_item_id( $item_id );
+	
+	$loan_id = get_post_meta( $item_id, 'wp_lib_loan', true );
+	$member_id = get_post_meta( $item_id, 'wp_lib_member', true );
 
 	// Deletes loan related meta from item's meta
 	delete_post_meta( $item_id, 'wp_lib_loan' );
-	delete_post_meta( $item_id, 'wp_lib_member' );
+	
+	if ( $member_id ) {
+		delete_post_meta( $item_id, 'wp_lib_member' );
+		wp_lib_add_notification( 'Member ' . get_the_title( $member_id ) . ' has been removed from item' );
+	}
+	
+	if ( $loan_id ) {
+		wp_lib_add_notification( 'Loan ' . $loan_id . ' has been removed from item' );
+	}
+	
+	return true;
 }
 
 // Updates multiple meta values of a post

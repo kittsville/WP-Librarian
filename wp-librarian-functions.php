@@ -19,25 +19,21 @@ function wp_lib_on_loan( $item_id, $start_date = false, $end_date = false ) {
 		// Fetches all members assigned to item
 		$loan_already = get_post_meta( $item_id, 'wp_lib_member', true );
 
-		// If wp_lib_member is not assigned and thus returns false, then item is not on loan
-		$loan_already = ( $loan_already == false ? false : true );
+		// If a member is not assigned to the item (meta value is an empty string) then item is not on loan
+		$loan_already = ( $loan_already != '' ? true : false );
 		
 		return $loan_already;	
 	}
 	
 	// Fetches all loans assigned to item
-	$loans = wp_lib_fetch_loan_index( $item_id );
+	$loans = wp_lib_create_loan_index( $item_id );
 
 	// If item has no loans, it'll be available regardless of date
 	if ( !$loans )
 		return false;
-
-	// Runs scheduling engine to check for conflicts. If engine returns loan ID/string, conflict exists
-	if ( wp_lib_recursive_scheduling_engine( $start_date, $end_date, $loans ) )
-		return true;
-		
-	// Otherwise no loan exists during given time frame
-	return false;
+	
+	// Runs scheduling engine to check for conflicts. If engine returns true, no conflicts exist.
+	return !wp_lib_recursive_scheduling_engine( $start_date, $end_date, $loans );
 }
 
 // Checks if item is allowed to be loaned
@@ -60,22 +56,23 @@ function wp_lib_loanable( $item_id, $start_date = false, $end_date = false ) {
 		return false;
 }
 
-// Looks in the gaps between ranges (loan dates) to see if the proposed loan would fit there.
+// Looks in the gaps between ranges (loan dates) to see if the proposed loan would fit.
+// Also checks at the beginning and end of all existing loans to see if proposed loan comes before or after all existing loans
 // Returns array key where loan would fit between two loans, or start/end if loan is after/before all loans
 function wp_lib_recursive_scheduling_engine( $proposed_start, $proposed_end, $loans, $current = 0 ) {
 	// Creates key for previous and next loans, regardless of if they exist
 	$previous = $current - 1;
 	$next = $current + 1;
-
+	
 	// Checks if a loan exists before current loan, if so then there is a gap to be checked for suitability
 	if ( $loans[$previous] ) {
 		// If the proposed loan starts after the $previous loan ends and ends before the $current loan starts, then the proposed loan would work
 		if ( $proposed_start > $loans[$previous]['end'] && $proposed_end < $loans[$current]['start'] )
-			return $current;
+			return true;
 	}
 	// Otherwise $current loan is earliest loan, so if proposed loan ends before $current loan starts, proposed loan would work
 	elseif ( $proposed_end < $loans[$current]['start'] )
-		return 'start';
+		return true;
 	
 	// Checks if a loan exists after the $current loan, if so then function calls itself on the next loan
 	if ( $loans[$next] )
@@ -83,33 +80,63 @@ function wp_lib_recursive_scheduling_engine( $proposed_start, $proposed_end, $lo
 	
 	// Otherwise $current loan is last loan, so if proposed loan starts after $current loan ends, proposed loan would work
 	elseif ( $proposed_start > $loans[$current]['end'] )
-		return 'end';
+		return true;
 	
 	// If this statement is reached, all loans have been checked and no viable gap has been found, so proposed loan will not work
 	return false;
 }
 
-// Fetches loan index from item meta and handles errors
-function wp_lib_fetch_loan_index( $item_id ) {
-	// Fetches loans
-	$loans = get_post_meta( $item_id, 'wp_lib_loan_index', true );
+// Creates index of all item's loans
+function wp_lib_create_loan_index( $item_id ) {
+	// Initialises output
+	$loan_index = array();
 	
-	// If item has no loans, changes to blank array to avoid errors
-	if ( $loans == '' )
-		$loans = array();
+	// Sets all query params
+	$args = array(
+		'post_type'		=> 'wp_lib_loans',
+		'post_status'	=> 'publish',
+		'meta_query'	=> array(
+			array(
+				'key'		=> 'wp_lib_item',
+				'value'		=> $item_id,
+				'compare'	=> 'IN'
+			)
+		)
+	);
+	
+	// Searches post table for all loans of the item
+	$query = NEW WP_Query( $args );
+	
+	// Iterates through loans
+	while ( $query->have_posts() ) {
+		// Selects current post (loan)
+		$query->the_post();
 		
-	return $loans;
-}
-
-// Searches loan index for loan ID, returns position of loan in array
-function wp_lib_fetch_loan_position( $loan_index, $loan_id ) {
-	// Iterates through array, checking each loan's ID for a match
-	foreach ( $loan_index as $key => $loan ) {
-		if ( $loan['loan_id'] == $loan_id )
-			return $key;	
+		// Fetches loan meta
+		$meta = get_post_meta( get_the_ID() );
+		
+		// Sets start date to date item was given to member, falls back to scheduled start date
+		if ( isset( $meta['wp_lib_loaned_date'] ) )
+			$start_date = $meta['wp_lib_loaned_date'][0];
+		else
+			$start_date = $meta['wp_lib_start_date'][0];
+		
+		// Sets end date to date item was returned, falls back to scheduled end date
+		if ( isset( $meta['wp_lib_returned_date'] ) )
+			$end_date = $meta['wp_lib_returned_date'][0];
+		else
+			$end_date = $meta['wp_lib_end_date'][0];
+		
+		
+		$loan_index[] = array(
+			'start'		=> $start_date,
+			'end'		=> $end_date,
+			'loan_id'	=> get_the_ID()
+		);
 	}
-	// If the whole index has been searched and the value has not been found, returns false
-	return false;
+	
+	// Returns output, a blank array if $query->have_posts == false
+	return $loan_index;
 }
 
 // Calculates days until item needs to be returned, returns negative if item is late
@@ -182,7 +209,7 @@ function wp_lib_prep_item_due( $item_id, $date = false, $array ) {
 		return '';
 	
 	// Fetch loan ID from item meta
-	$loan_id = wp_lib_fetch_loan( $item_id );
+	$loan_id = wp_lib_fetch_loan_id( $item_id );
 	
 	// Use cherry pie to get due/late
 	$due = wp_lib_cherry_pie( $loan_id, $date );
@@ -212,7 +239,7 @@ function wp_lib_prep_item_due( $item_id, $date = false, $array ) {
 }
 
 // Given item ID, fetches current loan and returns loan ID
-function wp_lib_fetch_loan( $item_id, $date = false ) {
+function wp_lib_fetch_loan_id( $item_id, $date = false ) {
 	// If a date hasn't been given, assume loan is in progress
 	if ( !$date ) {
 		// Fetches loan ID from item metadata
@@ -220,7 +247,7 @@ function wp_lib_fetch_loan( $item_id, $date = false ) {
 
 	} else {
 		// Fetches item loan index
-		$loans = get_post_meta( $item_id, 'wp_lib_loan_index' );
+		$loans = wp_lib_create_loan_index( $item_id );
 		
 		// If $loans is empty or the given date is after the last loan ends, call error
 		if ( !$loans || end( $loans )['end'] <= $date ) {
@@ -288,26 +315,6 @@ function wp_lib_loan_item( $item_id, $member_id, $loan_length = false ) {
 	return true;
 }
 
-// Sanitizes and prepares data for loan scheduling function
-function wp_lib_schedule_loan_wrapper( $item_id, $member_id, $start_date, $end_date ) {
-	// If loan starts before it sends or ends before current time, calls an error and The Doctor
-	if ( $start_date > $end_date || $end_date < current_time( 'timestamp' ) ) {
-		wp_lib_error( 307 );
-		return false;
-	}
-		
-	// Schedules loan of item
-	$result = wp_lib_schedule_loan( $item_id, $member_id, $start_date, $end_date );
-	
-	// Checks if loan scheduling was successful
-	if ( $result ) {
-		// Notifies user of successful loan
-		wp_lib_add_notification( 'A loan of ' . get_the_title( $item_id ) . ' has been scheduled' );
-	}
-	
-	return $result;	
-}
-
 // Schedules a loan, without actually giving the item to the member
 // If $start_date is not set loan is from current date
 // If $end_date is not set loan will be the default length (option 'wp_lib_loan_length')
@@ -316,22 +323,6 @@ function wp_lib_schedule_loan( $item_id, $member_id, $start_date, $end_date ) {
 	if ( !wp_lib_loanable( $item_id, $start_date, $end_date ) ) {
 		wp_lib_error( 401 );
 		return false;
-	}
-	
-	// Fetches item's loans index
-	$loan_index = wp_lib_fetch_loan_index( $item_id );
-	
-	// If item has previous loans, proposed loan must be checked for conflicts
-	if ( $loan_index ) {
-		// Runs scheduling engine to check if space exists for loan
-		// Note that $result will be used once the loan has been created, to index the loan in item meta
-		$result = wp_lib_recursive_scheduling_engine( $start_date, $end_date, $loan_index );
-		
-		// If scheduling engine returns false, there is a conflict
-		if ( !$result ) {
-			wp_lib_error( 401 );
-			return false;
-		}
 	}
 	
 	// Creates arguments for loan
@@ -348,39 +339,6 @@ function wp_lib_schedule_loan( $item_id, $member_id, $start_date, $end_date ) {
 		wp_lib_error( 400 );
 		return false;
 	}
-	
-	// Creates item's loan index entry
-	$loan_args = array(
-		'start'		=> $start_date,
-		'end'		=> $end_date,
-		'loan_id'	=> $loan_id	
-	);
-	
-	/* Analyses scheduling result to see where in ordered array the new loan should go */
-	
-	// If loan belongs at start of index
-	if ( $result == 'start' )
-		array_unshift( $loan_index, $loan_args );
-	// If loan belongs at end of index
-	elseif ( $result == 'end' )
-		$loan_index[] = $loan_args;
-	// If loan belongs at a specified position in the array
-	elseif ( is_numeric( $result ) ) {
-		// Loan index is split and the new entry is added at the correct position
-		$loan_index = array_merge(
-			array_slice( $loan_index, 0, $result ),
-			array( $loan_args ),
-			array_slice( $loan_index, $result, null )
-		);
-	}
-	// Otherwise loan index contains no previous loans
-	else {
-		// Initialises loan index as an array and adds loan
-		$loan_index = array( $loan_args );
-	}
-	
-	// Saves updated loan index to item meta
-	update_post_meta( $item_id, 'wp_lib_loan_index', $loan_index );
 	
 	// Saves important information about the fine to its post meta
 	wp_lib_update_meta( $loan_id,
@@ -400,26 +358,6 @@ function wp_lib_schedule_loan( $item_id, $member_id, $start_date, $end_date ) {
 function wp_lib_give_item( $item_id, $loan_id, $member_id, $date = false ) {
 	// Sets date to current time if not set
 	wp_lib_prep_date( $date );
-
-	/* Updates item's loan index entry */
-	
-	// Fetches loan index from item meta
-	$loan_index = wp_lib_fetch_loan_index( $item_id );
-	
-	// Locates position of current loan in item's loan index
-	$key = wp_lib_fetch_loan_position( $loan_index, $loan_id );
-
-	// If key was not found, call error
-	if ( $key === false ) {
-		wp_lib_error( 203 );
-		return false;
-	}
-	
-	// Loan's entry in loan index is updated with actual start date 
-	$loan_index[$key]['start'] = $date;
-	
-	// Updated loan index is saved to item meta
-	update_post_meta( $item_id, 'wp_lib_loan_index', $loan_index );
 	
 	/* Updates other meta */
 	
@@ -451,7 +389,7 @@ function wp_lib_return_item( $item_id, $date = false, $no_fine = false ) {
 	}
 	
 	// Fetches loan ID using item ID
-	$loan_id = wp_lib_fetch_loan( $item_id );
+	$loan_id = wp_lib_fetch_loan_id( $item_id );
 
 	// Checks if item as actually on loan
 	if ( get_post_meta( $loan_id, 'wp_lib_status', true ) != 1 ) {
@@ -470,30 +408,6 @@ function wp_lib_return_item( $item_id, $date = false, $no_fine = false ) {
 		wp_lib_error( 410 );
 		return false;
 	}
-	
-	// Fetches loan index from item meta
-	$loan_index = wp_lib_fetch_loan_index( $item_id );
-	
-	// Locates position of current loan in item's loan index
-	$key = wp_lib_fetch_loan_position( $loan_index, $loan_id );
-
-	// If key was not found, call error
-	if ( $key === false ) {
-		wp_lib_error( 203 );
-		return false;
-	}
-		
-	// Checks if user is attempting to return item before it was loaned
-	if ( $loan_index[$key]['start'] > $date ) {
-		wp_lib_error( 310 );
-		return false;
-	}
-		
-	// Loan index is updated with item's actual date of return
-	$loan_index[$key]['end'] = $date;
-	
-	// Updated loan index is saved to item meta
-	update_post_meta( $item_id, 'wp_lib_loan_index', $loan_index );
 
 	// Deletes member ID from item meta, representing the physical item passing from the member's possession to the Library
 	delete_post_meta( $item_id, 'wp_lib_member' );
@@ -520,7 +434,7 @@ function wp_lib_return_item( $item_id, $date = false, $no_fine = false ) {
 	add_post_meta( $loan_id, 'wp_lib_returned_date', $date );
 	
 	// Notifies user of item return
-	wp_lib_add_notification( get_the_title( $item_id ) . ' has been returned successfully' );
+	wp_lib_add_notification( get_the_title( $item_id ) . ' has been returned to the library' );
 	
 	return true;
 }
@@ -536,7 +450,7 @@ function wp_lib_create_fine( $item_id, $date = false, $return = true ) {
 	wp_lib_prep_date( $date );
 
 	// Fetches loan ID from item meta
-	$loan_id = wp_lib_fetch_loan( $item_id );
+	$loan_id = wp_lib_fetch_loan_id( $item_id );
 	
 	// Runs cherry pie to check if item is actually late
 	$due_in = wp_lib_cherry_pie( $loan_id, $date );
