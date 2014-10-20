@@ -319,6 +319,12 @@ function wp_lib_loan_item( $item_id, $member_id, $loan_length = false ) {
 // If $start_date is not set loan is from current date
 // If $end_date is not set loan will be the default length (option 'wp_lib_loan_length')
 function wp_lib_schedule_loan( $item_id, $member_id, $start_date, $end_date ) {
+	// Checks if member is allowed to be loaned items
+	if ( get_post_meta( $member_id, 'wp_lib_member_archive', true ) ) {
+		wp_lib_error( 316 );
+		return false;
+	}
+	
 	// Checks if item can actually be loaned
 	if ( !wp_lib_loanable( $item_id, $start_date, $end_date ) ) {
 		wp_lib_error( 401 );
@@ -619,6 +625,7 @@ function wp_lib_error( $error_id, $die = false, $param = 'NULL' ) {
 		313 => 'Fine can not be cancelled if it is already cancelled',
 		314 => 'Fine action not recognised',
 		315 => 'Library Object type not specified or recognised',
+		316	=> 'Given member has been archived and cannot be loaned items',
 		400 => 'Loan creation failed for unknown reason, sorry :/',
 		401 => 'Can not loan item, it is already on loan or not allowed to be loaned.<br/>This can happen if you have multiple tabs open or refresh the loan page after a loan has already been created.',
 		402 => 'Item not on loan (Loan ID not found in item meta)<br/>This can happen if you refresh the page having already returned an item',

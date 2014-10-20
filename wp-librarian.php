@@ -534,6 +534,10 @@ add_action( 'save_post', function ( $post_id, $post ) {
 				array(
 					'key'		=> 'wp_lib_member_email',
 					'sanitize'	=> 'sanitize_email'
+				),
+				array(
+					'key'		=> 'wp_lib_member_archive',
+					'sanitize'	=> 'wp_lib_sanitize_checkbox'
 				)
 			);
 		break;

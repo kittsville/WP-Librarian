@@ -665,7 +665,14 @@ function wp_lib_page_manage_member() {
 	// Renders management header
 	$header = wp_lib_prep_member_management_header( $member_id );
 	
-	// Initialises page content with button to edit member
+	// Initialises page content with field containing member ID
+	$content[] = array(
+		'type'	=> 'hidden',
+		'name'	=> 'member_id',
+		'value'	=> $member_id
+	);
+	
+	// Button to edit member
 	$content[] = array(
 		'type'	=> 'button',
 		'link'	=> 'edit',

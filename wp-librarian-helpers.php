@@ -532,6 +532,13 @@ function wp_lib_prep_member_options() {
 		while ( $query->have_posts() ) {
 			$query->the_post();
 			
+			// Fetches member ID
+			$member_id = get_the_ID();
+			
+			// Skips displaying member if member has been archived
+			if ( get_post_meta( $member_id, 'wp_lib_member_archive', true ) )
+				continue;
+			
 			// Adds member's details to the options array
 			$options[] = array(
 				'value'	=> get_the_ID(),

@@ -32,6 +32,17 @@ $meta_formatting = array(
 				'type'		=> 'tel'
 			)
 		)
+	),
+	array(
+		'title'	=> 'Settings',
+		'fields'=> array(
+			array(
+				'title'		=> 'Archive member',
+				'name'		=> 'wp_lib_member_archive',
+				'type'		=> 'checkbox',
+				'alt-text'	=> 'Removes member from active participation in the library'
+			)
+		)
 	)
 );
 
