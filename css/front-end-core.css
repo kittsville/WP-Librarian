@@ -1,8 +1,8 @@
 /*
-Name: WP-Librarian Template Styles
-Author: Kit Maywood
-Version: 1
-*/
+ * Name: WP-Librarian Template Styles
+ * Author: Kit Maywood
+ * Version: 0.1
+ */
 
 .wp-lib-item-left {
 	float: left;
@@ -13,10 +13,6 @@ Version: 1
 .wp-lib-item-right {
 	float: right;
 	display:inline;
-}
-
-.wp_lib_items {
-
 }
 
 .wp_lib_items:last-of-type {

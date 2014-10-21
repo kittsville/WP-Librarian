@@ -55,7 +55,7 @@
 
 .ll-skin-melon .ui-datepicker .ui-datepicker-next span,
 .ll-skin-melon .ui-datepicker .ui-datepicker-prev span {
-	background-image: url('../images/datepicker-mellon-icons.png');
+	background-image: url(images/ui-icons_ffffff_256x240.png);
 	background-position: -32px 0;
 	margin-top: 0;
 	top: 0;
@@ -108,3 +108,4 @@
 .ll-skin-melon td .ui-state-hover {
 	background: #2e3641;
 }
+

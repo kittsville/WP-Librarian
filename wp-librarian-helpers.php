@@ -781,7 +781,7 @@ function wp_lib_prep_meta( $tax_array, $bold_name ) {
 function wp_lib_add_notification_on_load( $text ) {
 	?>
 	<script type="text/javascript">
-		jQuery( document ).ready(function($) {
+		jQuery(function($){
 			wp_lib_local_notification( <?php echo json_encode( $text ); ?> );
 		});
 	</script>

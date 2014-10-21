@@ -713,8 +713,11 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
 	// Registers core JavaScript file for WP-Librarian, a collection of various essential functions
 	wp_register_script( 'wp_lib_core', wp_lib_script_url( 'admin-core' ), array( 'jquery', 'jquery-ui-datepicker' ), '0.1' );
 	
-	// Registers meta core, an extension of wp_lib_core with functions useful specifically to meta boxes
+	// Registers meta core script, an extension of wp_lib_core with functions useful specifically to meta boxes
 	wp_register_script( 'wp_lib_meta_core', wp_lib_script_url( 'admin-meta-core' ),  array( 'jquery', 'jquery-ui-datepicker', 'wp_lib_core' ), '0.1' );
+	
+	// Registers meta core style, this adds the base styling of meta boxes to post edit pages
+	wp_register_style( 'wp_lib_meta_core_styles', wp_lib_style_url( 'admin-core-meta-box' ), array(), '0.1' );
 
 	// Sets up array of variables to be passed to JavaScript
 	$vars = array(
@@ -732,12 +735,12 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
 	if ( $hook == 'post-new.php' || $hook == 'post.php' ) {
 		switch ( $GLOBALS['post_type'] ) {
 			case 'wp_lib_items':
-				wp_register_style( 'wp_lib_admin_item_meta', wp_lib_style_url( 'admin-item-meta-box' ), array(), '0.1' );
+				wp_register_style( 'wp_lib_admin_item_meta', wp_lib_style_url( 'admin-item-meta-box' ), array( 'wp_lib_meta_core_styles' ), '0.1' );
 				wp_enqueue_script( 'wp_lib_edit_item', wp_lib_script_url( 'admin-edit-item' ), array( 'wp_lib_meta_core' ), '0.1' );
 			break;
 			
 			case 'wp_lib_members':
-				wp_register_style( 'wp_lib_admin_member_meta', wp_lib_style_url( 'admin-member-meta-box' ), array(), '0.1' );
+				wp_register_style( 'wp_lib_admin_member_meta', wp_lib_style_url( 'admin-member-meta-box' ), array( 'wp_lib_meta_core_styles' ), '0.1' );
 				wp_enqueue_script( 'wp_lib_edit_member', wp_lib_script_url( 'admin-edit-member' ), array( 'wp_lib_meta_core' ), '0.1' );
 			break;
 		}
@@ -764,7 +767,8 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
 
 // Enqueues scripts and styles needed for WP-Librarian's front-end
 add_action( 'wp_enqueue_scripts', function() {
-	wp_register_style( 'wp_lib_frontend', plugins_url( '/css/templates.css', __FILE__ ), false, '0.1' );
+	if ( get_post_type() == 'wp_lib_items' )
+		wp_enqueue_style( 'wp_lib_frontend', wp_lib_style_url( 'front-end-core' ), array(), '0.1' );
 });
 
 // Render Loans/Returns Page

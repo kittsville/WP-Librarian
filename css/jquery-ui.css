@@ -273,7 +273,7 @@
 }
 .ui-widget-content {
 	border: 1px solid #dddddd;
-	background: #eeeeee url(images/ui-bg_highlight-soft_100_eeeeee_1x100.png) 50% top repeat-x;
+	background: #D6D6D6;
 	color: #333333;
 }
 .ui-widget-content a {
@@ -409,14 +409,14 @@
 	background-image: url('../images/datepicker-mellon-icons.png');
 }
 .ui-state-default .ui-icon {
-	background-image: url('../images/ui-icons_ef8c08_256x240.png');
+	background-image: url('../images/datepicker-mellon-icons.png');
 }
 .ui-state-hover .ui-icon,
 .ui-state-focus .ui-icon {
-	background-image: url('../images/ui-icons_ef8c08_256x240.png');
+	background-image: url('../images/datepicker-mellon-icons.png');
 }
 .ui-state-active .ui-icon {
-	background-image: url('../images/ui-icons_ef8c08_256x240.png');
+	background-image: url('../images/datepicker-mellon-icons.png');
 }
 .ui-state-highlight .ui-icon {
 	background-image: url(../'images/ui-icons_228ef1_256x240.png');

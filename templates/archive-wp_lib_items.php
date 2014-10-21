@@ -3,8 +3,6 @@
  * Template Name: Library Item Archive
  */
 
-wp_enqueue_style( 'wp_lib_frontend' );
-
 get_header();
 
 ?>

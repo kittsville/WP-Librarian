@@ -2,7 +2,7 @@
 var notificationCount = 0;
 wp_lib_vars.onClick = 'wp_lib_click_button( this )';
 
-jQuery( document ).ready(function($) {
+jQuery(function($){
 	// Selects the notification holder
 	window.notificationHolder = jQuery( '#wp-lib-notifications' );
 });

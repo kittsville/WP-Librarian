@@ -172,12 +172,8 @@ function wp_lib_after_load() {
 	// Fetches and renders any new notifications
 	wp_lib_display_notifications();
 	
-	// Sets all all date inputs as jQuery datepickers
-	jQuery('.datepicker').datepicker({
-		dateFormat: 'yy-mm-dd',
-		inline: true,
-		showOtherMonths: true,
-	});
+	// Adds class for datepickers to utilise additional styling
+	jQuery('#ui-datepicker-div').addClass('ll-skin-melon');
 	
 	// Adds listener for action performing buttons
 	jQuery('#wp-lib-workspace').on('click', '[name="dash_action"]', function ( e ){
@@ -390,8 +386,8 @@ function wp_lib_render_page( pageArray ) {
 			
 			case 'date':
 				elementObject.type = pageItem.type;
-				elementObject.class += wp_lib_add_classes( [ 'datepicker', 'll-skin-melon' ] );
-				$('<input/>', elementObject ).appendTo( theParent );
+				// Adds jQuery datepicker to input element and attaches to parent
+				$('<input/>', elementObject ).datepicker().appendTo( theParent );
 			break;
 			
 			case 'select':
@@ -570,7 +566,7 @@ function wp_lib_format_tab_title( title ) {
 }
 
 // Loads page content on page load. Only used if page is visited from a non-Dashboard page
-jQuery( document ).ready(function($) {
+jQuery(function($){
 	$.dynatableSetup({
 		table: {
 			headRowSelector: 'thead'
@@ -578,6 +574,12 @@ jQuery( document ).ready(function($) {
 		features: {
 			pushState: false
 		}
+	});
+	
+	$.datepicker.setDefaults({
+		dateFormat: 'yy-mm-dd',
+		inline: true,
+		showOtherMonths: true
 	});
 	
 	// Fetches GET parameters from global variables
