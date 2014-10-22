@@ -23,7 +23,7 @@ get_header();
 				<div class="wp-lib-item-right">
 					<!-- Item cover image -->
 					<div class="wp-lib-item-cover">
-						<?= get_the_post_thumbnail( get_the_ID(), 'medium' ); ?>
+						<?php the_post_thumbnail( array( 200, 500 ) ); ?>
 					</div>
 				</div>
 			</article>

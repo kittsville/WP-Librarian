@@ -34,7 +34,9 @@ get_header();
 				<div class="wp-lib-item-right">
 					<!-- Item cover image -->
 					<div class="wp-lib-item-cover">
-						<?php the_post_thumbnail( 'medium' ); ?>
+						<a href="<?php the_permalink(); ?>">
+							<?php the_post_thumbnail( array( 200, 500 ) ); ?>
+						</a>
 					</div>
 				</div>
 			</div>
