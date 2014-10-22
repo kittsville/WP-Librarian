@@ -44,10 +44,6 @@ function wp_lib_do_action( action, params ) {
 			data.fine_action = params['cancel'];
 		break;
 		
-		case 'delete-object-et-al':
-			data.et_al = true;
-		// Lack of break statement is deliberate
-		
 		case 'delete-object':
 			data.action = 'wp_lib_delete_object';
 			data.post_id = params['post_id'];
@@ -156,13 +152,12 @@ function wp_lib_load_page( ajaxData, stateLoad ) {
 				}
 			}
 		}
+		
+		// Runs after load function
+		wp_lib_after_load();
 	})
 	.fail( function() {
 		wp_lib_ajax_fail();
-	})
-	.always( function() {
-		// Runs after load function
-		wp_lib_after_load();
 	});
 }
 
@@ -174,36 +169,6 @@ function wp_lib_after_load() {
 	
 	// Adds class for datepickers to utilise additional styling
 	jQuery('#ui-datepicker-div').addClass('ll-skin-melon');
-	
-	// Adds listener for action performing buttons
-	jQuery('#wp-lib-workspace').on('click', '[name="dash_action"]', function ( e ){
-		// Fetches action to be performed
-		var action = e.currentTarget.value;
-		
-		// Fetches form parameters that have been set
-		var params = wp_lib_collect_form_params( '#library-form' );
-		
-		// Performs action
-		wp_lib_do_action( action, params );
-		
-		// Prevents regular form submission
-		return false;
-	});
-	
-	// Adds listener for page loading buttons
-	jQuery('#wp-lib-workspace').on('click', '[name="dash_page"]', function ( e ){
-		// Fetches form parameters that have been set
-		var params = wp_lib_collect_form_params( '#library-form' );
-		
-		// Fetches page to be loaded
-		params.dash_page = e.currentTarget.value;
-
-		// Loads page
-		wp_lib_load_page( params );
-		
-		// Prevents regular form submission
-		return false;
-	});
 }
 
 // Renders form from an array
@@ -596,4 +561,34 @@ jQuery(function($){
 	window.onpopstate = function( event ) {
 		wp_lib_load_page( event.state, 'history' );
 	}
+	
+	// Adds listener for action performing buttons
+	jQuery('#wp-lib-workspace').on('click', '[name="dash_action"]', function ( e ){
+		// Fetches action to be performed
+		var action = e.currentTarget.value;
+		
+		// Fetches form parameters that have been set
+		var params = wp_lib_collect_form_params( '#library-form' );
+		
+		// Performs action
+		wp_lib_do_action( action, params );
+		
+		// Prevents regular form submission
+		return false;
+	});
+	
+	// Adds listener for page loading buttons
+	jQuery('#wp-lib-workspace').on('click', '[name="dash_page"]', function ( e ){
+		// Fetches form parameters that have been set
+		var params = wp_lib_collect_form_params( '#library-form' );
+		
+		// Fetches page to be loaded
+		params.dash_page = e.currentTarget.value;
+
+		// Loads page
+		wp_lib_load_page( params );
+		
+		// Prevents regular form submission
+		return false;
+	});
 });

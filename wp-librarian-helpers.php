@@ -787,4 +787,73 @@ function wp_lib_add_notification_on_load( $text ) {
 	</script>
 	<?php
 }
+
+// Recursively searches for any Library objects connected directly or indirectly to a given object. Uses depth first searching
+function wp_lib_fetch_dependant_objects( $post_id, $post_type = false, $connected_posts = array() ) {
+	// If post type has not been given, fetches
+	if ( !$post_type )
+		$post_type = get_post_type( $post_id );
+	
+	// If post type requires post query
+	if ( $post_type == 'wp_lib_items' || $post_type == 'wp_lib_members' ) {
+		// Sets meta key to use in search
+		switch ( $post_type ) {
+			case 'wp_lib_items':
+				$key = 'wp_lib_item';
+			break;
+			
+			case 'wp_lib_members':
+				$key = 'wp_lib_member';
+			break;
+		}
+		
+		// Sets query args
+		$args = array(
+			'post_type'		=> 'wp_lib_loans',
+			'post_status'	=> 'publish',
+			'meta_query'	=> array(
+				array(
+					'key'		=> $key,
+					'value'		=> $post_id,
+					'compare'	=> 'IN'
+				)
+			)
+		);
+		
+		// Queries for connected posts
+		$query = NEW WP_Query( $args );
+		
+		// If any connected loans are found, iterates through them adding them to list then searching the loans themselves
+		if ( $query->have_posts() ) {
+			while( $query->have_posts() ) {
+				$query->the_post();
+				
+				// Fetches loan's ID
+				$loan_id = get_the_ID();
+				
+				// Adds loan to connected posts list
+				$connected_posts[] = array( $loan_id, get_post_type( $loan_id ) );
+				
+				// Calls function to check loan for connected objects
+				$connected_posts = wp_lib_fetch_dependant_objects( $loan_id, 'wp_lib_loans', $connected_posts );
+			}
+		}
+	} elseif ( $post_type == 'wp_lib_loans' ) {
+		// Fetches fine ID from loan meta
+		$fine_id = get_post_meta( $post_id, 'wp_lib_fine', true );
+		
+		// If fine ID was found, add to connected posts list
+		if ( $fine_id )
+			$connected_posts[] = array( $fine_id, get_post_type( $fine_id ) );
+	} elseif ( $post_type == 'wp_lib_fines' ) {
+		// Fetches loan ID from fine meta
+		$loan_id = get_post_meta( $post_id, 'wp_lib_loan', true );
+		
+		// Checks if loan is already in the array
+		if ( !in_array( $loan_id, $connected_posts ) )
+			$connected_posts[] = array( $loan_id, get_post_type( $loan_id ) );
+	}
+	
+	return $connected_posts;
+}
 ?>
