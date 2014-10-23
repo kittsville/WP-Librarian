@@ -234,9 +234,12 @@ function wp_lib_do_loan_item() {
 	$loan_length = $_POST['loan_length'];
 	
 	// If item or member ID fail to validate, return false (errors are handled by the validation functions)
-	if ( !wp_lib_valid_item_id( $item_id ) || !wp_lib_valid_member_id( $member_id ) ) {
+	if ( !wp_lib_valid_item_id( $item_id ) || !wp_lib_valid_member_id( $member_id ) )
 		wp_lib_stop_ajax( false );
-	}
+	
+	// If nonce fails to validate, return false (errors are handled by the validation functions)
+	if ( !wp_lib_verify_nonce( 'Managing Item: ' . $item_id ) )
+		wp_lib_stop_ajax( false );
 	
 	// Attempts to loan item
 	$success = wp_lib_loan_item( $item_id, $member_id, $loan_length );
@@ -256,7 +259,11 @@ function wp_lib_do_schedule_loan() {
 	// If item or member ID fail to validate, return false (errors are handled by the validation functions)
 	if ( !wp_lib_valid_item_id( $item_id ) || !wp_lib_valid_member_id( $member_id ) ) {
 		wp_lib_stop_ajax( false );
-	}		
+	}
+
+	// Checks if nonce is valid
+	if ( !wp_lib_verify_nonce( 'Managing Item: ' . $item_id ) )
+		wp_lib_stop_ajax( false );
 	
 	// Attempts to convert given dates to Unix timestamps
 	wp_lib_convert_date( $start_date );
@@ -293,8 +300,17 @@ function wp_lib_do_return_item() {
 	if ( !wp_lib_valid_item_id( $item_id ) )
 		wp_lib_stop_ajax( false );
 	
+	/* The nonce needed to validate will be different depending on if the function
+	 * was called from the Item management page or the return past page
+	 * the_more_you_know.jpeg
+	 */
+	
 	// If the date is given (item is not being returned currently)
 	if ( $end_date ) {
+		// Checks if nonce is valid
+		if ( !wp_lib_verify_nonce( 'Past returning: ' . $item_id ) )
+			wp_lib_stop_ajax( false );
+		
 		// Attempts to converts formatted date to Unix timestamp e.g. 12/08/2013 -> 1386460800
 		wp_lib_convert_date( $end_date );
 		
@@ -302,6 +318,10 @@ function wp_lib_do_return_item() {
 		if ( !$end_date )
 			wp_lib_stop_ajax( false, 310 );
 	} else {
+		// Checks if nonce is valid
+		if ( !wp_lib_verify_nonce( 'Managing Item: ' . $item_id ) )
+			wp_lib_stop_ajax( false );
+		
 		$end_date = false;
 	}
 	
@@ -323,7 +343,11 @@ function wp_lib_do_fine_member() {
 	
 	// If item ID fails to validate, return false
 	if ( !wp_lib_valid_item_id( $item_id ) )
-		wp_lib_stop_ajax( false );	
+		wp_lib_stop_ajax( false );
+	
+	// Checks if nonce is valid
+	if ( !wp_lib_verify_nonce( 'Resolution of item ' . $item_id . ' for loan '. get_post_meta( $item_id, 'wp_lib_loan', true ) ) )
+		wp_lib_stop_ajax( false );
 	
 	// If the date is given (item is not being returned currently)
 	if ( $end_date ) {
@@ -347,6 +371,10 @@ function wp_lib_do_modify_fine() {
 	
 	// Checks if fine ID is valid
 	wp_lib_check_fine_id( $fine_id );
+	
+	// Checks if nonce is valid
+	if ( !wp_lib_verify_nonce( 'Managing Fine: ' . $fine_id ) )
+		wp_lib_stop_ajax( false );
 	
 	// Modifies fine based off requested action
 	switch ( $action ) {
@@ -372,6 +400,10 @@ function wp_lib_do_delete_object() {
 	// Validates ID of Library object
 	if ( !wp_lib_get_object_type( $post_id ) )
 		wp_lib_stop_ajax( false, 317 );
+	
+	// Checks if nonce is valid
+	if ( !wp_lib_verify_nonce( 'Deleting object: ' . $post_id ) )
+		wp_lib_stop_ajax( false );
 	
 	// Placeholder
 	wp_lib_add_notification( "Object not deleted" );
@@ -457,6 +489,9 @@ function wp_lib_page_manage_item() {
 	
 	// Prepares the management header
 	$header = wp_lib_prep_item_management_header( $item_id );
+	
+	// Adds page nonce
+	$form[] = wp_lib_prep_nonce( 'Managing Item: ' . $item_id );
 	
 	// Adds item ID to form
 	$form[] = array(
@@ -672,7 +707,10 @@ function wp_lib_page_manage_member() {
 	// Renders management header
 	$header = wp_lib_prep_member_management_header( $member_id );
 	
-	// Initialises page content with field containing member ID
+	// Adds nonce to form
+	$content[] = wp_lib_prep_nonce( 'Managing Member ' . $member_id );
+	
+	// Adds member ID to form
 	$content[] = array(
 		'type'	=> 'hidden',
 		'name'	=> 'member_id',
@@ -805,6 +843,9 @@ function wp_lib_page_manage_fine() {
 	// Fetches fine status
 	$fine_status = get_post_meta( $fine_id, 'wp_lib_status', true );
 	
+	// Adds nonce to form
+	$content[] = wp_lib_prep_nonce( 'Managing Fine: ' . $fine_id );
+	
 	// Adds fine ID to form
 	$form[] = array(
 		'type'	=> 'hidden',
@@ -835,6 +876,7 @@ function wp_lib_page_scan_item() {
 	$scripts[] = plugins_url( '/scripts/admin-barcode-scanner.js', __FILE__ );
 	
 	$form = array(
+		wp_lib_prep_nonce( 'Lookup Item Barcode' ),
 		array(
 			'type'		=> 'paras',
 			'content'	=> array( 'Once the barcode is scanned the item will be retried automatically' )
@@ -874,6 +916,7 @@ function wp_lib_page_scheduling_page() {
 	$end_date = Date( 'Y-m-d', current_time( 'timestamp' ) + ( get_option( 'wp_lib_loan_length', 12 ) * 24 * 60 * 60) );
 	
 	$form = array(
+		wp_lib_prep_nonce( 'Scheduling Item: ' . $item_id ),
 		array(
 			'type'	=> 'hidden',
 			'name'	=> 'item_id',
@@ -961,6 +1004,7 @@ function wp_lib_page_return_past() {
 	$header = wp_lib_prep_item_management_header( $item_id );
 	
 	$form = array(
+		wp_lib_prep_nonce( 'Past returning: ' . $item_id ),
 		array(
 			'type'	=> 'hidden',
 			'name'	=> 'item_id',
@@ -1030,6 +1074,7 @@ function wp_lib_page_resolution_page() {
 	$fine_per_day_formatted = wp_lib_format_money( $fine_per_day );
 	
 	$form = array(
+		wp_lib_prep_nonce( 'Resolution of item ' . $item_id . ' for loan '. $loan_id ),
 		array(
 			'type'		=> 'paras',
 			'content'	=> array( "{$title} is late by {$days_late}. If fined, the member would incur a fine of {$fine} ({$fine_per_day_formatted} per day x {$days_late})" )
@@ -1214,11 +1259,14 @@ function wp_lib_page_confirm_deletion() {
 		wp_lib_stop_ajax( false, 315 );
 	}
 	
-	// Adds post ID to page
-	$form[] = array(
-		'type'	=> 'hidden',
-		'name'	=> 'post_id',
-		'value'	=> $post_id
+	// Adds post ID and nonce to beginning of form
+	array_unshift( $form, 
+		wp_lib_prep_nonce( 'Deleting object: ' . $post_id ),
+		array(
+			'type'	=> 'hidden',
+			'name'	=> 'post_id',
+			'value'	=> $post_id
+		)
 	);
 	
 	// Looks for all objects connected to the current one (e.g. loans by a member, or fines as a result of a loan)

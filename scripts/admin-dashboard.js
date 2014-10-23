@@ -60,6 +60,9 @@ function wp_lib_do_action( action, params ) {
 		break;
 	}
 	
+	// Adds nonce to params to be sent
+	data.wp_lib_ajax_nonce = params['wp_lib_ajax_nonce'];
+	
 	// Submits action with all given form parameters
 	jQuery.post( ajaxurl, data, function( response ) {
 		// Parses response
@@ -238,6 +241,14 @@ function wp_lib_render_page( pageArray ) {
 				$('<input/>', elementObject ).appendTo( theParent );
 				
 				wp_lib_vars.getParams[elementObject.name] = elementObject.value;
+			break;
+			
+			case 'nonce':
+				elementObject.type = 'hidden';
+				elementObject.id = 'wp_lib_ajax_nonce';
+				elementObject.name = 'wp_lib_ajax_nonce';
+				
+				$('<input/>', elementObject ).appendTo( theParent );
 			break;
 			
 			case 'button':

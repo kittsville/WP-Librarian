@@ -642,6 +642,7 @@ function wp_lib_error( $error_id, $die = false, $param = 'NULL' ) {
 		500 => "Action requested does not exist. Given action: {$params}",
 		501	=> 'No content has been specified for the given page, as such page cannot be rendered',
 		502 => 'No page of that name found',
+		503	=> 'Nonce failed to verify, try reloading the page',
 		901 => 'Error encountered while processing error (error code not a number)',
 		902 => 'Error encountered while processing error (error does not exist)'
 	);
