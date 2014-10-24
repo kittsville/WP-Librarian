@@ -256,7 +256,7 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 		
 		case 'scan-barcode':
 			// Fetches barcode
-			$barcode = $_POST['code']; // GGGGG
+			$barcode = $_POST['code'];
 
 			// If barcode is zero, invalid barcode was given
 			if ( !ctype_digit( $barcode ) )
