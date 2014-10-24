@@ -565,6 +565,100 @@ function wp_lib_var_dump() {
 	}
 }
 
+	/* -- Statuses -- */
+
+// Turns numeric loan status into readable string e.g. 1 -> 'On Loan'
+function wp_lib_format_loan_status( $status ) {
+	// Array of all possible states of the loan
+	$strings = array(
+		0	=> '',
+		1	=> 'On Loan',
+		2	=> 'Returned',
+		3	=> 'Returned Late',
+		4	=> 'Returned Late (with fine)',
+		5	=> 'Scheduled'
+	);
+	
+	// If given number refers to a status that doesn't exist, throw error
+	if ( empty( $strings[$status] ) )
+		wp_lib_error( 201, true, 'Loan' );
+	
+	// State is looked up in the array and returned
+	return $strings[$status];
+}
+
+// Turns numeric fine status into readable string e.g. 1 -> 'Unpaid'
+function wp_lib_format_fine_status( $status ) {
+	// Array of all possible states of the fine
+	$strings = array(
+		0	=> '',
+		1	=> 'Active',
+		2	=> 'Cancelled'
+	);
+	
+	// If given number refers to a status that doesn't exist, throw error
+	if ( empty( $strings[$status] ) )
+		wp_lib_error( 201, true, 'Fine' );
+	
+	// State is looked up in the array and returned
+	return $strings[$status];
+}
+
+// Fetches list of all possible user roles within the plugin
+function wp_lib_fetch_user_roles() {
+	return array(
+		0	=> '',
+		1	=> '',
+		5	=> 'Librarian',
+		10	=> 'Administrator'
+	);
+}
+
+// Turns numeric user status into readable string e.g. 5 -> Librarian
+function wp_lib_format_user_permission_status( $status ) {
+	// Array of all possible user permissions
+	$strings = wp_lib_fetch_user_roles();
+	
+	// If given number refers to a status that doesn't exist, throw error
+	if ( !array_key_exists( $status, $strings ) )
+		wp_lib_error( 201, true, 'User' );
+	
+	// State is looked up in the array and returned
+	return $strings[$status];
+}
+
+// Fetches and formats user permission status
+function wp_lib_fetch_user_permission_status( $user_id ) {
+	// Fetches status
+	$status = get_user_meta( $user_id, 'wp_lib_role', true );
+	
+	if ( !$status )
+		return '';
+	else
+		return wp_lib_format_user_permission_status( $status );
+}
+
+// Returns formatted item condition given item number
+function wp_lib_format_item_condition( $number, $full = true ) {
+	// All possible conditions item can be in
+	$states = array(
+		4 => 'Excellent',
+		3 => 'Good',
+		2 => 'Fair',
+		1 => 'Poor',
+		0 => 'Very Poor'
+	);
+	
+	// If item has not been given a state, return placeholder
+	if ( !array_key_exists( $number, $states ) )
+		return '-';
+	
+	if ( $full )
+		return $number . ' - ' . $states[$number];
+	else
+		return $states[$number];	
+}
+
 	/* -- Miscellaneous -- */
 
 // Fetches amount member owes Library in fines
@@ -592,27 +686,6 @@ function wp_lib_fetch_member_name( $post_id, $hyperlink = false ) {
 	} else {
 		return $member_name;
 	}
-}
-
-// Returns formatted item condition given item number
-function wp_lib_format_item_condition( $number, $full = true ) {
-	// All possible conditions item can be in
-	$states = array(
-		4 => 'Excellent',
-		3 => 'Good',
-		2 => 'Fair',
-		1 => 'Poor',
-		0 => 'Very Poor'
-	);
-	
-	// If item has not been given a state, return placeholder
-	if ( !array_key_exists( $number, $states ) )
-		return '-';
-	
-	if ( $full )
-		return $number . ' - ' . $states[$number];
-	else
-		return $states[$number];	
 }
 
 // Cancels loan of item that has a since corrupted loan attached to it

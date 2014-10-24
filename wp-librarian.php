@@ -136,11 +136,7 @@ function wp_lib_register_post_and_tax() {
 			'rewrite'				=> array('slug' => get_option( 'wp_lib_fines_slug', 'fines' ) )
 		)
 	);
-}
-
-// Registers all Taxonomies used by the plugin
-add_action( 'init', function() {
-
+	
 	/* Registers Authors as a taxonomy */
 	/* Authors are the creators of the item, such as the author of a book */
 	
@@ -224,7 +220,7 @@ add_action( 'init', function() {
 			}
 		}
 	}
-});
+}
 
 	/* -- Custom Post Table Columns -- */
 	/* Adds/removes columns from item/loan/fine post tables then populates said columns */
@@ -439,6 +435,28 @@ add_action( 'manage_wp_lib_fines_posts_custom_column', function ( $column, $fine
 	}
 }, 10, 2 );
 
+// Adds custom columns to user table
+add_filter( 'manage_users_columns', function( $columns ) {
+	// Adds user's WP-Librarian permissions to user table
+	$new_columns = array(
+		'library-role'	=> 'Library Role'
+	);
+	
+	// Fits new columns between existing columns
+	$columns = array_slice( $columns, 0, 5, true ) + $new_columns + array_slice( $columns, 5, NULL, true );
+	
+	return $columns;
+});
+
+// Fills custom column 'Library Role' with user's Library role (or lack thereof)
+add_action( 'manage_users_custom_column', function ( $value='', $column, $user_id ) {
+	switch( $column ) {
+		case 'library-role':
+			return wp_lib_fetch_user_permission_status( $user_id );
+		break;
+	}
+}, 10, 3 );
+
 	/* -- Meta boxes -- */
 	/* Adds and populates new meta boxes and removes unneeded ones from post type edit pages */
 
@@ -599,10 +617,33 @@ add_action( 'admin_menu', function() {
 	remove_meta_box( 'wp_lib_media_typediv', 'wp_lib_items', 'side' );
 });
 
+add_action( 'personal_options_update', 'wp_lib_update_user_meta' );
+add_action( 'edit_user_profile_update', 'wp_lib_update_user_meta' );
+
+function wp_lib_update_user_meta( $user_id ) {
+	// If user is not allowed to edit user meta or nonce fails, stops
+	if ( !current_user_can( 'edit_users' ) || !wp_verify_nonce( $_POST['wp_lib_profile_nonce'], 'Editing User: ' . $user_id ) )
+		return;
+	
+	// Fetches new role
+	$new_role = $_POST['wp_lib_role'];
+	
+	// If role wasn't specified or is invalid, stops
+	if ( !$new_role || !ctype_digit( $new_role ) )
+		return;
+	
+	// Checks if given role exists
+	if ( !array_key_exists( $new_role, wp_lib_fetch_user_roles() ) )
+		return;
+	
+	// Updates user's meta with new role
+	update_user_meta( $user_id, 'wp_lib_role', $new_role );
+}
+
 	/* -- Custom Post Type Customisation -- */
 	/* Modifying the edit pages fro custom post types to better suit their needs */
 
-// Changes "Post title" background of post title editing page to custom string
+// Changes "Post title" greyed out text of title field on Member/Item edit pages with custom text
 add_filter( 'enter_title_here', function() {
 	switch ( get_current_screen()->post_type ) {
 		case 'wp_lib_members':
@@ -871,6 +912,51 @@ register_deactivation_hook( __FILE__, 'flush_rewrite_rules' );
 
 // Checks if item is on loan before it is moved to trash
 add_action('before_delete_post', 'wp_lib_check_post_pre_trash');
+
+	/* -- Profile Fields -- */
+	/* Adds custom fields to user profile view/edit pages */
+
+add_action( 'show_user_profile', 'wp_lib_add_profile_page_fields' );
+add_action( 'edit_user_profile', 'wp_lib_add_profile_page_fields' );
+
+function wp_lib_add_profile_page_fields( $user ) {
+	// Sets up user role options array
+	foreach( [1,5,10] as $role_value ) {
+		$roles[$role_value] = wp_lib_format_user_permission_status( $role_value );
+	}
+	
+	// Fetches user's current roles
+	$status = get_user_meta( $user->ID, 'wp_lib_role', true );
+	
+	// If user has no role, role is 0
+	if ( !$status )
+		$status = 1;
+	
+	// Adds nonce to section
+	wp_nonce_field( 'Editing User: ' . $user->ID, 'wp_lib_profile_nonce' );
+	?>
+	<h3>WP-Librarian</h3>
+	<table class="form-table">
+		<tr>
+			<th><label for="wp-lib-role-input">Library Role</label></th>
+			<td>
+				<select id="wp-lib-role-input" name="wp_lib_role">
+					<?php
+						foreach( $roles as $numeric_role => $text_role ) {
+							if ( $status == $numeric_role )
+								$selected = ' selected="selected" ';
+							else
+								$selected = '';
+							echo '<option value="' . $numeric_role . '"' . $selected . '>' . $text_role . '</option>';
+						}
+					?>
+				</select><br/>
+				<span class="description" for="wp-lib-role-input">This defines how a user can interact with WP-Librarian.</span>
+			</td>
+		</tr>
+	</table>
+	<?php
+}
 
 	/* -- Templates -- */
 	/* Manages templates used to display post types for the Library */

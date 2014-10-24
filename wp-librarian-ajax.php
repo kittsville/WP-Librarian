@@ -6,91 +6,309 @@
  * Note that, for simplicity, 'die()' will be referred to here as if it were 'return' within this file
  */
 
-// Ensures only authorised users can access data via AJAX
-if ( wp_lib_is_librarian() ) {
-	/* Page Requests - Dynamically loaded pages */
-	add_action( 'wp_ajax_wp_lib_page', function() {
-		// Sets dash page to nothing if unspecified
-		$dash_page = isset( $_POST['dash_page'] ) ? $_POST['dash_page'] : null;
+	/* -- Page Requests -- */
+	/* Dynamically loaded pages */
+add_action( 'wp_ajax_wp_lib_page', function() {
+	// If user does not have a proper Library role, disallows access
+	if ( !wp_lib_is_librarian() )
+		wp_lib_stop_ajax( false, 112 );
+	
+	// Sets dash page to nothing if unspecified
+	$dash_page = isset( $_POST['dash_page'] ) ? $_POST['dash_page'] : null;
+	
+	// Calls relevant function to load requested page
+	switch( $_POST['dash_page'] ) {
+		case 'dashboard':
+			wp_lib_page_dashboard();
+		break;
 		
-		// Calls relevant function to load requested page
-		switch( $_POST['dash_page'] ) {
-			case 'dashboard':
-				wp_lib_page_dashboard();
-			break;
-			
-			case 'manage-item':
-				wp_lib_page_manage_item();
-			break;
-			
-			case 'manage-member':
-				wp_lib_page_manage_member();
-			break;
-			
-			case 'manage-loan':
-				wp_lib_page_manage_loan();
-			break;
-			
-			case 'manage-fine':
-				wp_lib_page_manage_fine();
-			break;
-			
-			case 'scan-item':
-				wp_lib_page_scan_item();
-			break;
-			
-			case 'scheduling-page':
-				wp_lib_page_scheduling_page();
-			break;
-			
-			case 'return-past':
-				wp_lib_page_return_past();
-			break;
-			
-			case 'resolve-loan':
-				wp_lib_page_resolution_page();
-			break;
-			
-			case 'object-deletion':
-				wp_lib_page_confirm_deletion();
-			break;
-			
-			default:
-				wp_lib_stop_ajax( false, 502 );
-			break;
-		}
-	});
-	
-	/* Library Actions - Loaning/returning items etc. */
-	add_action( 'wp_ajax_wp_lib_loan_item', 'wp_lib_do_loan_item' );
-	add_action( 'wp_ajax_wp_lib_schedule_loan', 'wp_lib_do_schedule_loan' );
-	add_action( 'wp_ajax_wp_lib_return_item', 'wp_lib_do_return_item' );
-	add_action( 'wp_ajax_wp_lib_fine_member', 'wp_lib_do_fine_member' );
-	add_action( 'wp_ajax_wp_lib_modify_fine', 'wp_lib_do_modify_fine' );
-	add_action( 'wp_ajax_wp_lib_delete_object', 'wp_lib_do_delete_object' );
-	add_action( 'wp_ajax_wp_lib_clean_item', 'wp_lib_do_clean_item' );
-	
-	/* Misc */
-	add_action( 'wp_ajax_wp_lib_unknown_action', 'wp_lib_do_unknown_action' );
-	add_action( 'wp_ajax_wp_lib_fetch_notifications', 'wp_lib_fetch_notifications' );
-	add_action( 'wp_ajax_wp_lib_lookup_barcode', 'wp_lib_fetch_item_by_barcode' );
-}
+		case 'manage-item':
+			wp_lib_page_manage_item();
+		break;
+		
+		case 'manage-member':
+			wp_lib_page_manage_member();
+		break;
+		
+		case 'manage-loan':
+			wp_lib_page_manage_loan();
+		break;
+		
+		case 'manage-fine':
+			wp_lib_page_manage_fine();
+		break;
+		
+		case 'scan-item':
+			wp_lib_page_scan_item();
+		break;
+		
+		case 'scheduling-page':
+			wp_lib_page_scheduling_page();
+		break;
+		
+		case 'return-past':
+			wp_lib_page_return_past();
+		break;
+		
+		case 'resolve-loan':
+			wp_lib_page_resolution_page();
+		break;
+		
+		case 'object-deletion':
+			wp_lib_page_confirm_deletion();
+		break;
+		
+		default:
+			wp_lib_stop_ajax( false, 502 );
+		break;
+	}
+});
 
-function wp_lib_do_clean_item() {
-	$item_id = $_POST['item_id'];
+	/* -- Dashboard Actions -- */
+	/* AJAX requests to modify the Library */
+add_action( 'wp_ajax_wp_lib_action', function() {
+	// If user does not have a proper Library role, disallows access
+	if ( !wp_lib_is_librarian() )
+		wp_lib_stop_ajax( false, 112 );
 	
-	// If item ID fails to validate, return false
-	if ( !wp_lib_valid_item_id( $item_id ) )
-		wp_lib_stop_ajax( false );
-	
-	// Strips any loan or member currently attached to item
-	if ( wp_lib_clean_item( $item_id ) )
-		wp_lib_stop_ajax( true );
-	else
-		wp_lib_stop_ajax( false );
-}
+	switch( $_POST['dash_action'] ) {
+		case 'loan':
+			// Fetches params from AJAX request
+			$item_id = $_POST['item_id'];
+			$member_id = $_POST['member_id'];
+			$loan_length = $_POST['loan_length'];
+			
+			// If item or member ID fail to validate, return false (errors are handled by the validation functions)
+			if ( !wp_lib_valid_item_id( $item_id ) || !wp_lib_valid_member_id( $member_id ) )
+				wp_lib_stop_ajax( false );
+			
+			// If nonce fails to validate, return false (errors are handled by the validation functions)
+			if ( !wp_lib_verify_nonce( 'Managing Item: ' . $item_id ) )
+				wp_lib_stop_ajax( false );
+			
+			// Attempts to loan item
+			$success = wp_lib_loan_item( $item_id, $member_id, $loan_length );
+			
+			// Kills execution, returning if loan succeeded
+			wp_lib_stop_ajax( $success );
+		break;
+		
+		case 'schedule':
+			// Fetches params from AJAX request
+			$item_id = $_POST['item_id'];
+			$member_id = $_POST['member_id'];
+			$start_date = $_POST['start_date'];
+			$end_date = $_POST['end_date'];
+			
+			// If item or member ID fail to validate, return false (errors are handled by the validation functions)
+			if ( !wp_lib_valid_item_id( $item_id ) || !wp_lib_valid_member_id( $member_id ) ) {
+				wp_lib_stop_ajax( false );
+			}
 
-	/* Misc AJAX Functions */
+			// Checks if nonce is valid
+			if ( !wp_lib_verify_nonce( 'Managing Item: ' . $item_id ) )
+				wp_lib_stop_ajax( false );
+			
+			// Attempts to convert given dates to Unix timestamps
+			wp_lib_convert_date( $start_date );
+			wp_lib_convert_date( $end_date );
+				
+			// Checks if dates failed to convert, return false and call error
+			if ( !$start_date || !$end_date )
+				wp_lib_stop_ajax( false, 312 );
+			
+			// If loan starts before it sends or ends before current time, calls an error and The Doctor
+			if ( $start_date > $end_date || $end_date < current_time( 'timestamp' ) ) {
+				wp_lib_error( 307 );
+				return false;
+			}
+			
+			// Schedules loan of item. If function returns new loan's ID then scheduling succeeded
+			$result = ( is_numeric( wp_lib_schedule_loan( $item_id, $member_id, $start_date, $end_date ) ) ? true : false );
+			
+			// If scheduling succeeded, notifies user of successful loan
+			if ( $result )
+				wp_lib_add_notification( 'A loan of ' . get_the_title( $item_id ) . ' has been scheduled' );
+			
+			// Returns result (boolean)
+			wp_lib_stop_ajax( $result );
+		break;
+		
+		case 'return-item':
+			// Fetches params from AJAX request
+			$item_id = $_POST['item_id'];
+			$end_date = $_POST['end_date'];
+			
+			// If item ID fails to validate, return false
+			if ( !wp_lib_valid_item_id( $item_id ) )
+				wp_lib_stop_ajax( false );
+			
+			/* The nonce needed to validate will be different depending on if the function
+			 * was called from the Item management page or the return past page
+			 * the_more_you_know.jpeg
+			 */
+			
+			// If the date is given (item is not being returned currently)
+			if ( $end_date ) {
+				// Checks if nonce is valid
+				if ( !wp_lib_verify_nonce( 'Past returning: ' . $item_id ) )
+					wp_lib_stop_ajax( false );
+				
+				// Attempts to converts formatted date to Unix timestamp e.g. 12/08/2013 -> 1386460800
+				wp_lib_convert_date( $end_date );
+				
+				// If date failed to convert
+				if ( !$end_date )
+					wp_lib_stop_ajax( false, 310 );
+			} else {
+				// Checks if nonce is valid
+				if ( !wp_lib_verify_nonce( 'Managing Item: ' . $item_id ) )
+					wp_lib_stop_ajax( false );
+				
+				$end_date = false;
+			}
+			
+			// Converts 'no fine' to boolean
+			if ( $_POST['no_fine'] === 'true' )
+				$no_fine = true;
+			else
+				$no_fine = false;
+			
+			// Attempts to return item, returning success/failure
+			wp_lib_stop_ajax( wp_lib_return_item( $item_id, $end_date, $no_fine ) );
+		break;
+		
+		case 'fine-member':
+			// Fetches params from AJAX request
+			$item_id = $_POST['item_id'];
+			$end_date = $_POST['end_date'];
+			
+			// If item ID fails to validate, return false
+			if ( !wp_lib_valid_item_id( $item_id ) )
+				wp_lib_stop_ajax( false );
+			
+			// Checks if nonce is valid
+			if ( !wp_lib_verify_nonce( 'Resolution of item ' . $item_id . ' for loan '. get_post_meta( $item_id, 'wp_lib_loan', true ) ) )
+				wp_lib_stop_ajax( false );
+			
+			// If the date is given (item is not being returned currently)
+			if ( $end_date ) {
+				// Attempts to converts formatted date to Unix timestamp e.g. 12/08/2013 -> 1386460800
+				wp_lib_convert_date( $end_date );
+				
+				// If date failed to convert
+				if ( !$end_date )
+					wp_lib_stop_ajax( false, 310 );
+			}
+			
+			// Fines member and returns item. Returns result
+			wp_lib_stop_ajax( wp_lib_create_fine( $item_id, $end_date ) );
+		break;
+		
+		case 'cancel-fine':
+			// Fetches params from AJAX request
+			$fine_id = $_POST['fine_id'];
+			
+			// Checks if fine ID is valid
+			wp_lib_check_fine_id( $fine_id );
+			
+			// Checks if nonce is valid
+			if ( !wp_lib_verify_nonce( 'Managing Fine: ' . $fine_id ) )
+				wp_lib_stop_ajax( false );
+			
+			// Attempts to cancel fine
+			$success = wp_lib_cancel_fine( $fine_id );
+			
+			// Returns success/failure as boolean
+			wp_lib_stop_ajax( $success );
+		break;
+		
+		case 'delete-object':
+			// Fetches library object ID
+			$post_id = $_POST['post_id'];
+			
+			// Validates ID of Library object
+			if ( !wp_lib_get_object_type( $post_id ) )
+				wp_lib_stop_ajax( false, 317 );
+			
+			// Checks if nonce is valid
+			if ( !wp_lib_verify_nonce( 'Deleting object: ' . $post_id ) )
+				wp_lib_stop_ajax( false );
+			
+			// Placeholder
+			wp_lib_add_notification( "Object not deleted" );
+			wp_lib_stop_ajax( true );
+		break;
+		
+		case 'clean-item':
+			$item_id = $_POST['item_id'];
+			
+			// If item ID fails to validate, return false
+			if ( !wp_lib_valid_item_id( $item_id ) )
+				wp_lib_stop_ajax( false );
+			
+			// Strips any loan or member currently attached to item
+			if ( wp_lib_clean_item( $item_id ) )
+				wp_lib_stop_ajax( true );
+			else
+				wp_lib_stop_ajax( false );
+		break;
+		
+		default:
+			wp_lib_stop_ajax( false, 500 );
+		break;
+	}
+});
+
+// Fetches all buffered notifications, this includes errors
+add_action( 'wp_ajax_wp_lib_fetch_notifications', 'wp_lib_fetch_notifications' );
+
+// Looks for item with given barcode, returns item ID on success and false on failure
+add_action( 'wp_ajax_wp_lib_lookup_barcode', function() {
+	// Fetches barcode
+	$barcode = $_POST['code']; // GGGGG
+
+	// If barcode is zero, invalid barcode was given
+	if ( !ctype_digit( $barcode ) )
+		wp_lib_stop_ajax( false );
+		
+	// Sets up meta query arguments
+	$args = array(
+		'post_type'	=> 'wp_lib_items',
+		'post_status'	=> 'publish',
+		'meta_query'	=> array(
+			array(
+				'key'	=> 'wp_lib_item_barcode',
+				'value'	=> $barcode,
+				'compare'	=> 'IN'
+			)
+		)
+	);
+	
+	// Looks for post(s) with barcode
+	$query = new WP_Query( $args );
+	
+	// Checks number of posts found
+	$posts_found = $query->found_posts;
+	
+	// If an item was found
+	if ( $posts_found == 1 ) {
+		$query->the_post();
+		
+		// Return item ID
+		echo json_encode( get_the_ID() );
+		
+		wp_lib_stop_ajax();
+	} elseif ( $posts_found > 1 ) {
+		// If multiple items have said barcode, call error
+		wp_lib_stop_ajax( false, 204 );
+	} else {
+		// If no items were found, call error
+		wp_lib_stop_ajax( false );
+	}
+});
+
+	/* -- Misc AJAX Functions -- */
 	/* Useful functions used for AJAX requests */
 
 // Starts PHP session
@@ -173,244 +391,7 @@ function wp_lib_send_page( $page_title, $tab_title, $content = false, $form = fa
 	wp_lib_stop_ajax( $buffer );
 }
 
-// Looks for item with given barcode, returns item ID on success and false on failure
-function wp_lib_fetch_item_by_barcode() {
-	// Converts barcode to an int
-	$barcode = (int)$_POST['code'];
-
-	// If barcode is zero, invalid barcode was given
-	if ( $barcode == 0 )
-		wp_lib_stop_ajax( false );
-		
-	// Sets up meta query arguments
-	$args = array(
-		'post_type'	=> 'wp_lib_items',
-		'post_status'	=> 'publish',
-		'meta_query'	=> array(
-			array(
-				'key'	=> 'wp_lib_item_barcode',
-				'value'	=> $barcode,
-				'compare'	=> 'IN'
-			)
-		)
-	);
-	
-	// Looks for post(s) with barcode
-	$query = new WP_Query( $args );
-	
-	// Checks number of posts found
-	$posts_found = $query->found_posts;
-	
-	// If an item was found
-	if ( $posts_found == 1 ) {
-		$query->the_post();
-		
-		// Return item ID
-		echo json_encode( get_the_ID() );
-		
-		wp_lib_stop_ajax();
-	} elseif ( $posts_found > 1 ) {
-		// If multiple items have said barcode, call error
-		wp_lib_stop_ajax( false, 204 );
-	} else {
-		// If no items were found, call error
-		wp_lib_stop_ajax( false );
-	}
-}
-
-// Informs user that action requested does not exist
-function wp_lib_do_unknown_action() {
-	wp_lib_stop_ajax( false, 500 );
-}
-
-	/* Actions */
-	/* Prepares data then modifies the library using given instruction */
-
-// Schedules a loan commencing now, then marks the item has having been given to the member
-function wp_lib_do_loan_item() {
-	// Fetches params from AJAX request
-	$item_id = $_POST['item_id'];
-	$member_id = $_POST['member_id'];
-	$loan_length = $_POST['loan_length'];
-	
-	// If item or member ID fail to validate, return false (errors are handled by the validation functions)
-	if ( !wp_lib_valid_item_id( $item_id ) || !wp_lib_valid_member_id( $member_id ) )
-		wp_lib_stop_ajax( false );
-	
-	// If nonce fails to validate, return false (errors are handled by the validation functions)
-	if ( !wp_lib_verify_nonce( 'Managing Item: ' . $item_id ) )
-		wp_lib_stop_ajax( false );
-	
-	// Attempts to loan item
-	$success = wp_lib_loan_item( $item_id, $member_id, $loan_length );
-	
-	// Kills execution, returning if loan succeeded
-	wp_lib_stop_ajax( $success );
-}
-
-// Schedules a future loan
-function wp_lib_do_schedule_loan() {
-	// Fetches params from AJAX request
-	$item_id = $_POST['item_id'];
-	$member_id = $_POST['member_id'];
-	$start_date = $_POST['start_date'];
-	$end_date = $_POST['end_date'];
-	
-	// If item or member ID fail to validate, return false (errors are handled by the validation functions)
-	if ( !wp_lib_valid_item_id( $item_id ) || !wp_lib_valid_member_id( $member_id ) ) {
-		wp_lib_stop_ajax( false );
-	}
-
-	// Checks if nonce is valid
-	if ( !wp_lib_verify_nonce( 'Managing Item: ' . $item_id ) )
-		wp_lib_stop_ajax( false );
-	
-	// Attempts to convert given dates to Unix timestamps
-	wp_lib_convert_date( $start_date );
-	wp_lib_convert_date( $end_date );
-		
-	// Checks if dates failed to convert, return false and call error
-	if ( !$start_date || !$end_date )
-		wp_lib_stop_ajax( false, 312 );
-	
-	// If loan starts before it sends or ends before current time, calls an error and The Doctor
-	if ( $start_date > $end_date || $end_date < current_time( 'timestamp' ) ) {
-		wp_lib_error( 307 );
-		return false;
-	}
-	
-	// Schedules loan of item. If function returns new loan's ID then scheduling succeeded
-	$result = ( is_numeric( wp_lib_schedule_loan( $item_id, $member_id, $start_date, $end_date ) ) ? true : false );
-	
-	// If scheduling succeeded, notifies user of successful loan
-	if ( $result )
-		wp_lib_add_notification( 'A loan of ' . get_the_title( $item_id ) . ' has been scheduled' );
-	
-	// Returns result (boolean)
-	wp_lib_stop_ajax( $result );
-}
-
-// Returns an item currently on loan
-function wp_lib_do_return_item() {
-	// Fetches params from AJAX request
-	$item_id = $_POST['item_id'];
-	$end_date = $_POST['end_date'];
-	
-	// If item ID fails to validate, return false
-	if ( !wp_lib_valid_item_id( $item_id ) )
-		wp_lib_stop_ajax( false );
-	
-	/* The nonce needed to validate will be different depending on if the function
-	 * was called from the Item management page or the return past page
-	 * the_more_you_know.jpeg
-	 */
-	
-	// If the date is given (item is not being returned currently)
-	if ( $end_date ) {
-		// Checks if nonce is valid
-		if ( !wp_lib_verify_nonce( 'Past returning: ' . $item_id ) )
-			wp_lib_stop_ajax( false );
-		
-		// Attempts to converts formatted date to Unix timestamp e.g. 12/08/2013 -> 1386460800
-		wp_lib_convert_date( $end_date );
-		
-		// If date failed to convert
-		if ( !$end_date )
-			wp_lib_stop_ajax( false, 310 );
-	} else {
-		// Checks if nonce is valid
-		if ( !wp_lib_verify_nonce( 'Managing Item: ' . $item_id ) )
-			wp_lib_stop_ajax( false );
-		
-		$end_date = false;
-	}
-	
-	// Converts 'no fine' to boolean
-	if ( $_POST['no_fine'] === 'true' )
-		$no_fine = true;
-	else
-		$no_fine = false;
-	
-	// Attempts to return item, returning success/failure
-	wp_lib_stop_ajax( wp_lib_return_item( $item_id, $end_date, $no_fine ) );
-}
-
-// Charges a member a fine for returning an item late
-function wp_lib_do_fine_member() {
-	// Fetches params from AJAX request
-	$item_id = $_POST['item_id'];
-	$end_date = $_POST['end_date'];
-	
-	// If item ID fails to validate, return false
-	if ( !wp_lib_valid_item_id( $item_id ) )
-		wp_lib_stop_ajax( false );
-	
-	// Checks if nonce is valid
-	if ( !wp_lib_verify_nonce( 'Resolution of item ' . $item_id . ' for loan '. get_post_meta( $item_id, 'wp_lib_loan', true ) ) )
-		wp_lib_stop_ajax( false );
-	
-	// If the date is given (item is not being returned currently)
-	if ( $end_date ) {
-		// Attempts to converts formatted date to Unix timestamp e.g. 12/08/2013 -> 1386460800
-		wp_lib_convert_date( $end_date );
-		
-		// If date failed to convert
-		if ( !$end_date )
-			wp_lib_stop_ajax( false, 310 );
-	}
-	
-	// Fines member and returns item. Returns result
-	wp_lib_stop_ajax( wp_lib_create_fine( $item_id, $end_date ) );
-}
-
-// Modifies fine by marking fine as paid/unpaid or cancelling fine
-function wp_lib_do_modify_fine() {
-	// Fetches params from AJAX request
-	$fine_id = $_POST['fine_id'];
-	$action = $_POST['fine_action'];
-	
-	// Checks if fine ID is valid
-	wp_lib_check_fine_id( $fine_id );
-	
-	// Checks if nonce is valid
-	if ( !wp_lib_verify_nonce( 'Managing Fine: ' . $fine_id ) )
-		wp_lib_stop_ajax( false );
-	
-	// Modifies fine based off requested action
-	switch ( $action ) {
-		// Cancels fine, returning success/failure
-		case 'cancel':
-			$success = wp_lib_cancel_fine( $fine_id );
-		break;
-		
-		default:
-			wp_lib_stop_ajax( false, 314 );
-		break;
-	}
-	
-	// Returns success/failure as boolean
-	wp_lib_stop_ajax( $success );
-}
-
-// Deletes Library object and if requested, associated objects (e.g. item and all loans of that item )
-function wp_lib_do_delete_object() {
-	// Fetches library object ID
-	$post_id = $_POST['post_id'];
-	
-	// Validates ID of Library object
-	if ( !wp_lib_get_object_type( $post_id ) )
-		wp_lib_stop_ajax( false, 317 );
-	
-	// Checks if nonce is valid
-	if ( !wp_lib_verify_nonce( 'Deleting object: ' . $post_id ) )
-		wp_lib_stop_ajax( false );
-	
-	// Placeholder
-	wp_lib_add_notification( "Object not deleted" );
-	wp_lib_stop_ajax( true );
-}
-
-	/* Pages */
+	/* -- AJAX Pages -- */
 	/* Renders then returns Dashboard pages */
 
 // Displays Library Dashboard

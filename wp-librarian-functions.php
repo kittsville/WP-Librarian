@@ -6,9 +6,19 @@
  * and rely on post types and taxonomies set up in wp-librarian.php
  */
 
-// Checks if user has permission to loan/return books
+// Checks if user has sufficient permissions to perform librarian actions
 function wp_lib_is_librarian() {
-	return true;
+	if ( get_user_meta( get_current_user_id(), 'wp_lib_role', true ) >= 5 )
+		return true;
+	else
+		return false;
+}
+
+function wp_lib_is_library_admin() {
+	if ( get_user_meta( get_current_user_id(), 'wp_lib_role', true ) >= 10 )
+		return true;
+	else
+		return false;
 }
 
 // Checks if item will be on loan between given dates. Given no dates, checks if item is currently on loan
@@ -547,44 +557,6 @@ function wp_lib_cancel_fine( $fine_id ) {
 	wp_lib_add_notification( "Fine #{$fine_id} has been cancelled" );
 }
 
-// Turns numeric loan status into readable string e.g. 1 -> 'On Loan'
-function wp_lib_format_loan_status( $status ) {
-	// Array of all possible states of the loan
-	$strings = array(
-		0	=> '',
-		1	=> 'On Loan',
-		2	=> 'Returned',
-		3	=> 'Returned Late',
-		4	=> 'Returned Late (with fine)',
-		5	=> 'Scheduled'
-	);
-	
-	// If given number refers to a status that doesn't exist, throw error
-	if ( empty( $strings[$status] ) )
-		wp_lib_error( 201, true, 'Loan' );
-	
-	// State is looked up in the array and returned
-	return $strings[$status];
-}
-
-// Turns numeric fine status into readable string e.g. 1 -> 'Unpaid'
-function wp_lib_format_fine_status( $status ) {
-
-	// Array of all possible states of the fine
-	$strings = array(
-		0	=> '',
-		1	=> 'Active',
-		2	=> 'Cancelled'
-	);
-	
-	// If given number refers to a status that doesn't exist, throw error
-	if ( empty( $strings[$status] ) )
-		wp_lib_error( 201, true, 'Fine' );
-	
-	// State is looked up in the array and returned
-	return $strings[$status];
-}
-
 // Returns explanation of error given error code
 function wp_lib_error( $error_id, $die = false, $param = 'NULL' ) {
 	// Checks if error code is valid and error exists, if not returns error
@@ -603,10 +575,10 @@ function wp_lib_error( $error_id, $die = false, $param = 'NULL' ) {
 	$all_errors = array(
 		110 => 'DateTime neither positive or negative',
 		111 => 'Unexpected currency position',
-		112 => 'Insufficient permission',
+		112 => 'Insufficient permissions',
 		113 => "Can not delete {$param} as it is currently on loan. Please return the item first.",
 		200 => 'Item action not recognised',
-		201 => "No {$param} status found for given value",
+		201 => "No {$param} status known for given value",
 		202 => 'Loans do not have management pages, but I appreciate your curiosity!',
 		203 => 'Loan not found in item\'s loan index',
 		204 => 'Multiple items have the same barcode',
@@ -623,7 +595,6 @@ function wp_lib_error( $error_id, $die = false, $param = 'NULL' ) {
 		311 => 'Given loan length invalid (not a valid number)',
 		312 => 'Given date(s) failed to validate',
 		313 => 'Fine can not be cancelled if it is already cancelled',
-		314 => 'Fine action not recognised',
 		315 => 'Library Object type not specified or recognised',
 		316	=> 'Given member has been archived and cannot be loaned items',
 		317 => 'Given ID does not belong to a valid Library object',

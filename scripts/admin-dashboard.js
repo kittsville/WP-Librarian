@@ -1,62 +1,50 @@
-function wp_lib_do_action( action, params ) {
+function wp_lib_do_action( dashAction, params ) {
 	// Initialising AJAX object
-	var data = {};
+	var data = {
+		action		: 'wp_lib_action',
+		dash_action	: dashAction
+	};
 	
 	// AJAX action switch, decides what action should be taken
-	switch ( action ) {
+	switch ( dashAction ) {
 		case 'loan':
-			data.action = 'wp_lib_loan_item';
 			data.item_id = params['item_id'];
 			data.member_id = params['member_id'];
 			data.loan_length = params['loan_length'];
 		break;
 		
 		case 'schedule':
-			data.action = 'wp_lib_schedule_loan';
 			data.item_id = params['item_id'];
 			data.member_id = params['member_id'];
 			data.start_date = params['start_date'];
 			data.end_date = params['end_date'];
 		break;
 		
-		case 'return-item':
-			data.action = 'wp_lib_return_item';
-			data.item_id = params['item_id'];
-			data.end_date = params['end_date'];
-		break;
-		
 		case 'return-item-no-fine':
-			data.action = 'wp_lib_return_item';
+			data.no_fine = true;
+			data.dash_action = 'return-item';
+			// Deliberate
+		case 'return-item':
 			data.item_id = params['item_id'];
 			data.end_date = params['end_date'];
-			data.no_fine = true;
 		break;
 		
 		case 'fine-member':
-			data.action = 'wp_lib_fine_member';
 			data.item_id = params['item_id'];
 			data.end_date = params['end_date'];
 		break;
 		
 		case 'cancel-fine':
-			data.action = 'wp_lib_modify_fine';
 			data.fine_id = params['fine_id'];
-			data.fine_action = params['cancel'];
 		break;
 		
 		case 'delete-object':
-			data.action = 'wp_lib_delete_object';
 			data.post_id = params['post_id'];
 			data.deletion_confirmed = true;
 		break;
 		
 		case 'clean-item':
-			data.action = 'wp_lib_clean_item';
 			data.item_id = params['item_id'];
-		break;
-		
-		default:
-			data.action = 'wp_lib_unknown_action';
 		break;
 	}
 	
@@ -104,6 +92,11 @@ function wp_lib_load_page( ajaxData, stateLoad ) {
 	// Sends AJAX page request with given params, fills workspace div with response
 	jQuery.post( ajaxurl, ajaxData )
 	.done( function( response ) {
+		// Checks if hook does not exist (hooks require user to have suitable role within the library)
+		if ( response == '0' ) {
+			wp_lib_local_error( "Insufficient permissions to load page" );
+		}
+		
 		// Parses response
 		var ajaxResult = wp_lib_parse_json( response );
 		
@@ -131,6 +124,11 @@ function wp_lib_load_page( ajaxData, stateLoad ) {
 				// Deletes dash page if it's redundant
 				if ( ajaxData.dash_page == 'dashboard' ) {
 					delete ajaxData.dash_page;
+				}
+				
+				// Removes Nonce from data to be pushed to URL
+				if ( ajaxData.wp_lib_ajax_nonce ) {
+					delete ajaxData.wp_lib_ajax_nonce;
 				}
 				
 				// Creates base url for history entry
