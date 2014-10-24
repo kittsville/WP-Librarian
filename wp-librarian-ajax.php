@@ -254,59 +254,61 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 				wp_lib_stop_ajax( false );
 		break;
 		
+		case 'scan-barcode':
+			// Fetches barcode
+			$barcode = $_POST['code']; // GGGGG
+
+			// If barcode is zero, invalid barcode was given
+			if ( !ctype_digit( $barcode ) )
+				wp_lib_stop_ajax( false, 318 );
+				
+			// Sets up meta query arguments
+			$args = array(
+				'post_type'	=> 'wp_lib_items',
+				'post_status'	=> 'publish',
+				'meta_query'	=> array(
+					array(
+						'key'	=> 'wp_lib_item_barcode',
+						'value'	=> $barcode,
+						'compare'	=> 'IN'
+					)
+				)
+			);
+			
+			// Looks for post(s) with barcode
+			$query = new WP_Query( $args );
+			
+			// Checks number of posts found
+			$posts_found = $query->found_posts;
+			
+			// If an item was found
+			if ( $posts_found == 1 ) {
+				$query->the_post();
+				
+				// Return item ID
+				echo json_encode( get_the_ID() );
+				
+				wp_lib_stop_ajax();
+			} elseif ( $posts_found > 1 ) {
+				// If multiple items have said barcode, call error
+				wp_lib_stop_ajax( false, 204 );
+			} else {
+				// If no items were found, call error
+				wp_lib_stop_ajax( false, 319 );
+			}
+		break;
+		
 		default:
 			wp_lib_stop_ajax( false, 500 );
 		break;
 	}
+	
+	// Fail-safe
+	wp_lib_stop_ajax( false, 500 );
 });
 
 // Fetches all buffered notifications, this includes errors
 add_action( 'wp_ajax_wp_lib_fetch_notifications', 'wp_lib_fetch_notifications' );
-
-// Looks for item with given barcode, returns item ID on success and false on failure
-add_action( 'wp_ajax_wp_lib_lookup_barcode', function() {
-	// Fetches barcode
-	$barcode = $_POST['code']; // GGGGG
-
-	// If barcode is zero, invalid barcode was given
-	if ( !ctype_digit( $barcode ) )
-		wp_lib_stop_ajax( false );
-		
-	// Sets up meta query arguments
-	$args = array(
-		'post_type'	=> 'wp_lib_items',
-		'post_status'	=> 'publish',
-		'meta_query'	=> array(
-			array(
-				'key'	=> 'wp_lib_item_barcode',
-				'value'	=> $barcode,
-				'compare'	=> 'IN'
-			)
-		)
-	);
-	
-	// Looks for post(s) with barcode
-	$query = new WP_Query( $args );
-	
-	// Checks number of posts found
-	$posts_found = $query->found_posts;
-	
-	// If an item was found
-	if ( $posts_found == 1 ) {
-		$query->the_post();
-		
-		// Return item ID
-		echo json_encode( get_the_ID() );
-		
-		wp_lib_stop_ajax();
-	} elseif ( $posts_found > 1 ) {
-		// If multiple items have said barcode, call error
-		wp_lib_stop_ajax( false, 204 );
-	} else {
-		// If no items were found, call error
-		wp_lib_stop_ajax( false );
-	}
-});
 
 	/* -- Misc AJAX Functions -- */
 	/* Useful functions used for AJAX requests */
@@ -867,6 +869,13 @@ function wp_lib_page_scan_item() {
 			'id'		=> 'barcode-input',
 			'name'		=> 'item_barcode',
 			'autofocus'	=> true
+		),
+		array(
+			'type'	=> 'button',
+			'id'	=> 'barcode-submit',
+			'link'	=> 'action',
+			'value'	=> 'scan-barcode',
+			'html'	=> 'Scan'
 		)
 	);
 	

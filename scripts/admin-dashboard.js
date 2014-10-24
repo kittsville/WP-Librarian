@@ -46,6 +46,10 @@ function wp_lib_do_action( dashAction, params ) {
 		case 'clean-item':
 			data.item_id = params['item_id'];
 		break;
+		
+		case 'scan-barcode':
+			data.code = params['item_barcode'];
+		break;
 	}
 	
 	// Adds nonce to params to be sent
@@ -57,8 +61,13 @@ function wp_lib_do_action( dashAction, params ) {
 		var success = wp_lib_parse_json( response );
 		
 		// If action completed successfully, loads Dashboard. Otherwise fetches notifications
-		if ( success ) {
+		if ( success == true ) {
 			wp_lib_load_page();
+		} else if ( typeof success === "number" && success != 0 ) {
+			wp_lib_load_page({
+				item_id		: success,
+				dash_page	: 'manage-item'
+			});
 		} else {
 			// Fetches and renders any new notifications
 			wp_lib_display_notifications();
