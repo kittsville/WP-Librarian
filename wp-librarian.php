@@ -457,6 +457,50 @@ add_action( 'manage_users_custom_column', function ( $value='', $column, $user_i
 	}
 }, 10, 3 );
 
+	/* -- Post Messages -- */
+	/* Changes 'Post Updated' messages to more post type relevant messages for items/members */
+
+add_filter( 'post_updated_messages', function( $messages ) {
+	// Fetches post and post type
+	$post             = get_post();
+	$post_type        = get_post_type( $post );
+	
+	// Adds messages based on current post's post type
+	switch( $post_type ) {
+		case 'wp_lib_items':
+			// Creates hyperlink to view or preview item
+			$permalink = get_permalink( $post->ID );
+			$view_link = ' <a href="' . esc_url( $permalink ) . '">' . 'View Item' . '</a>';
+			$preview_link = ' <a target="_blank" href="' . esc_url( add_query_arg( 'preview', 'true', $permalink ) ) . '">' . 'Preview Item' . '</a>';
+
+			$messages['wp_lib_items'] = array(
+				1  => 'Item Updated' . $view_link,
+				6  => 'Item Published' . $view_link,
+				7  => 'Item Saved',
+				8  => 'Item Submitted' . $preview_link,
+				9  => 'Item\'s publishing scheduled for: <strong>' . date_i18n( 'M j, Y @ G:i', strtotime( $post->post_date ) ) . '</strong>'. $view_link,
+				10 => 'Item draft updated.' . $preview_link
+			);
+		break;
+		
+		case 'wp_lib_members':
+			// Creates hyperlink to manage Member
+			$manage_member_link = ' <a href="' . wp_lib_manage_member_url( $post->ID ) . '">' . 'Manage Member' . '</a>';
+			
+			$messages['wp_lib_members'] = array(
+				1  => 'Member\'s details updated.' . $manage_member_link,
+				6  => 'Member published' . $manage_member_link,
+				7  => 'Member\'s details saved',
+				8  => 'Member Submitted',
+				9  => 'Member will be published at: <strong>' . date_i18n( 'M j, Y @ G:i', strtotime( $post->post_date ) ) . '</strong>',
+				10 => 'Member details draft updated'
+			);
+		break;
+	}
+
+	return $messages;
+});
+
 	/* -- Meta boxes -- */
 	/* Adds and populates new meta boxes and removes unneeded ones from post type edit pages */
 
