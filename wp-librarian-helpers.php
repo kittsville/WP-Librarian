@@ -79,7 +79,7 @@ function wp_lib_valid_item_id( $item_id ) {
 	$item_status = get_post_status( $item_id );
 	
 	// Checks if ID belongs to a published/private library item
-	if ( get_post_type( $item_id ) != WP_LIB_ITEMS || !( $item_status == 'publish' || $item_status == 'private' ) ) {
+	if ( get_post_type( $item_id ) != 'wp_lib_items' || !( $item_status == 'publish' || $item_status == 'private' ) ) {
 		wp_lib_error( 305, false, $item_id );
 		return false;
 	}
@@ -105,7 +105,7 @@ function wp_lib_valid_member_id( $member_id ) {
 	$member_status = get_post_status( $member_id );
 	
 	// Checks if ID belongs to a published/private library item
-	if ( get_post_type( $member_id ) != WP_LIB_MEMBERS ) {
+	if ( get_post_type( $member_id ) != 'wp_lib_members' ) {
 		wp_lib_error( 305, false, $member_id );
 		return false;
 	}
@@ -128,7 +128,7 @@ function wp_lib_valid_loan_id( $loan_id ) {
 	}
 	
 	// Checks if ID belongs to a published loan (a loan in any other state is not valid)
-	if ( get_post_type( $loan_id ) != WP_LIB_LOANS ) {
+	if ( get_post_type( $loan_id ) != 'wp_lib_loans' ) {
 		wp_lib_error( 306 );
 		return false;
 	}
@@ -151,7 +151,7 @@ function wp_lib_valid_fine_id( $fine_id ){
 	}
 	
 	// Checks if ID belongs to a published loan (a loan in any other state is not valid)
-	if ( get_post_type( $fine_id ) != WP_LIB_FINES ) {
+	if ( get_post_type( $fine_id ) != 'wp_lib_fines' ) {
 		wp_lib_error( 308 );
 		return false;
 	}
@@ -178,19 +178,19 @@ function wp_lib_get_object_type( $post_id ) {
 	
 	// Returns Library object type
 	switch ( get_post_type( $post_id ) ) {
-		case WP_LIB_ITEMS:
+		case 'wp_lib_items':
 			return 'item';
 		break;
 		
-		case WP_LIB_MEMBERS:
+		case 'wp_lib_members':
 			return 'member';
 		break;
 		
-		case WP_LIB_LOANS:
+		case 'wp_lib_loans':
 			return 'loan';
 		break;
 		
-		case WP_LIB_FINES:
+		case 'wp_lib_fines':
 			return 'fine';
 		break;
 		
@@ -393,8 +393,8 @@ function wp_lib_prep_item_management_header( $item_id ) {
 	
 	// Taxonomy terms to be fetched
 	$tax_terms = array(
-		'Media Type'=> WP_LIB_MEDIA_TYPES,
-		'Author'	=> WP_LIB_AUTHORS
+		'Media Type'=> 'wp_lib_media_type',
+		'Author'	=> 'wp_lib_author'
 	);
 	
 	// Iterates through taxonomies, fetching their terms and adding them to the meta field array
@@ -519,7 +519,7 @@ function wp_lib_prep_member_options() {
 	);
 	
 	$args = array(
-		'post_type'			=> WP_LIB_MEMBERS,
+		'post_type'			=> 'wp_lib_members',
 		'post_status'		=> 'publish'
 	);
 	
@@ -796,8 +796,8 @@ function wp_lib_prep_item_available( $item_id, $no_url = false, $short = false )
 function wp_lib_fetch_meta( $item_id ) {
 	// Metabox data is fetched and relevant functions are called to format the data
 	$meta_array = array(
-		'media type'	=> wp_lib_prep_meta( get_the_terms( $item_id, WP_LIB_MEDIA_TYPES ), 'Media Type' ),
-		'authors'		=> wp_lib_prep_meta( get_the_terms( $item_id, WP_LIB_AUTHORS ), 'Author' ),
+		'media type'	=> wp_lib_prep_meta( get_the_terms( $item_id, 'wp_lib_media_type' ), 'Media Type' ),
+		'authors'		=> wp_lib_prep_meta( get_the_terms( $item_id, 'wp_lib_author' ), 'Author' ),
 		'donor'			=> wp_lib_prep_meta( get_post_meta( $item_id, 'wp_lib_donor', true ), 'Donor' ),
 		'isbn'			=> wp_lib_prep_meta( get_post_meta( $item_id, 'wp_lib_item_isbn', true ), 'ISBN' ),
 		'available'		=> wp_lib_prep_meta( wp_lib_prep_item_available( $item_id ), 'Status' ),
@@ -868,21 +868,21 @@ function wp_lib_fetch_dependant_objects( $post_id, $post_type = false, $connecte
 		$post_type = get_post_type( $post_id );
 	
 	// If post type requires post query
-	if ( $post_type == WP_LIB_ITEMS || $post_type == WP_LIB_MEMBERS ) {
+	if ( $post_type == 'wp_lib_items' || $post_type == 'wp_lib_members' ) {
 		// Sets meta key to use in search
 		switch ( $post_type ) {
-			case WP_LIB_ITEMS:
+			case 'wp_lib_items':
 				$key = 'wp_lib_item';
 			break;
 			
-			case WP_LIB_MEMBERS:
+			case 'wp_lib_members':
 				$key = 'wp_lib_member';
 			break;
 		}
 		
 		// Sets query args
 		$args = array(
-			'post_type'		=> WP_LIB_LOANS,
+			'post_type'		=> 'wp_lib_loans',
 			'post_status'	=> 'publish',
 			'meta_query'	=> array(
 				array(
@@ -908,17 +908,17 @@ function wp_lib_fetch_dependant_objects( $post_id, $post_type = false, $connecte
 				$connected_posts[] = array( $loan_id, get_post_type( $loan_id ) );
 				
 				// Calls function to check loan for connected objects
-				$connected_posts = wp_lib_fetch_dependant_objects( $loan_id, WP_LIB_LOANS, $connected_posts );
+				$connected_posts = wp_lib_fetch_dependant_objects( $loan_id, 'wp_lib_loans', $connected_posts );
 			}
 		}
-	} elseif ( $post_type == WP_LIB_LOANS ) {
+	} elseif ( $post_type == 'wp_lib_loans' ) {
 		// Fetches fine ID from loan meta
 		$fine_id = get_post_meta( $post_id, 'wp_lib_fine', true );
 		
 		// If fine ID was found, add to connected posts list
 		if ( $fine_id )
 			$connected_posts[] = array( $fine_id, get_post_type( $fine_id ) );
-	} elseif ( $post_type == WP_LIB_FINES ) {
+	} elseif ( $post_type == 'wp_lib_fines' ) {
 		// Fetches loan ID from fine meta
 		$loan_id = get_post_meta( $post_id, 'wp_lib_loan', true );
 		
