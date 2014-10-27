@@ -491,8 +491,8 @@ add_filter('additional_capabilities_display', function() {
 	return false;
 });
 
-	/* -- Post Messages -- */
-	/* Changes 'Post Updated' messages to more post type relevant messages for items/members */
+	/* -- Post/Tax Messages -- */
+	/* Changes 'Post Updated' and 'Item Updated' messages to more post type/taxonomy relevant messages for items/members/authors/etc. */
 
 add_filter( 'post_updated_messages', function( $messages ) {
 	// Fetches post and post type
@@ -532,6 +532,35 @@ add_filter( 'post_updated_messages', function( $messages ) {
 		break;
 	}
 
+	return $messages;
+});
+
+// Modifies tax updated/deleted messages for Library's own taxonomies
+add_filter( 'term_updated_messages', function( $messages ) {
+	// Customises messages based on current taxonomy
+	switch( $_GET['taxonomy'] ) {
+		case 'wp_lib_author':
+			$messages['_item'] = array(
+				1 => 'Author Created',
+				2 => 'Author Deleted',
+				3 => 'Author Updated',
+				4 => 'Author not deleted',
+				5 => 'Author not deleted',
+				6 => 'Authors deleted'
+			);
+		break;
+		
+		case 'wp_lib_media_type':
+			$messages['_item'] = array(
+				1 => 'Media Type Created',
+				2 => 'Media Type Deleted',
+				3 => 'Media Type Updated',
+				4 => 'Media Type not deleted',
+				5 => 'Media Type not deleted',
+				6 => 'Media Types deleted'
+			);
+		break;
+	}
 	return $messages;
 });
 
