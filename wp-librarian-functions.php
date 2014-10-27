@@ -637,6 +637,75 @@ function wp_lib_error( $error_id, $die = false, $param = 'NULL' ) {
 	wp_lib_add_notification( $error_text, $error_id );
 }
 
+// Modifies user's capabilities based on their new role
+function wp_lib_update_user_capabilities( $user_id, $role ) {
+	// Fetches user object
+	$user = new WP_User( (int)$user_id );
+	
+	// Sets up all post types capacity headers. From these all capabilities relating to them are derived
+	$post_cap_terms = array( 'wp_lib_items_cap', 'wp_lib_members_cap', 'wp_lib_loans_cap', 'wp_lib_fines_cap' );
+	
+	// Iterates through custom post types, stripping user's capabilities to interact with them
+	foreach( $post_cap_terms as $term ) {
+		// Creates plural version of post type 
+		$term_p = $term . 's';
+		
+		// Removes all general purpose capabilities
+		$user->remove_cap( 'read_' . $term );
+		$user->remove_cap( 'read_private_' . $term_p );
+		$user->remove_cap( 'edit_' . $term );
+		$user->remove_cap( 'edit_' . $term_p );
+		$user->remove_cap( 'edit_others_' . $term_p );
+		
+		// Removes all item/member specific capabilities
+		if ( $term == 'wp_lib_items_cap' || $term == 'wp_lib_members_cap' ) {
+			$term_p = $term . 's';
+			$user->remove_cap( 'edit_others_' . $term_p );
+			$user->remove_cap( 'edit_published_' . $term_p );
+			$user->remove_cap( 'publish_' . $term_p );
+			$user->remove_cap( 'delete_others_' . $term_p );
+			$user->remove_cap( 'delete_private_' . $term_p );
+			$user->remove_cap( 'delete_published_' . $term_p );
+		}
+	}
+	
+	// Removes capability to interact with tax terms
+	$user->remove_cap( 'wp_lib_manage_taxs' );
+	
+	// If new role has no capabilities, job is finished
+	if ( $role < 5 )
+		return;
+	
+	//$user->add_cap( 'read' );
+	
+	// Iterates through custom post types, stripping user's capabilities to interact with them
+	foreach( $post_cap_terms as $term ) {
+		// Creates plural version of post type 
+		$term_p = $term . 's';
+		
+		// Removes all general purpose capabilities
+		$user->add_cap( 'read_' . $term );
+		$user->add_cap( 'read_private_' . $term_p );
+		$user->add_cap( 'edit_' . $term );
+		$user->add_cap( 'edit_' . $term_p );
+		$user->add_cap( 'edit_others_' . $term_p );
+		
+		// Removes all item/member specific capabilities
+		if ( $term == 'wp_lib_items_cap' || $term == 'wp_lib_members_cap' ) {
+			$term_p = $term . 's';
+			$user->add_cap( 'edit_others_' . $term_p );
+			$user->add_cap( 'edit_published_' . $term_p );
+			$user->add_cap( 'publish_' . $term_p );
+			$user->add_cap( 'delete_others_' . $term_p );
+			$user->add_cap( 'delete_private_' . $term_p );
+			$user->add_cap( 'delete_published_' . $term_p );
+		}
+	}
+	
+	// Adds capability to interact with tax terms
+	$user->add_cap( 'wp_lib_manage_taxs' );
+}
+
 // Renders item meta box below item description on item creation/editing page
 function wp_lib_render_item_meta_box( $item ) {
 	require_once (plugin_dir_path(__FILE__) . '/wp-librarian-item-meta-box.php');

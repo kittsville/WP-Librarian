@@ -46,6 +46,8 @@ function wp_lib_register_post_and_tax() {
 			),
 			'public'				=> true,
 			'menu_position'			=> 15,
+			'capability_type'		=> 'wp_lib_items_cap',
+			'map_meta_cap'			=> true,
 			'supports'				=> array( 'title', 'editor', 'thumbnail'),
 			'taxonomies'			=> array( '' ),
 			'menu_icon'				=> 'dashicons-book-alt',
@@ -74,6 +76,8 @@ function wp_lib_register_post_and_tax() {
 				'not_found_in_trash'	=> 'No Members found in Trash',
 			),
 			'public'				=> true,
+			'capability_type'		=> 'wp_lib_members_cap',
+			'map_meta_cap'			=> true,
 			'exclude_from_search'	=> true,
 			'publicly_queryable'	=> false,
 			'show_in_menu' 			=> 'edit.php?post_type=wp_lib_items',
@@ -102,6 +106,9 @@ function wp_lib_register_post_and_tax() {
 				'not_found_in_trash'=> 'No Loans found in Trash',
 			),
 			'public'				=> true,
+			'public'				=> true,
+			'capability_type'		=> 'wp_lib_loans_cap',
+			'map_meta_cap'			=> true,
 			'exclude_from_search'	=> true,
 			'publicly_queryable'	=> true,
 			'show_in_menu'		 	=> 'edit.php?post_type=wp_lib_items',
@@ -129,6 +136,8 @@ function wp_lib_register_post_and_tax() {
 				'not_found_in_trash'=> 'No Fines found in Trash',
 			),
 			'public'				=> true,
+			'capability_type'		=> 'wp_lib_fines_cap',
+			'map_meta_cap'			=> true,
 			'exclude_from_search'	=> true,
 			'publicly_queryable'	=> true,
 			'show_in_menu'			=> 'edit.php?post_type=wp_lib_items',
@@ -142,6 +151,12 @@ function wp_lib_register_post_and_tax() {
 	
 	register_taxonomy( 'wp_lib_author', 'wp_lib_items',
 		array(
+			'capabilities'		=> array(	
+				'manage_terms'	=> 'wp_lib_manage_taxs',
+				'edit_terms'	=> 'wp_lib_manage_taxs',
+				'delete_terms'	=> 'wp_lib_manage_taxs',
+				'assign_terms'	=> 'wp_lib_manage_taxs'
+			),
 			'hierarchical'			=> false,
 			'show_ui'				=> true,
 			'show_admin_column'		=> true,
@@ -172,6 +187,12 @@ function wp_lib_register_post_and_tax() {
 	
 	register_taxonomy( 'wp_lib_media_type', 'wp_lib_items',
 		array(
+			'capabilities'		=> array(	
+				'manage_terms'	=> 'wp_lib_manage_taxs',
+				'edit_terms'	=> 'wp_lib_manage_taxs',
+				'delete_terms'	=> 'wp_lib_manage_taxs',
+				'assign_terms'	=> 'wp_lib_manage_taxs'
+			),
 			'hierarchical'		=> true,
 			'show_ui'			=> true,
 			'show_admin_column'	=> true,
@@ -457,6 +478,14 @@ add_action( 'manage_users_custom_column', function ( $value='', $column, $user_i
 	}
 }, 10, 3 );
 
+	/* -- Post Permissions -- */
+	/* Controls if user if allowed to edit/view custom post types created by WP-Librarian */
+
+// Sets plugin activating user as a Library Admin
+register_activation_hook( __FILE__, function() {
+	wp_lib_update_user_meta( get_current_user_id(), 10 );
+});
+
 	/* -- Post Messages -- */
 	/* Changes 'Post Updated' messages to more post type relevant messages for items/members */
 
@@ -530,11 +559,8 @@ function wp_lib_setup_member_meta_box() {
 
 // Updates a post's meta using new values from its meta box
 add_action( 'save_post', function ( $post_id, $post ) {
-	// Get the post type object
-	$post_type = get_post_type_object( $post->post_type );
-	
-	// Check if the current user has permission to edit the post
-	if ( !current_user_can( $post_type->cap->edit_post, $post_id ) )
+	// Check if the current user has permission to change a Library item's meta
+	if ( !wp_lib_is_librarian() )
 		return $post_id;
 	
 	// Loads meta to be updated based on post type
@@ -664,17 +690,21 @@ add_action( 'admin_menu', function() {
 add_action( 'personal_options_update', 'wp_lib_update_user_meta' );
 add_action( 'edit_user_profile_update', 'wp_lib_update_user_meta' );
 
-function wp_lib_update_user_meta( $user_id ) {
-	// If user is not allowed to edit user meta or nonce fails, stops
-	if ( !current_user_can( 'edit_users' ) || !wp_verify_nonce( $_POST['wp_lib_profile_nonce'], 'Editing User: ' . $user_id ) )
-		return;
-	
-	// Fetches new role
-	$new_role = $_POST['wp_lib_role'];
-	
-	// If role wasn't specified or is invalid, stops
-	if ( !$new_role || !ctype_digit( $new_role ) )
-		return;
+function wp_lib_update_user_meta( $user_id, $new_role = false ) {
+	// If new role wasn't specified, function has been called from user profile and nonce checking/sanitization is needed
+	// Otherwise function has been called from plugin activation hook and new role will be passed directly to the function
+	if ( !$new_role ) {
+		// If user is not allowed to edit user meta or nonce fails, stops
+		if ( !current_user_can( 'edit_users' ) || !wp_verify_nonce( $_POST['wp_lib_profile_nonce'], 'Editing User: ' . $user_id ) )
+			return;
+		
+		// Fetches new role
+		$new_role = $_POST['wp_lib_role'];
+		
+		// If role wasn't specified or is invalid, stops
+		if ( !$new_role || !ctype_digit( $new_role ) )
+			return;
+	}
 	
 	// Checks if given role exists
 	if ( !array_key_exists( $new_role, wp_lib_fetch_user_roles() ) )
@@ -682,6 +712,9 @@ function wp_lib_update_user_meta( $user_id ) {
 	
 	// Updates user's meta with new role
 	update_user_meta( $user_id, 'wp_lib_role', $new_role );
+	
+	// Updates user's capabilities based on their new role
+	wp_lib_update_user_capabilities( $user_id, $new_role );
 }
 
 	/* -- Custom Post Type Customisation -- */
@@ -705,12 +738,14 @@ add_filter( 'enter_title_here', function() {
 
 // Registers Settings page and Management Dashboard
 add_action( 'admin_menu', function() {
-	if ( current_user_can( 'manage_options' ) )
+	if ( wp_lib_is_library_admin() )
 		// Adds settings page to Library submenu of wp-admin menu
 		add_submenu_page('edit.php?post_type=wp_lib_items', 'WP Librarian Settings', 'Settings', 'activate_plugins', 'wp-lib-settings', 'wp_lib_render_settings');
 
 	// Registers Library Dashboard and saves handle to variable
-	$page = add_submenu_page('edit.php?post_type=wp_lib_items', 'Library Dashboard', 'Dashboard', 'edit_post', 'dashboard', 'wp_lib_render_dashboard');
+	if ( wp_lib_is_librarian() ) {
+		$page = add_submenu_page('edit.php?post_type=wp_lib_items', 'Library Dashboard', 'Dashboard', 'edit_post', 'dashboard', 'wp_lib_render_dashboard');
+	}
 });
 
 	/* -- Settings API -- */
@@ -964,6 +999,11 @@ add_action( 'show_user_profile', 'wp_lib_add_profile_page_fields' );
 add_action( 'edit_user_profile', 'wp_lib_add_profile_page_fields' );
 
 function wp_lib_add_profile_page_fields( $user ) {
+	// If current user can't edit users (is admin), disallow from viewing form
+	// Note that regardless of being able to view the form, they wouldn't be able to change the user's meta
+	if ( !current_user_can( 'edit_users' ) )
+		return;
+	
 	// Sets up user role options array
 	foreach( [1,5,10] as $role_value ) {
 		$roles[$role_value] = wp_lib_format_user_permission_status( $role_value );
