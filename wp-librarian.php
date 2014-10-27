@@ -486,6 +486,11 @@ register_activation_hook( __FILE__, function() {
 	wp_lib_update_user_meta( get_current_user_id(), 10 );
 });
 
+// Removes "Additional Capabilities" section from user profile page
+add_filter('additional_capabilities_display', function() {
+	return false;
+});
+
 	/* -- Post Messages -- */
 	/* Changes 'Post Updated' messages to more post type relevant messages for items/members */
 
