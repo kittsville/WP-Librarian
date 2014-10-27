@@ -16,6 +16,15 @@ require_once (plugin_dir_path(__FILE__) . '/wp-librarian-functions.php');
 require_once (plugin_dir_path(__FILE__) . '/wp-librarian-helpers.php');
 require_once (plugin_dir_path(__FILE__) . '/wp-librarian-ajax.php');
 
+	/* -- Constants used -- */
+
+define( 'WP_LIB_ITEMS', 'wp_lib_items' );
+define( 'WP_LIB_MEMBERS', 'wp_lib_members' );
+define( 'WP_LIB_LOANS', 'wp_lib_loans' );
+define( 'WP_LIB_FINES', 'wp_lib_fines' );
+define( 'WP_LIB_AUTHORS', 'wp_lib_author' );
+define( 'WP_LIB_MEDIA_TYPES', 'wp_lib_media_type' );
+
 
 	/* -- Custom Post Types and Taxonomies -- */
 	/* Registers custom post types and taxonomies */
@@ -27,7 +36,7 @@ function wp_lib_register_post_and_tax() {
 	/* Registers Items as custom post type */
 	/* Items represent physical item in the Library, such as a single copy of a book */
 	
-	register_post_type( 'wp_lib_items',
+	register_post_type( WP_LIB_ITEMS,
 		array(
 			'labels' => array(
 				'name'					=> 'Library',
@@ -60,7 +69,7 @@ function wp_lib_register_post_and_tax() {
 	/* Registers Members as custom post type */
 	/* Members represent people who may borrow items from the Library, or donate items to the Library */
 	
-	register_post_type( 'wp_lib_members',
+	register_post_type( WP_LIB_MEMBERS,
 		array(
 			'labels' => array(
 				'name'					=> 'Members',
@@ -82,7 +91,7 @@ function wp_lib_register_post_and_tax() {
 			'publicly_queryable'	=> false,
 			'show_in_menu' 			=> 'edit.php?post_type=wp_lib_items',
 			'supports'				=> array( 'title' ),
-			'rewrite'				=> array('slug' => get_option( 'wp_lib_members_slug', 'members' ) ),
+			'rewrite'				=> array('slug' => get_option( WP_LIB_MEMBERS . '_slug', 'members' ) ),
 			'register_meta_box_cb'	=> 'wp_lib_setup_member_meta_box'
 		)
 	);
@@ -90,7 +99,7 @@ function wp_lib_register_post_and_tax() {
 	/* Registers Loans as custom post type */
 	/* Loans represent the lending of an Item to a Member */
 	
-	register_post_type( 'wp_lib_loans',
+	register_post_type( WP_LIB_LOANS,
 		array(
 			'labels' => array(
 				'name'				=> 'Loans',
@@ -120,7 +129,7 @@ function wp_lib_register_post_and_tax() {
 	/* Registers Fines as custom post type */
 	/* Fines represent the monetary cost incurred if an Item is returned late (after the Loan specified) */
 	
-	register_post_type( 'wp_lib_fines',
+	register_post_type( WP_LIB_FINES,
 		array(
 			'labels' => array(
 				'name'				=> 'Fines',
@@ -149,7 +158,7 @@ function wp_lib_register_post_and_tax() {
 	/* Registers Authors as a taxonomy */
 	/* Authors are the creators of the item, such as the author of a book */
 	
-	register_taxonomy( 'wp_lib_author', 'wp_lib_items',
+	register_taxonomy( WP_LIB_AUTHORS, WP_LIB_ITEMS,
 		array(
 			'capabilities'		=> array(	
 				'manage_terms'	=> 'wp_lib_manage_taxs',
@@ -185,7 +194,7 @@ function wp_lib_register_post_and_tax() {
 	/* Registers media type as a taxonomy */
 	/* An item's media type defines wether it is a book, CD, comic etc. */
 	
-	register_taxonomy( 'wp_lib_media_type', 'wp_lib_items',
+	register_taxonomy( WP_LIB_MEDIA_TYPES, WP_LIB_ITEMS,
 		array(
 			'capabilities'		=> array(	
 				'manage_terms'	=> 'wp_lib_manage_taxs',
@@ -232,10 +241,10 @@ function wp_lib_register_post_and_tax() {
 		);
 		// Iterates through default media types and creates them if they do not already exist
 		foreach ( $default_media_types as $type ) {
-			if ( get_term_by( 'name', $type['name'], 'wp_lib_media_type' ) == false){
+			if ( get_term_by( 'name', $type['name'], WP_LIB_MEDIA_TYPES ) == false){
 				wp_insert_term(
 					$type['name'],
-					'wp_lib_media_type',
+					WP_LIB_MEDIA_TYPES,
 					array( 'slug' => $type['slug'] )
 				);
 			}
@@ -300,7 +309,7 @@ add_action( 'manage_wp_lib_members_posts_custom_column' , function ( $column, $m
 		case 'member_loans':
 			// Sets up meta query arguments
 			$args = array(
-				'post_type'		=> 'wp_lib_items',
+				'post_type'		=> WP_LIB_ITEMS,
 				'post_status'	=> 'publish',
 				'meta_query'	=> array(
 					array(
@@ -501,13 +510,13 @@ add_filter( 'post_updated_messages', function( $messages ) {
 	
 	// Adds messages based on current post's post type
 	switch( $post_type ) {
-		case 'wp_lib_items':
+		case WP_LIB_ITEMS:
 			// Creates hyperlink to view or preview item
 			$permalink = get_permalink( $post->ID );
 			$view_link = ' <a href="' . esc_url( $permalink ) . '">' . 'View Item' . '</a>';
 			$preview_link = ' <a target="_blank" href="' . esc_url( add_query_arg( 'preview', 'true', $permalink ) ) . '">' . 'Preview Item' . '</a>';
 
-			$messages['wp_lib_items'] = array(
+			$messages[WP_LIB_ITEMS] = array(
 				1  => 'Item Updated' . $view_link,
 				6  => 'Item Published' . $view_link,
 				7  => 'Item Saved',
@@ -517,11 +526,11 @@ add_filter( 'post_updated_messages', function( $messages ) {
 			);
 		break;
 		
-		case 'wp_lib_members':
+		case WP_LIB_MEMBERS:
 			// Creates hyperlink to manage Member
 			$manage_member_link = ' <a href="' . wp_lib_manage_member_url( $post->ID ) . '">' . 'Manage Member' . '</a>';
 			
-			$messages['wp_lib_members'] = array(
+			$messages[WP_LIB_MEMBERS] = array(
 				1  => 'Member\'s details updated.' . $manage_member_link,
 				6  => 'Member published' . $manage_member_link,
 				7  => 'Member\'s details saved',
@@ -539,7 +548,7 @@ add_filter( 'post_updated_messages', function( $messages ) {
 add_filter( 'term_updated_messages', function( $messages ) {
 	// Customises messages based on current taxonomy
 	switch( $_GET['taxonomy'] ) {
-		case 'wp_lib_author':
+		case WP_LIB_AUTHORS:
 			$messages['_item'] = array(
 				1 => 'Author Created',
 				2 => 'Author Deleted',
@@ -550,7 +559,7 @@ add_filter( 'term_updated_messages', function( $messages ) {
 			);
 		break;
 		
-		case 'wp_lib_media_type':
+		case WP_LIB_MEDIA_TYPES:
 			$messages['_item'] = array(
 				1 => 'Media Type Created',
 				2 => 'Media Type Deleted',
@@ -573,7 +582,7 @@ function wp_lib_setup_item_meta_box() {
 		'library_items_meta_box',
 		'Item Details',
 		'wp_lib_render_item_meta_box',
-		'wp_lib_items',
+		WP_LIB_ITEMS,
 		'normal',
 		'high'
 	);
@@ -585,7 +594,7 @@ function wp_lib_setup_member_meta_box() {
 		'library_members_meta_box',
 		'Member Details',
 		'wp_lib_render_member_meta_box',
-		'wp_lib_members',
+		WP_LIB_MEMBERS,
 		'normal',
 		'high'
 	);
@@ -599,7 +608,7 @@ add_action( 'save_post', function ( $post_id, $post ) {
 	
 	// Loads meta to be updated based on post type
 	switch ( $post->post_type ) {
-		case 'wp_lib_items':
+		case WP_LIB_ITEMS:
 			// Verifies meta box nonce
 			if ( !isset( $_POST['wp_lib_item_meta_nonce'] ) || !wp_verify_nonce( $_POST['wp_lib_item_meta_nonce'], "Updating item {$post_id} meta" ) )
 				return $post_id;
@@ -631,14 +640,14 @@ add_action( 'save_post', function ( $post_id, $post ) {
 					'sanitize'	=> 'wp_lib_sanitize_number'
 				),
 				array(
-					'key'		=> 'wp_lib_media_type',
+					'key'		=> WP_LIB_MEDIA_TYPES,
 					'sanitize'	=> 'sanitize_title',
 					'tax'		=> true
 				)
 			);
 		break;
 		
-		case 'wp_lib_members':
+		case WP_LIB_MEMBERS:
 			// Verifies meta box nonce
 			if ( !isset( $_POST['wp_lib_member_meta_nonce'] ) || !wp_verify_nonce( $_POST['wp_lib_member_meta_nonce'], "Updating member {$post_id} meta" ) )
 				return $post_id;
@@ -718,7 +727,7 @@ add_action( 'save_post', function ( $post_id, $post ) {
 
 // Removes media type from item edit page, as it's in the meta box
 add_action( 'admin_menu', function() {
-	remove_meta_box( 'wp_lib_media_typediv', 'wp_lib_items', 'side' );
+	remove_meta_box( 'wp_lib_media_typediv', WP_LIB_ITEMS, 'side' );
 });
 
 add_action( 'personal_options_update', 'wp_lib_update_user_meta' );
@@ -757,11 +766,11 @@ function wp_lib_update_user_meta( $user_id, $new_role = false ) {
 // Changes "Post title" greyed out text of title field on Member/Item edit pages with custom text
 add_filter( 'enter_title_here', function() {
 	switch ( get_current_screen()->post_type ) {
-		case 'wp_lib_members':
+		case WP_LIB_MEMBERS:
 			return 'Member Name';
 		break;
 		
-		case 'wp_lib_items':
+		case WP_LIB_ITEMS:
 			return 'Item Title';
 		break;
 	}
@@ -888,12 +897,12 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
 	
 	if ( $hook == 'post-new.php' || $hook == 'post.php' ) {
 		switch ( $GLOBALS['post_type'] ) {
-			case 'wp_lib_items':
+			case WP_LIB_ITEMS:
 				wp_register_style( 'wp_lib_admin_item_meta', wp_lib_style_url( 'admin-item-meta-box' ), array( 'wp_lib_meta_core_styles' ), '0.1' );
 				wp_enqueue_script( 'wp_lib_edit_item', wp_lib_script_url( 'admin-edit-item' ), array( 'wp_lib_meta_core' ), '0.1' );
 			break;
 			
-			case 'wp_lib_members':
+			case WP_LIB_MEMBERS:
 				wp_register_style( 'wp_lib_admin_member_meta', wp_lib_style_url( 'admin-member-meta-box' ), array( 'wp_lib_meta_core_styles' ), '0.1' );
 				wp_enqueue_script( 'wp_lib_edit_member', wp_lib_script_url( 'admin-edit-member' ), array( 'wp_lib_meta_core' ), '0.1' );
 			break;
@@ -921,7 +930,7 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
 
 // Enqueues scripts and styles needed for WP-Librarian's front-end
 add_action( 'wp_enqueue_scripts', function() {
-	if ( get_post_type() == 'wp_lib_items' )
+	if ( get_post_type() == WP_LIB_ITEMS )
 		wp_enqueue_style( 'wp_lib_frontend', wp_lib_style_url( 'front-end-core' ), array(), '0.1' );
 });
 
@@ -935,9 +944,9 @@ function wp_lib_render_dashboard() {
 add_action('admin_head-post-new.php', 'wp_lib_modify_image_box' );
 add_action('admin_head-post.php', 'wp_lib_modify_image_box' );
 function wp_lib_modify_image_box() {
-	if ( $GLOBALS['post_type'] == 'wp_lib_items' ) {
+	if ( $GLOBALS['post_type'] == WP_LIB_ITEMS ) {
 		global $wp_meta_boxes;
-		$wp_meta_boxes['wp_lib_items']['side']['low']['postimagediv']['title'] = 'Cover Image';
+		$wp_meta_boxes[WP_LIB_ITEMS]['side']['low']['postimagediv']['title'] = 'Cover Image';
 	}
 }
 
@@ -954,7 +963,7 @@ function wp_lib_flush_permalinks() {
 function wp_lib_check_post_pre_trash( $post_id ) {
 	if ( !$_POST['deletion_confirmed'] ) {
 		switch ( $GLOBALS['post_type'] ) {
-			case 'wp_lib_items':
+			case WP_LIB_ITEMS:
 				wp_redirect( wp_lib_format_dash_url(
 					array(
 						'dash_page' => 'object-deletion',
@@ -965,7 +974,7 @@ function wp_lib_check_post_pre_trash( $post_id ) {
 				exit;
 			break;
 			
-			case 'wp_lib_loans':
+			case WP_LIB_LOANS:
 				wp_redirect( wp_lib_format_dash_url(
 					array(
 						'dash_page' => 'object-deletion',
@@ -976,7 +985,7 @@ function wp_lib_check_post_pre_trash( $post_id ) {
 				exit;
 			break;
 			
-			case 'wp_lib_fines':
+			case WP_LIB_FINES:
 				wp_redirect( wp_lib_format_dash_url(
 					array(
 						'dash_page' => 'object-deletion',
@@ -987,7 +996,7 @@ function wp_lib_check_post_pre_trash( $post_id ) {
 				exit;
 			break;
 			
-			case 'wp_lib_members':
+			case WP_LIB_MEMBERS:
 				wp_redirect( wp_lib_format_dash_url(
 					array(
 						'dash_page' => 'object-deletion',
@@ -998,7 +1007,7 @@ function wp_lib_check_post_pre_trash( $post_id ) {
 				exit;
 			break;
 		}
-	} elseif ( $GLOBALS['post_type'] == 'wp_lib_items' ) {
+	} elseif ( $GLOBALS['post_type'] == WP_LIB_ITEMS ) {
 		if ( wp_lib_on_loan( $post_id ) ) {
 			wp_redirect( wp_lib_format_dash_url(
 				array(
@@ -1081,7 +1090,7 @@ function wp_lib_add_profile_page_fields( $user ) {
 
 // Checks for appropriate templates in the current theme and loads the plugin's default templates if that fails
 add_filter( 'template_include', function( $template ) {
-	if ( get_post_type() == 'wp_lib_items' ) {
+	if ( get_post_type() == WP_LIB_ITEMS ) {
 		// If page is archive of multiple items
 		if ( is_archive() ) {
 			// Looks for template in current theme

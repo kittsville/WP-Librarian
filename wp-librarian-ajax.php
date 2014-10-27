@@ -264,7 +264,7 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 				
 			// Sets up meta query arguments
 			$args = array(
-				'post_type'	=> 'wp_lib_items',
+				'post_type'	=> WP_LIB_ITEMS,
 				'post_status'	=> 'publish',
 				'meta_query'	=> array(
 					array(
@@ -410,19 +410,19 @@ function wp_lib_page_dashboard() {
 			'title'	=> 'Manage Items',
 			'icon'	=> 'default',
 			'link'	=> 'post-type',
-			'pType'	=> 'wp_lib_items'
+			'pType'	=> WP_LIB_ITEMS
 		),
 		array(
 			'title'	=> 'Manage Members',
 			'icon'	=> 'default',
 			'link'	=> 'post-type',
-			'pType'	=> 'wp_lib_members'
+			'pType'	=> WP_LIB_MEMBERS
 		),
 		array(
 			'title'	=> 'Manage Fines',
 			'icon'	=> 'default',
 			'link'	=> 'post-type',
-			'pType'	=> 'wp_lib_fines'
+			'pType'	=> WP_LIB_FINES
 		),
 		array(
 			'title'	=> 'Settings',
@@ -593,7 +593,7 @@ function wp_lib_page_manage_item() {
 	
 	// Sets up loan history query arguments
 	$args = array(
-		'post_type' 	=> 'wp_lib_loans',
+		'post_type' 	=> WP_LIB_LOANS,
 		'post_status'	=> 'publish',
 		'meta_query'	=> array(
 			array(
@@ -717,7 +717,7 @@ function wp_lib_page_manage_member() {
 	
 	// Sets up loan history query arguments
 	$args = array(
-		'post_type' 	=> 'wp_lib_loans',
+		'post_type' 	=> WP_LIB_LOANS,
 		'post_status'	=> 'publish',
 		'meta_query'	=> array(
 			array(
@@ -1277,14 +1277,14 @@ function wp_lib_page_confirm_deletion() {
 			
 			// Adds table row with post ID and link to manage loan/fine
 			switch( $connected_object[1] ) {
-				case 'wp_lib_loans':
+				case WP_LIB_LOANS:
 					$objects[] = array(
 						'id'	=> array( $connected_object[0], wp_lib_manage_loan_url( $connected_object[0] ) ),
 						'type'	=> 'Loan'
 					);
 				break;
 				
-				case 'wp_lib_fines':
+				case WP_LIB_FINES:
 					$objects[] = array(
 						'id'	=> array( $connected_object[0], wp_lib_manage_fine_url( $connected_object[0] ) ),
 						'type'	=> 'Fine'

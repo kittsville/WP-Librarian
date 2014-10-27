@@ -103,7 +103,7 @@ function wp_lib_create_loan_index( $item_id ) {
 	
 	// Sets all query params
 	$args = array(
-		'post_type'		=> 'wp_lib_loans',
+		'post_type'		=> WP_LIB_LOANS,
 		'post_status'	=> 'publish',
 		'meta_query'	=> array(
 			array(
@@ -344,7 +344,7 @@ function wp_lib_schedule_loan( $item_id, $member_id, $start_date, $end_date ) {
 	// Creates arguments for loan
 	$args = array(
 		'post_status'		=> 'publish',
-		'post_type'			=> 'wp_lib_loans'
+		'post_type'			=> WP_LIB_LOANS
 	);
 	
 	// Creates the loan, a custom post type that holds useful meta about the loan
@@ -486,7 +486,7 @@ function wp_lib_create_fine( $item_id, $date = false, $return = true ) {
 	$args = array(
 
 		'post_status'		=> 'publish',
-		'post_type'			=> 'wp_lib_fines'
+		'post_type'			=> WP_LIB_FINES
 	);
 	
 	// Creates the fine, a custom post type that holds useful meta about the fine

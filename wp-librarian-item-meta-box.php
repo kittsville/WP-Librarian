@@ -12,7 +12,7 @@ wp_enqueue_style( 'wp_lib_admin_item_meta' );
 wp_nonce_field( "Updating item {$item->ID} meta", 'wp_lib_item_meta_nonce' );
 
 // Fetches list of media types
-$media_type_objects = get_terms( 'wp_lib_media_type', 'hide_empty=0' );
+$media_type_objects = get_terms( WP_LIB_MEDIA_TYPES, 'hide_empty=0' );
 
 // Creates meta formatting array of media types
 foreach ( $media_type_objects as $type ) {
@@ -31,7 +31,7 @@ $meta_formatting = array(
 			array(
 				'title'		=> 'Media Type',
 				'id'		=> 'meta-media-type-selector',
-				'name'		=> 'wp_lib_media_type',
+				'name'		=> WP_LIB_MEDIA_TYPES,
 				'type'		=> 'select',
 				'options'	=> $media_types
 			),
@@ -122,7 +122,7 @@ $meta_formatting = array(
 $meta = wp_lib_prep_admin_meta( $item->ID, $meta_formatting );
 
 // Adds media type meta to meta array
-$meta['wp_lib_media_type'] = wp_get_object_terms($item->ID, 'wp_lib_media_type', array("fields" => "slugs") )[0];
+$meta[WP_LIB_MEDIA_TYPES] = wp_get_object_terms($item->ID, WP_LIB_MEDIA_TYPES, array("fields" => "slugs") )[0];
 ?>
 <div id="meta-dropzone">
 	<div id="meta-formatting">
