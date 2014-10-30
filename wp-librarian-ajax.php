@@ -324,6 +324,10 @@ function wp_lib_add_notification( $notification, $error_code = 0 ) {
 	// If session is not active, start session
 	if ( !isset($_SESSION) )
 		wp_lib_start_session();
+	
+	// If existing notification count has reached limit, do not add notification
+	if ( $_SESSION['notifications'] && count( $_SESSION['notifications'] ) > 9 )
+		return;
 
 	// Adds notification to buffer. If notification doesn't have an error code, zero is used
 	$_SESSION['notifications'][] = array( $error_code, $notification );
