@@ -23,14 +23,6 @@ div.manage-item {
 	height: 70px;
 }
 
-.dash-button-top {
-
-}
-
-.dash-button-bottom {
-
-}
-
 dl.lib-metabox * {
 	padding: 0;
 	margin: 0;
@@ -55,3 +47,41 @@ dl.lib-metabox dd {
 	float: right;
 	width: 75%;
 }
+
+/* Dynatable Styling */
+
+.dynatable-table th a:hover {
+	color: black;
+}
+
+.dynatable-table tbody tr:nth-child(odd) td{
+	background-color: #F9F9F9
+}
+.dynatable-table tbody tr:nth-child(even) td{
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

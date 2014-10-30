@@ -666,7 +666,10 @@ function wp_lib_page_manage_item() {
 				'Expected',
 				'Returned'
 			),
-			'data'		=> $loans
+			'data'		=> $loans,
+			'labels'	=> array(
+				'records'	=> 'loans'
+			)
 		);
 	} else {
 		$form[] = array(
@@ -789,7 +792,10 @@ function wp_lib_page_manage_member() {
 				'Expected',
 				'Returned'
 			),
-			'data'		=> $loans
+			'data'		=> $loans,
+			'labels'	=> array(
+				'records'	=> 'loans'
+			)
 		);
 	} else {
 		$content[] = array(
@@ -1305,7 +1311,10 @@ function wp_lib_page_confirm_deletion() {
 				'ID',
 				'Type'
 			),
-			'data'		=> $objects
+			'data'		=> $objects,
+			'labels'	=> array(
+				'records'	=> 'connected objects'
+			)
 		);
 	} else {
 		$form[] = array(

@@ -481,6 +481,9 @@ function wp_lib_render_page( pageArray ) {
 					elementObject.id = 'dynamic-table-' + Math.floor((Math.random() * 100) + 1);
 				}
 				
+				// Adds default dynamic table class
+				elementObject.class += wp_lib_add_classes( ['dynatable-table', 'wp-list-table', 'widefat', 'fixed', 'posts'] );
+				
 				// Wraps table in div for styling purposes
 				var theParent = $('<div/>', {} ).appendTo( theParent );
 				
@@ -525,11 +528,26 @@ function wp_lib_render_page( pageArray ) {
 					tableRecords.push( tableRow );
 				});
 				
+				// If table does not have a custom value for '1 of 5 records', use default
+				if ( !pageItem.hasOwnProperty('labels') || !pageItem.labels.hasOwnProperty('records') ) {
+					pageItem.labels = {
+						records	: 'records'
+					};
+				}
+				
 				// Fills table with formatted data
 				$( '#' + elementObject.id ).dynatable({ 
 					dataset: {
 						records: tableRecords
+					},
+					params: {
+						records: pageItem.labels.records
 					}
+				});
+				
+				// Iterates over table headers, adding class to use WordPress table styling
+				$( '.dynatable-head' ).each( function(i, tableHeader) {
+					$(tableHeader).addClass('manage-column');
 				});
 			break;
 			
