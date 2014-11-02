@@ -82,7 +82,6 @@ function wp_lib_register_post_and_tax() {
 			'publicly_queryable'	=> false,
 			'show_in_menu' 			=> 'edit.php?post_type=wp_lib_items',
 			'supports'				=> array( 'title' ),
-			'rewrite'				=> array('slug' => get_option( 'wp_lib_members_slug', 'members' ) ),
 			'register_meta_box_cb'	=> 'wp_lib_setup_member_meta_box'
 		)
 	);
@@ -113,7 +112,6 @@ function wp_lib_register_post_and_tax() {
 			'publicly_queryable'	=> true,
 			'show_in_menu'		 	=> 'edit.php?post_type=wp_lib_items',
 			'supports'				=> array( '' ),
-			'rewrite'				=> array('slug' => get_option( 'wp_lib_loans_slug', 'loans' ) )
 		)
 	);
 	
@@ -142,7 +140,6 @@ function wp_lib_register_post_and_tax() {
 			'publicly_queryable'	=> true,
 			'show_in_menu'			=> 'edit.php?post_type=wp_lib_items',
 			'supports'				=> array( '' ),
-			'rewrite'				=> array('slug' => get_option( 'wp_lib_fines_slug', 'fines' ) )
 		)
 	);
 	
@@ -943,6 +940,9 @@ function wp_lib_modify_image_box() {
 
 // Flushes permalink rules to avoid 404s, used after plugin activation and any Settings change
 function wp_lib_flush_permalinks() {
+	// Creates various options used by WP-Librarian
+	require_once (plugin_dir_path(__FILE__) . '/wp-librarian-options.php');
+	
 	// Registers custom post type
 	wp_lib_register_post_and_tax();
 	
@@ -1015,9 +1015,6 @@ function wp_lib_check_post_pre_trash( $post_id ) {
 register_activation_hook( __FILE__, function() {
 	// Flushes permalink rules so new URLs don't 404
 	wp_lib_flush_permalinks();
-	
-	// Creates various options used by WP-Librarian
-	require_once (plugin_dir_path(__FILE__) . '/wp-librarian-options.php');
 });
 
 // Removes traces of plugin on deactivation
