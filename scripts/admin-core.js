@@ -187,7 +187,7 @@ function wp_lib_parse_json( rawJSON ) {
 // Concatenates array into string with spaces, can handle string if needed
 function wp_lib_add_classes( newClasses ) {
 	if ( newClasses instanceof Array ){
-		return newClasses.join(' ');
+		return ' ' + newClasses.join(' ');
 	}
 	else if ( typeof newClasses === "string" ) {
 		return ' ' + newClasses;

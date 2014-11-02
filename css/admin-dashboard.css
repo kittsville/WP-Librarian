@@ -30,7 +30,7 @@ dl.lib-metabox * {
 
 dl.lib-metabox {
 	width: 350px;
-	background: #D6D6D6;
+	background: #F9F9F9;
 	border-radius: 4px;
 	padding: 4px;
 }
@@ -55,13 +55,90 @@ dl.lib-metabox dd {
 }
 
 .dynatable-table tbody tr:nth-child(odd) td{
-	background-color: #F9F9F9
-}
-.dynatable-table tbody tr:nth-child(even) td{
-	
+	background-color: #F9F9F9;
 }
 
+/* Item List Styling */
 
+li.single-item {
+	background-color: #F9F9F9;
+	border-radius: 5px;
+	list-style-type: none;
+	margin-right: 20px;
+	padding: 10px;
+	border: 0px none;
+	display: block;
+	float: left;
+	position: relative;
+}
+
+ul.item-list {
+	overflow: auto;
+}
+
+li.single-item {
+	width: 180px;
+	height: 340px;
+	overflow: hidden;
+}
+
+div.item-thumbnail {
+	width: 180px;
+	height: 240px;
+	overflow: hidden;
+	position: relative;
+}
+
+div.item-thumbnail-centrefix {
+    position: absolute;
+    left: -20px;
+    right: -20px;
+    margin: auto;
+}
+
+div.item-no-thumbnail:before {
+	content: "\f330";
+	font-family: dashicons;
+	font-size: 100px;
+	position: absolute;
+	top: 120px;
+	left: 50px;
+	width: 150px;
+	height: 150px;
+	color: 222222px;
+}
+
+div.item-thumbnail-centrefix img {
+	display: block;
+	margin: 0 auto;
+}
+
+li.single-item button {
+	position: absolute;
+	top: 320px;
+}
+
+div.item-meta {
+	position: absolute;
+	top: 245px;
+}
+
+button.item-manage {
+	left: 10px;
+}
+
+button.item-view {
+	right: 10px;
+}
+
+p.item-authors {
+	font-style: italic;
+	margin: 0px;
+}
+
+h4.item-title {
+	margin: 0px;
+}
 
 
 

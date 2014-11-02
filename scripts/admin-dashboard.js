@@ -337,7 +337,7 @@ function wp_lib_render_page( pageArray ) {
 				}
 				
 				// Creates button and appends to document, setting parent to button
-				var theParent = $('<button/>', elementObject ).appendTo( theParent );
+				theParent = $('<button/>', elementObject ).appendTo( theParent );
 				
 				// Creates dash icon wrapper
 				var localParent = $('<div/>', {
@@ -423,7 +423,7 @@ function wp_lib_render_page( pageArray ) {
 				elementObject.class += wp_lib_add_classes( [ 'lib-metabox' ] );
 			
 				// Creates wrapper for meta box, attached to DOM, and sets as parent
-				var theParent = $('<dl/>', elementObject ).appendTo( theParent );
+				theParent = $('<dl/>', elementObject ).appendTo( theParent );
 				
 				// Sets title of meta box
 				$('<strong/>', {
@@ -485,10 +485,10 @@ function wp_lib_render_page( pageArray ) {
 				elementObject.class += wp_lib_add_classes( ['dynatable-table', 'wp-list-table', 'widefat', 'fixed', 'posts'] );
 				
 				// Wraps table in div for styling purposes
-				var theParent = $('<div/>', {} ).appendTo( theParent );
+				theParent = $('<div/>', {} ).appendTo( theParent );
 				
 				// Creates/selects base element
-				var theParent = $('<table/>', elementObject ).appendTo( theParent );
+				theParent = $('<table/>', elementObject ).appendTo( theParent );
 				
 				// Adds head to table
 				var tableHead = $('<thead/>', {} ).appendTo( theParent );
@@ -548,6 +548,111 @@ function wp_lib_render_page( pageArray ) {
 				// Iterates over table headers, adding class to use WordPress table styling
 				$( '.dynatable-head' ).each( function(i, tableHeader) {
 					$(tableHeader).addClass('manage-column');
+				});
+			break;
+			
+			case 'item-list':
+				// Adds default classes to item table
+				elementObject.class += wp_lib_add_classes( 'item-list' );
+				
+				// Creates list for items and appends to parent DOM object
+				theParent = $('<ul/>', elementObject ).appendTo( theParent );
+				
+				// Function to render a single item (row)
+				function render_item_row( rowIndex, record, columns, cellWriter ) {
+					// Initialises item's list entry elements
+					var listItemElements = [];
+					
+					// If item has a cover image, use. Otherwise use placeholder div that will be filled with book icon
+					if ( record.cover != false ) {
+						listItemElements.push($('<div/>', {
+								'class'	: 'item-thumbnail',
+								'html'	:
+									$('<div/>',{
+										'class'	: 'item-thumbnail-centrefix',
+										'html'	:
+											$('<img/>',{
+												'src'	: record.cover[0]
+											})
+									})
+							})
+						);
+					} else {
+						listItemElements.push( $('<div/>', {
+							'class'	: 'item-no-thumbnail'
+						}));
+					}
+					
+					// Initialises item meta elements with item title
+					var itemMeta = [
+						$('<h4/>',{
+							'class'	: 'item-title',
+							'html'	: record.title
+						})
+					];
+					
+					// If item has authors list list authors
+					if ( record.authors != false ) {
+						var allAuthors = record.authors.join(', ');
+						
+						// If authors list is too long, clip
+						if ( allAuthors.length > 40 ) {
+							allAuthors = allAuthors.substring(0,38) + '...';
+						}
+						itemMeta.push(
+							$('<p/>',{
+								'class'	: 'item-authors',
+								'html'	: 'Authors: ' + allAuthors
+							})
+						);
+					}
+					
+					// Adds item title and details to entry elements
+					listItemElements.push(
+						$('<div/>',{
+							'class'	: 'item-meta',
+							'html'	: itemMeta
+						})
+					);
+					
+					// Creates list element
+					var localParent = $('<li/>', {
+						'class'	: 'single-item',
+						'html'	: listItemElements
+					});
+					
+					// Creates 'Manage' and 'View' buttons to loan/return item or view its public listing
+					[ [record.manage,'Manage','item-manage'], [record.view,'View','item-view'] ].forEach(function(itemButton,i) {
+						render_page_element( {
+							'type'		: 'button',
+							'link'		: 'url',
+							'href'		: itemButton[0],
+							'html'		: itemButton[1],
+							'classes'	: itemButton[2]
+						}, localParent );
+					});
+					
+					// Converts to html string, as Dynatable doesn't accept DOM objects
+					return localParent.prop('outerHTML');
+				}
+				
+				theParent.dynatable({
+					table: {
+						bodyRowSelector: 'li'
+					},
+					dataset: {
+						perPageDefault: 25,
+						perPageOptions: [25, 50, 75]
+					},
+					writers: {
+						_rowWriter: render_item_row
+					},
+					dataset: {
+						records: pageItem.data
+					},
+					params: {
+						records: 'items'
+					}
 				});
 			break;
 			

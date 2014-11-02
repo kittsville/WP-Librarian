@@ -22,6 +22,10 @@ add_action( 'wp_ajax_wp_lib_page', function() {
 			wp_lib_page_dashboard();
 		break;
 		
+		case 'view-items':
+			wp_lib_page_view_items();
+		break;
+		
 		case 'manage-item':
 			wp_lib_page_manage_item();
 		break;
@@ -413,8 +417,8 @@ function wp_lib_page_dashboard() {
 		array(
 			'title'	=> 'Manage Items',
 			'icon'	=> 'default',
-			'link'	=> 'post-type',
-			'pType'	=> 'wp_lib_items'
+			'link'	=> 'dash-page',
+			'value'	=> 'view-items'
 		),
 		array(
 			'title'	=> 'Manage Members',
@@ -467,6 +471,87 @@ function wp_lib_page_dashboard() {
 	wp_lib_send_page( $page_title, $page_title, $page );
 }
 
+// Displays list of all current items in the library
+function wp_lib_page_view_items() {
+	$page_title = 'Library Items';
+	
+	$tab_title = 'All Library Items';
+	
+	// Initialises header and form
+	$header = array();
+	$form = array();
+	
+	// Prepares query parameters to lookup all Library items
+	$args = array(
+		'post_type' 	=> 'wp_lib_items',
+		'post_status'	=> 'publish'
+	);
+	
+	// Queries database for all valid library items
+	$query = NEW WP_Query( $args );
+	
+	// Checks if any items were returned
+	if ( $query->have_posts() ){
+		$header[] = array(
+			'type'		=> 'paras',
+			'content'	=> array('Select an item to manage it.')
+		);
+		
+		// Iterates through items
+		while ( $query->have_posts() ) {
+			$query->the_post();
+			
+			// Fetches item ID
+			$item_id = get_the_ID();
+			
+			// Sets up basic item parameters
+			$item = array(
+				'title'	=> get_the_title( $item_id ),
+				'link'	=> get_permalink( $item_id )
+			);
+			
+			// If item has a cover image, fetch url and add to item array
+			if ( has_post_thumbnail() )
+				$item['cover'] = wp_get_attachment_image_src( get_post_thumbnail_id( $item_id ), array( 300, 160 ) );
+			else
+				$item['cover'] = false;
+			
+			// Fetches all authors of item
+			$authors = get_the_terms( $item_id, 'wp_lib_author' );
+			
+			// If result contains authors
+			if ( $authors && !is_wp_error( $authors ) ) {
+				// Iterates over authors, adding their term names to the item's author meta
+				foreach ( $authors as $author ) {
+					$item['authors'][] = $author->name;
+				}
+			} else {
+				$item['authors'] = false;
+			}
+			
+			$item['manage'] = wp_lib_manage_item_url( $item_id );
+			$item['view'] = get_permalink();
+			
+			// Adds prepared item to array of all items
+			$items[] = $item;
+		}
+		// Creates element that will hold all items
+		$form[] = array(
+			'type'		=> 'item-list',
+			'data'		=> $items,
+			'records'	=> 'items'
+		);
+	} else {
+		$header[] = array(
+			'type'		=> 'paras',
+			'content'	=> array('No items found.')
+		);
+	}
+	
+	wp_lib_send_page( $page_title, $tab_title, $header, $form );
+}
+
+// Displays an item's information and loan history
 function wp_lib_page_manage_item() {
 	// Fetches item ID from AJAX request
 	$item_id = $_POST['item_id'];
@@ -866,7 +951,7 @@ function wp_lib_page_manage_fine() {
 // Page for looking up an item by its barcode
 function wp_lib_page_scan_item() {
 	// Enqueues barcode page script
-	$scripts[] = plugins_url( '/scripts/admin-barcode-scanner.js', __FILE__ );
+	$scripts[] = wp_lib_script_url( 'admin-barcode-scanner' );
 	
 	$form = array(
 		wp_lib_prep_nonce( 'Lookup Item Barcode' ),
