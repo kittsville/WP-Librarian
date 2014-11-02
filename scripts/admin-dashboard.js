@@ -583,6 +583,11 @@ function wp_lib_render_page( pageArray ) {
 						}));
 					}
 					
+					// Reduces item's title length if it is too long
+					if ( record.title.length > 50 ) {
+						record.title = record.title.substring(0,48) + '...';
+					}
+					
 					// Initialises item meta elements with item title
 					var itemMeta = [
 						$('<h4/>',{
@@ -596,8 +601,8 @@ function wp_lib_render_page( pageArray ) {
 						var allAuthors = record.authors.join(', ');
 						
 						// If authors list is too long, clip
-						if ( allAuthors.length > 40 ) {
-							allAuthors = allAuthors.substring(0,38) + '...';
+						if ( allAuthors.length > 45 ) {
+							allAuthors = allAuthors.substring(0,43) + '...';
 						}
 						itemMeta.push(
 							$('<p/>',{
@@ -640,15 +645,13 @@ function wp_lib_render_page( pageArray ) {
 					table: {
 						bodyRowSelector: 'li'
 					},
-					dataset: {
-						perPageDefault: 25,
-						perPageOptions: [25, 50, 75]
-					},
 					writers: {
 						_rowWriter: render_item_row
 					},
 					dataset: {
-						records: pageItem.data
+						records: pageItem.data,
+						perPageDefault: 20,
+						perPageOptions: [20, 40, 60, 100]
 					},
 					params: {
 						records: 'items'
