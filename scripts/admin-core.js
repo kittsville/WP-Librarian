@@ -8,17 +8,17 @@ jQuery(function($){
 });
 
 // Collects of a submitted form's parameters, removes the blank ones, then returns the result as an object
-function wp_lib_collect_form_params( selector ) {
+function wp_lib_collect_form_params() {
 
 	// Fetches all form elements and creates an array of objects
-	var objects = jQuery( selector ).serializeArray();
-	
+	var objects = jQuery( '#library-form' ).serializeArray();
+	console.log( objects );
 	// Initialises results object
 	var result = {};
 	
 	// Iterates through each object, if the value is set, it is added to the results
 	objects.forEach(function(object) {
-		if ( object.value ) {
+		if ( object.hasOwnProperty('name') && object.hasOwnProperty('value') && object.value != '' ) {
 			result[object.name] = object.value;
 		}
 	});

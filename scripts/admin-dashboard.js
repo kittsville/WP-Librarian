@@ -91,7 +91,7 @@ function wp_lib_load_page( ajaxData, stateLoad ) {
 	}
 	
 	// If page to load wasn't specified, load Dashboard
-	if ( !ajaxData.hasOwnProperty( 'dash_page' ) ) {
+	if ( !ajaxData.hasOwnProperty( 'dash_page' ) || ajaxData.dash_page == '' ) {
 		ajaxData.dash_page = 'dashboard';
 	}
 	
@@ -485,7 +485,9 @@ function wp_lib_render_page( pageArray ) {
 				elementObject.class += wp_lib_add_classes( ['dynatable-table', 'wp-list-table', 'widefat', 'fixed', 'posts'] );
 				
 				// Wraps table in div for styling purposes
-				theParent = $('<div/>', {} ).appendTo( theParent );
+				theParent = $('<div/>', {
+					'class'	: 'dynatable-wrap'
+				} ).appendTo( theParent );
 				
 				// Creates/selects base element
 				theParent = $('<table/>', elementObject ).appendTo( theParent );
@@ -714,7 +716,7 @@ jQuery(function($){
 		var action = e.currentTarget.value;
 		
 		// Fetches form parameters that have been set
-		var params = wp_lib_collect_form_params( '#library-form' );
+		var params = wp_lib_collect_form_params();
 		
 		// Performs action
 		wp_lib_do_action( action, params );
@@ -726,10 +728,15 @@ jQuery(function($){
 	// Adds listener for page loading buttons
 	jQuery('#wp-lib-workspace').on('click', '[name="dash_page"]', function ( e ){
 		// Fetches form parameters that have been set
-		var params = wp_lib_collect_form_params( '#library-form' );
+		var params = wp_lib_collect_form_params();
 		
 		// Fetches page to be loaded
 		params.dash_page = e.currentTarget.value;
+		
+		// Strips nonce (only needed for dash actions)
+		if ( params.hasOwnProperty('wp_lib_ajax_nonce') ) {
+			delete params.wp_lib_ajax_nonce;
+		}
 
 		// Loads page
 		wp_lib_load_page( params );
