@@ -48,6 +48,10 @@ dl.lib-metabox dd {
 	width: 75%;
 }
 
+#library-form button {
+	margin-left: 2px;
+}
+
 /* Dynatable Styling */
 
 .dynatable-table th a:hover {

@@ -538,7 +538,9 @@ function wp_lib_render_page( pageArray ) {
 				// Fills table with formatted data
 				$( '#' + elementObject.id ).dynatable({ 
 					dataset: {
-						records: tableRecords
+						records: tableRecords,
+						perPageDefault: 15,
+						perPageOptions: [15, 30, 60, 180]
 					},
 					params: {
 						records: pageItem.labels.records
