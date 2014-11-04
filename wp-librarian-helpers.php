@@ -75,11 +75,8 @@ function wp_lib_valid_item_id( $item_id ) {
 		return false;
 	}
 	
-	// Fetches item status
-	$item_status = get_post_status( $item_id );
-	
 	// Checks if ID belongs to a published/private library item
-	if ( get_post_type( $item_id ) != 'wp_lib_items' || !( $item_status == 'publish' || $item_status == 'private' ) ) {
+	if ( get_post_type( $item_id ) != 'wp_lib_items' ) {
 		wp_lib_error( 305, false, $item_id );
 		return false;
 	}
@@ -100,9 +97,6 @@ function wp_lib_valid_member_id( $member_id ) {
 		wp_lib_error( 301, false, 'Member' );
 		return false;
 	}
-	
-	// Fetches item status
-	$member_status = get_post_status( $member_id );
 	
 	// Checks if ID belongs to a published/private library item
 	if ( get_post_type( $member_id ) != 'wp_lib_members' ) {
