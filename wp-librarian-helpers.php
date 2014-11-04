@@ -371,7 +371,7 @@ function wp_lib_format_money( $value ) {
 	/* Functions that assist preparing data for the client/server */
 
 
-// Given item ID, returns rendered item management header
+// Given item ID, returns header for management pages containing useful information on the item
 function wp_lib_prep_item_management_header( $item_id ) {
 	// Fetches title of item e.g. 'Moby-Dick'
 	$title = get_the_title( $item_id );
@@ -431,27 +431,43 @@ function wp_lib_prep_item_management_header( $item_id ) {
 	);
 }
 
-// Given fine ID, returns rendered fine management header
-function wp_lib_prep_fine_management_header( $fine_id ) {
-	$meta = get_post_meta( $fine_id );
-
-	// Fetches and formats fine amount ( e.g. £0.40 )
-	$fine_formatted = wp_lib_format_money( $meta['wp_lib_fine'][0] );
-
-	// Fetches and formats fine status
-	$formatted_status = wp_lib_format_fine_status( $meta['wp_lib_status'][0] );
+// Given loan ID, returns header for management pages containing useful information on the loan
+function wp_lib_prep_loan_management_header( $loan_id ) {
+	$meta = get_post_meta( $loan_id );
 	
-	// Fetches item and loan IDs
-	$item_id = $meta['wp_lib_item'][0];
-	$loan_id = $meta['wp_lib_loan'][0];
+	// Adds basic loan meta fields
+	$meta_fields = array(
+		array( 'Loan ID', $loan_id ),
+		array( 'Created', get_the_date( '', $loan_id ) ),
+		array( 'Status', wp_lib_format_loan_status( $meta['wp_lib_status'][0] ) )
+	);
 	
-	// Fetches member name
-	$member_name = get_the_title( $meta['wp_lib_member'][0] );
-	
-	// Fetches item title and if the item still exists
-	$item_title = wp_lib_manage_item_hyperlink( $item_id );
+	// If fine was incurred for loan, fetch details and add to metabox
+	if ( isset( $meta['wp_lib_fine'] ) ) {
+		$meta_fields[] = array( 'Fine ID', wp_lib_hyperlink( wp_lib_manage_fine_url( $meta['wp_lib_fine'][0] ), $meta['wp_lib_fine'][0] ) );
+	}
 	
 	// Finalises and returns management header
+	return array(
+		array(
+			'type'		=> 'div',
+			'classes'	=> 'loan-man',
+			'inner'		=> array(
+				array(
+					'type'	=> 'metabox',
+					'title'	=> 'Details',
+					'fields'=> $meta_fields
+				)
+			)
+		)
+	);
+}
+
+// Given fine ID, returns header for management pages containing useful information on the fine
+function wp_lib_prep_fine_management_header( $fine_id ) {
+	$meta = get_post_meta( $fine_id );
+	
+	// Creates and returns fine management header
 	return array(
 		array(
 			'type'		=> 'div',
@@ -462,10 +478,11 @@ function wp_lib_prep_fine_management_header( $fine_id ) {
 					'title'	=> 'Details',
 					'fields'=> array(
 						array( 'Fine ID', $fine_id ),
-						array( 'Item', $item_title ),
-						array( 'Member', $member_name ),
-						array( 'Amount', $fine_formatted ),
-						array( 'Status', $formatted_status ),
+						array( 'Loan ID', wp_lib_hyperlink( wp_lib_manage_loan_url( $meta['wp_lib_loan'][0] ), $meta['wp_lib_loan'][0] ) ),
+						array( 'Item', wp_lib_manage_item_hyperlink( $meta['wp_lib_item'][0] ) ),
+						array( 'Member', wp_lib_manage_member_hyperlink( $meta['wp_lib_member'][0] ) ),
+						array( 'Amount', wp_lib_format_money( $meta['wp_lib_fine'][0] ) ),
+						array( 'Status', wp_lib_format_fine_status( $meta['wp_lib_status'][0] ) ),
 						array( 'Created', get_the_date( '', $fine_id ) )
 					)
 				)
@@ -474,7 +491,7 @@ function wp_lib_prep_fine_management_header( $fine_id ) {
 	);
 }
 
-// Given member object, returns rendered member management header
+// Given member ID, returns header for management pages containing useful information on the member
 function wp_lib_prep_member_management_header( $member_id ) {
 	// Fetches member meta
 	$meta = get_post_meta( $member_id );

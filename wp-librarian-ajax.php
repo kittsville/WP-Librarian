@@ -814,12 +814,8 @@ function wp_lib_page_manage_item() {
 		);
 	}
 	
-	// Creates titles for page and browser tab
-	$page_title = 'Managing: ' . get_the_title( $item_id );
-	$tab_title = 'Managing Item #' . $item_id;
-	
 	// Encodes page as an array to be rendered client-side
-	wp_lib_send_page( $page_title, $tab_title, $header, $form );
+	wp_lib_send_page( 'Managing: ' . get_the_title( $item_id ), 'Managing Item #' . $item_id, $header, $form );
 }
 
 // Displays member's details and loan history
@@ -939,12 +935,8 @@ function wp_lib_page_manage_member() {
 			'content'	=> array( 'No loans to display' )
 		);
 	}
-
-	$page_title = 'Managing: ' . get_the_title( $member_id );
 	
-	$tab_title = 'Managing Member #' . $member_id;
-	
-	wp_lib_send_page( $page_title, $tab_title, $header, $content );
+	wp_lib_send_page( 'Managing: ' . get_the_title( $member_id ), 'Managing Member #' . $member_id, $header, $content );
 }
 
 // Displays lack of loan management page
@@ -955,8 +947,27 @@ function wp_lib_page_manage_loan() {
 	// Checks if loan ID is valid
 	wp_lib_check_loan_id( $loan_id );
 	
-	// Returns error
-	wp_lib_stop_ajax( false, 202 );
+	// Renders header with useful loan information
+	$header = wp_lib_prep_loan_management_header( $loan_id );
+	
+	// If loan is not open, displays delete button
+	if ( get_post_meta( $loan_id, 'wp_lib_status', true ) != 1 ) {
+		$form = array(
+			array(
+				'type'	=> 'hidden',
+				'name'	=> 'post_id', // Saves time on object-deletion page. No need using member_id as there are no other buttons on the page
+				'value'	=> $loan_id
+			),
+			array(
+				'type'	=> 'button',
+				'link'	=> 'page',
+				'value'	=> 'object-deletion',
+				'html'	=> 'Delete'
+			)
+		);
+	}
+	
+	wp_lib_send_page( 'Managing: Loan #' . $loan_id, 'Managing Loan #' . $loan_id, $header, $form );
 }
 
 // Displays fine details and provides options to modify the fine
@@ -992,11 +1003,8 @@ function wp_lib_page_manage_fine() {
 		);
 	}
 	
-	// Creates browser window and page title
-	$title = 'Managing Fine #' . $fine_id;
-	
 	// Sends entire page to be encoded in JSON
-	wp_lib_send_form( $title, $title, $header, $form );
+	wp_lib_send_form( 'Managing: Fine #' . $fine_id, 'Managing Fine #' . $fine_id, $header, $form );
 }
 
 // Page for looking up an item by its barcode
@@ -1117,11 +1125,7 @@ function wp_lib_page_scheduling_page() {
 		)
 	);
 	
-	$page_title = 'Scheduling loan of ' . get_the_title( $item_id );
-	
-	$tab_title = 'Scheduling loan of #' . $item_id;
-	
-	wp_lib_send_page( $page_title, $tab_title, $header, $form );
+	wp_lib_send_page( 'Scheduling loan of ' . get_the_title( $item_id ), 'Scheduling loan of #' . $item_id, $header, $form );
 }
 
 // Displays page for returning an item in the past
@@ -1297,7 +1301,7 @@ function wp_lib_page_confirm_deletion() {
 				wp_lib_stop_ajax( false, 205 );
 			
 			// Renders management header, displaying useful information about the loan
-			$header = wp_lib_prep_item_management_header( $post_id );
+			$header = wp_lib_prep_loan_management_header( $post_id );
 			
 			// Sets titles of Dash page and browser tab
 			$page_title = 'Deleting: Loan #' . $post_id;

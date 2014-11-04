@@ -579,7 +579,6 @@ function wp_lib_error( $error_id, $die = false, $param = 'NULL' ) {
 		113 => "Can not delete {$param} as it is currently on loan. Please return the item first.",
 		200 => 'Item action not recognised',
 		201 => "No {$param} status known for given value",
-		202 => 'Loans do not have management pages, but I appreciate your curiosity!',
 		203 => 'Loan not found in item\'s loan index',
 		204 => 'Multiple items have the same barcode',
 		205	=> 'Deletion can not be completed while an item is on loan',
