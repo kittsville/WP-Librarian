@@ -582,6 +582,7 @@ function wp_lib_error( $error_id, $die = false, $param = 'NULL' ) {
 		202 => 'Loans do not have management pages, but I appreciate your curiosity!',
 		203 => 'Loan not found in item\'s loan index',
 		204 => 'Multiple items have the same barcode',
+		205	=> 'Deletion can not be completed while an item is on loan',
 		300 => "{$param} ID not given and required",
 		301 => "{$param} ID given is not a number",
 		302 => 'No loans found for that item ID',

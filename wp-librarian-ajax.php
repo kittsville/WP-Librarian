@@ -251,6 +251,24 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 			// Adds current object
 			$connected_objects[] = array( $post_id );
 			
+			// Iterates over objects, checking for any items currently on loan
+			// If an item is on loan then it is physically outside the Library and should not be deleted from Library records
+			foreach ( $connected_objects as $object ) {
+				switch( $object[1] ) {
+						// Checks if item is on loan
+						case 'wp_lib_items':
+							if ( wp_lib_on_loan( $object[0] ) )
+								wp_lib_stop_ajax( false, 205 );
+						break;
+						
+						// Checks if loan is open, meaning item is outside the library
+						case 'wp_lib_loans':
+							if ( get_post_meta( $object[0], 'wp_lib_status', true ) == 1 )
+								wp_lib_stop_ajax( false, 205 );
+						break;
+				}
+			}
+			
 			// Adds objects authorised for deletion to user session
 			wp_lib_start_session();
 			$_SESSION['deletion_allowed'] = $connected_objects;
@@ -389,9 +407,9 @@ function wp_lib_fetch_notifications() {
 // Performs any necessary actions before AJAX request returns data
 function wp_lib_stop_ajax( $output = '', $error_code = false, $params = false ) {
 	// If specified, calls error with code provided
-	if ( $error_code )
+	if ( is_numeric ( $error_code ) )
 		wp_lib_error( $error_code, false, $params );
-
+	
 	// If an output has been specified, render
 	if ( is_bool( $output ) || is_array( $output ) )
 		echo json_encode( $output );
@@ -601,8 +619,10 @@ function wp_lib_page_manage_item() {
 		'value'	=> $item_id
 	);
 	
-	// If item is currently on loan
-	if ( wp_lib_on_loan( $item_id ) ) {
+	// Fetches if item is currently on loan
+	$on_loan = wp_lib_on_loan( $item_id );
+	
+	if ( $on_loan ) {
 		// Fetches loan ID from Item meta
 		$loan_id = wp_lib_fetch_loan_id( $item_id );
 		
@@ -701,13 +721,15 @@ function wp_lib_page_manage_item() {
 		'html'	=> 'Edit',
 	);
 	
-	// Button to delete item
-	$form[] = array(
-		'type'	=> 'button',
-		'link'	=> 'page',
-		'value'	=> 'object-deletion',
-		'html'	=> 'Delete'
-	);
+	// Only show item deletion button if item isn't on loan
+	if ( !$on_loan ) {
+		$form[] = array(
+			'type'	=> 'button',
+			'link'	=> 'page',
+			'value'	=> 'object-deletion',
+			'html'	=> 'Delete'
+		);
+	}
 	
 	// Sets up loan history query arguments
 	$args = array(
@@ -1245,6 +1267,10 @@ function wp_lib_page_confirm_deletion() {
 	// Renders relevant page title and information based on object type
 	switch( $object_type ) {
 		case 'item':
+			// If item is on loan, call error
+			if ( wp_lib_on_loan( $post_id ) )
+				wp_lib_stop_ajax( false, 205 );
+			
 			// Renders management header, displaying useful information about the item
 			$header = wp_lib_prep_item_management_header( $post_id );
 			
@@ -1266,6 +1292,10 @@ function wp_lib_page_confirm_deletion() {
 		break;
 		
 		case 'loan':
+			// If loan is open (item is outside Library), call error
+			if ( get_post_meta( $post_id, 'wp_lib_status', true ) == 1 )
+				wp_lib_stop_ajax( false, 205 );
+			
 			// Renders management header, displaying useful information about the loan
 			$header = wp_lib_prep_item_management_header( $post_id );
 			
