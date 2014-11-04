@@ -231,16 +231,45 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 			// Fetches library object ID
 			$post_id = $_POST['post_id'];
 			
+			// Fetches object type and capitalises first letter
+			$object_type = ucwords( wp_lib_get_object_type( $post_id ) );
+			
 			// Validates ID of Library object
-			if ( !wp_lib_get_object_type( $post_id ) )
+			if ( !$object_type )
 				wp_lib_stop_ajax( false, 317 );
 			
 			// Checks if nonce is valid
 			if ( !wp_lib_verify_nonce( 'Deleting object: ' . $post_id ) )
-				wp_lib_stop_ajax( false );
+				wp_lib_stop_ajax( false, 503 );
 			
-			// Placeholder
-			wp_lib_add_notification( "Object not deleted" );
+			// Fetches all objects connected to current object
+			$connected_objects = wp_lib_fetch_dependant_objects( $post_id );
+			
+			// Counts objects to be deleted
+			$object_count = count( $connected_objects );
+			
+			// Adds current object
+			$connected_objects[] = array( $post_id );
+			
+			// Adds objects authorised for deletion to user session
+			wp_lib_start_session();
+			$_SESSION['deletion_allowed'] = $connected_objects;
+			
+			// Iterates over objects, deleting them
+			foreach( $connected_objects as $object ) {
+				wp_delete_post( $object[0], true );
+			}
+			
+			// Clears session
+			$_SESSION['deletion_allowed'];
+			
+			// If connected objects existed, inform user of how many were deleted, otherwise just inform user object was deleted
+			if ( $object_count != 0 ) 
+				wp_lib_add_notification( wp_lib_plural( $object_count, $object_type . ' and \v connected object\p deleted' ) );
+			else
+				wp_lib_add_notification( $object_type . ' deleted' );
+			
+			// Finish 
 			wp_lib_stop_ajax( true );
 		break;
 		
@@ -893,7 +922,7 @@ function wp_lib_page_manage_member() {
 	
 	$tab_title = 'Managing Member #' . $member_id;
 	
-	wp_lib_send_page( $page_title, $tab_title, array_merge( $header, $content ) );
+	wp_lib_send_page( $page_title, $tab_title, $header, $content );
 }
 
 // Displays lack of loan management page
@@ -1193,164 +1222,122 @@ function wp_lib_page_resolution_page() {
 // Confirmation page to make sure the Librarian knows what deleting the item/loan/fine/member will do
 // This page is not visited if the option wp_lib_mass_deletion is set to true
 function wp_lib_page_confirm_deletion() {
-	// Prepares deletion page based off given post type
-	if ( isset( $_POST['item_id'] ) ) {
-		$post_id = $_POST['item_id'];
-		
-		wp_lib_check_item_id( $post_id );
-		
-		$header = wp_lib_prep_item_management_header( $post_id );
-		
-		$page_title = 'Deleting: ' . get_the_title( $post_id );
-		
-		$tab_title = 'Deleting Item #' . $post_id;
-		
-		// Passes array to client-side JavaScript to render form
-		$form = array(
-			array(
-				'type'	=> 'hidden',
-				'name'	=> 'post_id',
-				'value'	=> $post_id
-			),
-			array(
+	// If page is being visited from item/member/etc. management pages, fetch post ID from relevant POST field
+	if ( !isset( $_POST['post_id'] ) ) {
+		foreach( ['item','member','loan','fine'] as $key ) {
+			$key .= '_id';
+			// If field exists, fetch object ID from field
+			if ( isset( $_POST[$key] ) )
+				$post_id = $_POST[$key];
+				break;
+		}
+	} else {
+		$post_id = $_POST['post_id'];
+	}
+	
+	// Fetches library object type
+	$object_type = wp_lib_get_object_type( $post_id );
+	
+	// If post ID doesn't belong to a valid library object, don't load page
+	if ( !$object_type )
+		wp_lib_page_dashboard();
+	
+	// Renders relevant page title and information based on object type
+	switch( $object_type ) {
+		case 'item':
+			// Renders management header, displaying useful information about the item
+			$header = wp_lib_prep_item_management_header( $post_id );
+			
+			// Sets titles of Dash page and browser tab
+			$page_title = 'Deleting: ' . get_the_title( $post_id );
+			$tab_title = 'Deleting Item #' . $post_id;
+			
+			// Sets object type for use in button labels
+			$object_type = 'Item';
+			
+			// Informs user of implications of deletion
+			$header[] = array(
 				'type'		=> 'paras',
 				'content'	=> array(
 					'Deleting items is a permanent action. Any loans or fines connected to this member will be deleted as well.',
 					'If you want to delete items in bulk, without this prompt, allow bulk deletion via WP-Librarian\'s settings'
 				)
-			),
-			array(
-				'type'	=> 'button',
-				'link'	=> 'action',
-				'value'	=> 'delete-object',
-				'html'	=> 'Delete Item'
-			),
-			array(
-				'type'	=> 'button',
-				'link'	=> 'page',
-				'value'	=> '',
-				'html'	=> 'Cancel'
-			)
-		);
+			);
+		break;
 		
-	} elseif ( isset( $_POST['loan_id'] ) ) {
-		
-		$post_id = $_POST['loan_id'];
-		
-		wp_lib_check_loan_id( $post_id );
-		
-		$header = wp_lib_prep_item_management_header( $post_id );
-		
-		$page_title = 'Deleting: Loan #' . $post_id;
-		
-		$tab_title = 'Deleting Loan #' . $post_id;
-		
-		$form = array(
-			array(
+		case 'loan':
+			// Renders management header, displaying useful information about the loan
+			$header = wp_lib_prep_item_management_header( $post_id );
+			
+			// Sets titles of Dash page and browser tab
+			$page_title = 'Deleting: Loan #' . $post_id;
+			$tab_title = 'Deleting Loan #' . $post_id;
+			
+			// Informs user of implications of deletion
+			$header[] = array(
 				'type'		=> 'paras',
 				'content'	=> array(
 					'Deleting a loan is a permanent action. Any fines connected to this loan will also be deleted.',
 					'If you want to delete loans in bulk, without this prompt, allow bulk deletion via WP-Librarian\'s settings'
 				)
-			),
-			array(
-				'type'	=> 'button',
-				'link'	=> 'action',
-				'value'	=> 'delete-object',
-				'html'	=> 'Delete Loan'
-			),
-			array(
-				'type'	=> 'button',
-				'link'	=> 'page',
-				'value'	=> '',
-				'html'	=> 'Cancel'
-			)
-		);
-	} elseif ( isset( $_POST['fine_id'] ) ) {
-		$post_id = $_POST['fine_id'];
+			);
+		break;
 		
-		wp_lib_check_fine_id( $post_id );
-		
-		$header = wp_lib_prep_fine_management_header( $post_id );
-		
-		$page_title = 'Deleting: Fine #' . $post_id;
-		
-		$tab_title = 'Deleting Fine #' . $post_id;
-		
-		$form = array(
-			array(
-				'type'	=> 'hidden',
-				'name'	=> 'post_id',
-				'value'	=> $post_id
-			),
-			array(
+		case 'fine':
+			// Renders management header, displaying useful information about the fine
+			$header = wp_lib_prep_fine_management_header( $post_id );
+			
+			// Sets titles of Dash page and browser tab
+			$page_title = 'Deleting: Fine #' . $post_id;
+			$tab_title = 'Deleting Fine #' . $post_id;
+			
+			// Informs user of implications of deletion
+			$form[] = array(
 				'type'		=> 'paras',
 				'content'	=> array(
 					'Deleting a fine is a permanent action and will result in the deletion of any loan connected to this fine',
 					'If you want to delete fines in bulk, without this prompt, allow bulk deletion via WP-Librarian\'s settings'
 				)
-			),
-			array(
-				'type'	=> 'button',
-				'link'	=> 'action',
-				'value'	=> 'delete-object',
-				'html'	=> 'Delete Fine'
-			),
-			array(
-				'type'	=> 'button',
-				'link'	=> 'page',
-				'value'	=> '',
-				'html'	=> 'Cancel'
-			)
-		);
-	} elseif ( isset( $_POST['member_id'] ) ) {
-		$post_id = $_POST['member_id'];
+			);
+		break;
 		
-		wp_lib_check_member_id( $post_id );
-		
-		$header = wp_lib_prep_member_management_header( $post_id );
-		
-		$page_title = 'Deleting: ' . get_the_title( $post_id );
-		
-		$tab_title = 'Deleting Member #' . $post_id;
-		
-		$form = array(
-			array(
-				'type'	=> 'hidden',
-				'name'	=> 'post_id',
-				'value'	=> $post_id
-			),
-			array(
+		case 'member':
+			// Renders management header, displaying useful information about the member
+			$header = wp_lib_prep_member_management_header( $post_id );
+			
+			// Sets dash page title and tab title
+			$page_title = 'Deleting: ' . get_the_title( $post_id );
+			$tab_title = 'Deleting Member #' . $post_id;
+			
+			// Informs user of implications of deletion
+			$header[] = array(
 				'type'		=> 'paras',
 				'content'	=> array(
 					'Deleting a member is a permanent action. You can choose to also delete all loans/fines tied to this member',
 					'If you want to delete members in bulk, without this prompt, allow bulk deletion via WP-Librarian\'s settings'
 				)
-			),
-			array(
-				'type'	=> 'button',
-				'link'	=> 'action',
-				'value'	=> 'delete-object',
-				'html'	=> 'Delete Member'
-			),
-			array(
-				'type'	=> 'button',
-				'link'	=> 'page',
-				'value'	=> '',
-				'html'	=> 'Cancel'
-			)
-		);
-	} else {
-		wp_lib_stop_ajax( false, 315 );
+			);
+		break;
 	}
 	
-	// Adds post ID and nonce to beginning of form
-	array_unshift( $form, 
+	// Adds page nonce, object ID and relevant buttons to form
+	$form = array(
 		wp_lib_prep_nonce( 'Deleting object: ' . $post_id ),
 		array(
 			'type'	=> 'hidden',
 			'name'	=> 'post_id',
 			'value'	=> $post_id
+		),
+		array(
+			'type'	=> 'button',
+			'link'	=> 'action',
+			'value'	=> 'delete-object',
+			'html'	=> 'Delete ' . ucwords( $object_type )
+		),
+		array(
+			'type'	=> 'button',
+			'link'	=> 'page',
+			'html'	=> 'Cancel'
 		)
 	);
 	

@@ -952,62 +952,43 @@ function wp_lib_flush_permalinks() {
 
 // Performs necessary checks before an item, loan or fine is deleted
 function wp_lib_check_post_pre_trash( $post_id ) {
-	if ( !$_POST['deletion_confirmed'] ) {
-		switch ( $GLOBALS['post_type'] ) {
-			case 'wp_lib_items':
-				wp_redirect( wp_lib_format_dash_url(
-					array(
-						'dash_page' => 'object-deletion',
-						'item_id'	=> $post_id,
-						'obj_type'	=> 'item'
-					)
-				));
-				exit;
-			break;
-			
-			case 'wp_lib_loans':
-				wp_redirect( wp_lib_format_dash_url(
-					array(
-						'dash_page' => 'object-deletion',
-						'loan_id'	=> $post_id,
-						'obj_type'	=> 'loan'
-					)
-				));
-				exit;
-			break;
-			
-			case 'wp_lib_fines':
-				wp_redirect( wp_lib_format_dash_url(
-					array(
-						'dash_page' => 'object-deletion',
-						'fine_id'	=> $post_id,
-						'obj_type'	=> 'fine'
-					)
-				));
-				exit;
-			break;
-			
-			case 'wp_lib_members':
-				wp_redirect( wp_lib_format_dash_url(
-					array(
-						'dash_page' => 'object-deletion',
-						'member_id'	=> $post_id,
-						'obj_type'	=> 'member'
-					)
-				));
-				exit;
-			break;
+	// If object doesn't belong to the Library it is ignored
+	if ( !in_array( $GLOBALS['post_type'], ['wp_lib_items', 'wp_lib_members', 'wp_lib_loans', 'wp_lib_fines'] ) )
+		return;
+	
+	// If object is being deleted via an AJAX request
+	if (defined('DOING_AJAX') && DOING_AJAX) {
+		wp_lib_start_session();
+		
+		// If authorisation array doesn't exist, item can't be in it and can't have been authorised for deletion
+		if ( !isset( $_SESSION['deletion_allowed'] ) )
+			wp_lib_stop_ajax( false, 504 );
+		else
+			$authed_objects = $_SESSION['deletion_allowed'];
+		
+		// Iterates over all objects authorised for deletion
+		foreach( $authed_objects as $key => $object ) {
+			// If current object's ID in the loop matches the $post_id then the object has been authorised for deletion
+			if ( $object[0] == $post_id ) {
+				// Removes object from authorisation array
+				unset( $authed_objects[$key] );
+				
+				// Allow WordPress to delete object
+				return;
+			}
 		}
-	} elseif ( $GLOBALS['post_type'] == 'wp_lib_items' ) {
-		if ( wp_lib_on_loan( $post_id ) ) {
-			wp_redirect( wp_lib_format_dash_url(
-				array(
-					'dash_page' => 'object-deletion',
-					'item_id'	=> $post_id,
-					'obj_type'	=> 'item'
-				)
-			));
-		}
+		
+		// If this point is reached, object was never authorised for deletion
+		wp_lib_stop_ajax( false, 504 );
+	} else {
+		// Redirects user to page to confirm object deletion properly (with connected objects being deleted as well)
+		wp_redirect( wp_lib_format_dash_url(
+			array(
+				'dash_page' => 'object-deletion',
+				'post_id'	=> $post_id
+			)
+		));
+		die();
 	}
 }
 
