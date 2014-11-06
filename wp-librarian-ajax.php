@@ -657,13 +657,6 @@ function wp_lib_page_manage_item() {
 	elseif ( wp_lib_loanable( $item_id ) ) {
 		$options = wp_lib_prep_member_options();
 		
-		// Adds loan item title
-		$form[] = array(
-			'type'	=> 'header',
-			'size'	=> 4,
-			'html'	=> 'Loan Item:'
-		);
-		
 		// Adds dropdown menu using members options created above
 		$form[] = array(
 			'type'			=> 'select',
@@ -751,13 +744,6 @@ function wp_lib_page_manage_item() {
 	if ( $loan_query->have_posts() ){
 		// Initialises loans array
 		$loans = array();
-		
-		// Title of Loans list
-		$form[] = array(
-			'type'	=> 'header',
-			'size'	=> '4',
-			'html'	=> 'Loans:'
-		);
 		
 		// Iterates through loans
 		while ( $loan_query->have_posts() ) {
@@ -874,12 +860,6 @@ function wp_lib_page_manage_member() {
 	if ( $loan_query->have_posts() ){
 		// Initialises loans array
 		$loans = array();
-		
-		$content[] = array(
-			'type'	=> 'header',
-			'size'	=> '4',
-			'html'	=> 'Loans:'
-		);
 		
 		// Iterates through loans
 		while ( $loan_query->have_posts() ) {

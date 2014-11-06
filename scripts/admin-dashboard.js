@@ -53,7 +53,7 @@ function wp_lib_do_action( dashAction, params ) {
 	}
 	
 	// Adds nonce to params to be sent
-	data.wp_lib_ajax_nonce = params['wp_lib_ajax_nonce'];
+	data.wp_lib_ajax_nonce = params[WP_LIB_NONCE];
 	
 	// Submits action with all given form parameters
 	jQuery.post( ajaxurl, data, function( response ) {
@@ -118,9 +118,6 @@ function wp_lib_load_page( ajaxData, stateLoad ) {
 		if ( ajaxResult == false ) {
 			wp_lib_local_error( 'Server encounted error while loading page' );
 		} else {
-			// Clears existing params in preparation of new page
-			wp_lib_vars.getParams = {};
-			
 			// Renders page using AJAX returned data
 			wp_lib_render_page( ajaxResult );
 			
@@ -186,6 +183,9 @@ function wp_lib_render_page( pageArray ) {
 	
 	// jQuery setup
 	var $ = jQuery;
+	
+	// Clears existing params in preparation of new page
+	wp_lib_vars.getParams = {};
 
 	// Changes page title
 	jQuery( '#page-title' ).html( pageArray.pageTitle );
@@ -193,7 +193,8 @@ function wp_lib_render_page( pageArray ) {
 	// Changes title of browser tab
 	document.title = wp_lib_format_tab_title( pageArray.title );
 	
-	if ( pageArray.scripts ) {
+	// If any scripts are required by the page, loads them
+	if ( pageArray.hasOwnProperty('scripts') && pageArray.scripts instanceof Array ) {
 		$( pageArray.scripts ).each( function( i, scriptURL ) {
 			jQuery.getScript( scriptURL )
 			.fail( function( jqxhr, settings, exception ) {
@@ -230,10 +231,26 @@ function wp_lib_render_page( pageArray ) {
 	// Function is recursive and will render a div's child nodes using itself
 	function render_page_element( pageItem, theParent ) {
 		// Sets up basic properties of object such as class/ID/name
-		elementObject = wp_lib_init_object( pageItem );
+		elementObject = {};
+		
+		$( [ 'id', 'name', 'value', 'html' ] ).each( function( i, e ) {
+			if ( e in pageItem ) {
+				elementObject[e] = pageItem[e];
+			}
+		});
+		
+		// If any classes need to be added to the specific element, adds them
+		if ( pageItem.hasOwnProperty( 'classes' ) ) {
+			// If new classes are stored as an array, turns into string first
+			if ( pageItem.classes instanceof Array ) {
+				elementObject['class'] = pageItem.classes.join(' ');
+			} else if ( typeof pageItem.classes === 'string' ) {
+				elementObject['class'] = pageItem.classes;
+			}
+		}
 		
 		// If element has a label, creates
-		if ( pageItem.label ) {
+		if ( pageItem.hasOwnProperty('label') ) {
 			// Creates label, appends to parent, then sets parent as label. This means the pageItem will be inside the label
 			theParent = $('<label/>', {
 				'for'	: pageItem.label
@@ -242,45 +259,48 @@ function wp_lib_render_page( pageArray ) {
 		
 		// Performs actions on page element based on element type
 		switch ( pageItem.type ) {
+			// Hidden inputs used to store information such as the item ID
 			case 'hidden':
-				elementObject.type = pageItem.type;
-				
-				$('<input/>', elementObject ).appendTo( theParent );
+				var theElement = $('<input/>', elementObject ).attr('type', pageItem.type );
 				
 				wp_lib_vars.getParams[elementObject.name] = elementObject.value;
 			break;
 			
+			// Nonces used to verify the source of do_action requests
 			case 'nonce':
-				elementObject.type = 'hidden';
-				elementObject.id = 'wp_lib_ajax_nonce';
-				elementObject.name = 'wp_lib_ajax_nonce';
-				
-				$('<input/>', elementObject ).appendTo( theParent );
+				var theElement = $('<input/>', elementObject ).attr({
+					'type'	: 'hidden',
+					'id'	: WP_LIB_NONCE,
+					'name'	: WP_LIB_NONCE
+				});
 			break;
 			
+			// Buttons used to load Dash pages or perform Dash actions
 			case 'button':
-				// Sets button classes to hook admin WordPress styles
-				elementObject.class += wp_lib_add_classes( [ 'button', 'button-primary', 'button-large' ] );
+				// Creates DOM element and adds classes to use native WordPress styles
+				var theElement = $('<button/>', elementObject ).addClass( 'button button-primary button-large' );
 				
-				// Sets button type to button to stop default behavior (form submission)
-				elementObject.type = 'button';
+				// Sets button type to button to stop default behaviour (form submission)
+				theElement.attr('type','button');
 				
 				// Sets up button properties based on the button type
 				switch ( pageItem.link ) {
 					// Button to load a new Dash page
 					case 'page':
-						elementObject.name = 'dash_page';
+						theElement.attr('name','dash_page');
 					break;
 					
 					// Button to modify the library (e.g. loan an item)
 					case 'action':
-						elementObject.name = 'dash_action';
+						theElement.attr('name','dash_action');
 					break;
 					
 					// Button that links to an external URL
 					case 'url':
-						elementObject.href = pageItem.href;
-						elementObject.onclick = wp_lib_vars.onClick;
+						theElement.attr({
+							href	: pageItem.href,
+							onclick	: wp_lib_vars.onClick
+						});
 					break;
 					
 					case 'edit':
@@ -295,8 +315,10 @@ function wp_lib_render_page( pageArray ) {
 						}
 						
 						// Creates link to edit item/member
-						elementObject.href = wp_lib_vars.adminUrl + 'post.php?action=edit&post=' + postID;
-						elementObject.onclick = wp_lib_vars.onClick;
+						theElement.attr({
+							href	: wp_lib_vars.adminUrl + 'post.php?action=edit&post=' + postID,
+							onclick	: wp_lib_vars.onClick
+						});
 					break;
 					
 					// If button has no known type, render error
@@ -305,130 +327,150 @@ function wp_lib_render_page( pageArray ) {
 						return;
 					break;
 				}
-				
-				// Creates button using buttonObject and appends it to page
-				$('<button/>', elementObject ).appendTo( theParent );
 			break;
 			
+			// Dash buttons are the large buttons on the Dashboard homepage
 			case 'dash-button':
-				// Merges dash button's classes with default dash button classes
-				elementObject.class += wp_lib_add_classes( [ 'dashboard-button' ] );
+				// Creates element and adds default dash button class
+				theElement = $('<button/>',elementObject).addClass('dashboard-button');
 				
 				// Sets button's click behaviour based on its link type
 				switch ( pageItem.link ) {
 					case 'dash-page':
-						elementObject.name = 'dash_page';
+						theElement.attr('name','dash_page');
 					break;
 					
 					case 'post-type':
-						elementObject.href = wp_lib_vars.adminUrl + 'edit.php?post_type=' + pageItem.pType;
-						elementObject.onclick = wp_lib_vars.onClick;
+						theElement.attr({
+							href	: wp_lib_vars.adminUrl + 'edit.php?post_type=' + pageItem.pType,
+							onclick	: wp_lib_vars.onClick
+						});
 					break;
 					
 					case 'admin-url':
-						elementObject.href = wp_lib_vars.adminUrl + pageItem.url;
-						elementObject.onclick = wp_lib_vars.onClick;
+						theElement.attr({
+							href	: wp_lib_vars.adminUrl + pageItem.url,
+							onclick	: wp_lib_vars.onClick
+						});
 					break;
 					
 					case 'url':
-						elementObject.href = pageItem.url;
-						elementObject.onclick = wp_lib_vars.onClick;
+						theElement.attr({
+							href	: pageItem.url,
+							onclick	: wp_lib_vars.onClick
+						});
 					break;
 				}
 				
-				// Creates button and appends to document, setting parent to button
-				theParent = $('<button/>', elementObject ).appendTo( theParent );
-				
-				// Creates dash icon wrapper
-				var localParent = $('<div/>', {
-					'class'	: 'dash-button-top'
-				}).appendTo( theParent );
-				
-				// Creates dash icon
-				$('<img/>', {
-					'class'	: 'dashboard-icon',
-					'src'	: wp_lib_vars.pluginsUrl + '/images/dash-icons/' + pageItem.icon + '.png',
-					'alt'	: pageItem.title + ' Icon',
-				}).appendTo( localParent );
-				
-				// Creates bottom half of button: the label
-				$('<div/>', {
-					'class'	: 'dash-button-bottom',
-					'html'	: pageItem.title
-				}).appendTo( theParent );
+				// Adds button innards: icon and button name
+				theElement.html([
+					// Icon Wrapper
+					$('<div/>', {
+						'class'	: 'dash-button-top',
+						html	:
+							// Icon
+							$('<img/>', {
+								'class'	: 'dashboard-icon',
+								src		: wp_lib_vars.pluginsUrl + '/images/dash-icons/' + pageItem.icon + '.png',
+								alt		: pageItem.title + ' Icon'
+							})
+					}),
+					// Button text wrapper
+					$('<div/>', {
+						'class'	: 'dash-button-bottom',
+						html	:
+							// Button text
+							$('<span/>',{
+								'class'	: 'dash-button-text',
+								html	: pageItem.title
+							})
+					})
+				]);
 			break;
 			
+			// Paras groups of at least one paragraph, wrapped in a div
 			case 'paras':
-				// Renders paragraphs from array to separate p elements
+				// Initialises paragraph DOM element array
+				var paraOutput = [];
+				
+				// Iterates over paragraphs, creating DOM elements and adding them to the array
 				$( pageItem.content ).each( function ( i, e ) {
-					$('<p/>', {
-						'html'	: e
-					}).appendTo( theParent );
+					paraOutput.push($('<p/>', {
+						html	: e
+					}));
+				});
+				
+				// Creates parent div that contains the paragraph elements
+				var theElement = $('<div/>',{
+					'class'	: 'dash-paras',
+					'html'	: paraOutput
 				});
 			break;
 			
+			// Date elements are inputs with jQuery datepickers
 			case 'date':
-				elementObject.type = pageItem.type;
-				// Adds jQuery datepicker to input element and attaches to parent
-				$('<input/>', elementObject ).datepicker().appendTo( theParent );
+				var theElement = $('<input/>', elementObject ).attr({
+					type	: pageItem.type,
+					'class'	: 'dash-datepicker'
+				}).datepicker();
 			break;
 			
+			// Dropdown menu with different options
 			case 'select':
 				// Renders select element and adds it to the page
-				var select = $('<select/>', elementObject ).appendTo( theParent );
+				var theElement = $('<select/>', elementObject );
+				
+				// Initialises select option output
+				var elementSelectOptions = [];
 				
 				// Iterates through select element's options, adding them to the select element
 				$( pageItem.options ).each( function( i, selectOption ) {
-					$('<option/>', {
+					elementSelectOptions.push( $('<option/>', {
 						'value'	: selectOption.value,
 						'html'	: selectOption.html,
 						'class'	: pageItem.optionClass
-					}).appendTo( select );
+					}) );
 				});
+				
+				// Adds select options to select element
+				theElement.html( elementSelectOptions );
 			break;
 			
+			// Regular h2/h3/etc. element
 			case 'header':
-				$('<h' + pageItem.size + '/>', elementObject ).appendTo( theParent );
+				var theElement = $('<h' + pageItem.size + '/>', elementObject );
 			break;
 			
+			// Text input field
 			case 'text':
-				// Sets object's type
-				elementObject.type = 'text';
+				var theElement = $('<input/>', elementObject ).attr('type','text');
 				
 				// Sets property if property exists
-				if ( pageItem.autofocus ) {
-					elementObject.autofocus = 'autofocus';
+				if ( pageItem.hasOwnProperty('autofocus') ) {
+					theElement.attr('autofocus','autofocus');
 				}
-				
-				// Creates text input element
-				$('<input/>', elementObject ).appendTo( theParent );
 			break;
 			
+			// A div with elements inside
 			case 'div':
-				// Creates div, selects and appends to parent
-				var pageDiv = $('<div/>', elementObject ).appendTo( theParent );
+				// Creates div
+				var theElement = $('<div/>', elementObject );
 				
-				// Iterates through div's inner elements, appending them to itself
+				// Iterates over inner elements, rendering them to the theElement (the div)
 				$( pageItem.inner ).each( function( i, e ) {
-					render_page_element( e, pageDiv );
+					render_page_element( e, theElement );
 				});
 			break;
 			
+			// Bold text
 			case 'strong':
-				$('<strong/>', elementObject ).appendTo( theParent );
+				var theElement = $('<strong/>', elementObject );
 			break;
 			
+			// An item/member/etc. meta box containing information on the object concerned
 			case 'metabox':
-				// Adds default meta box classes
-				elementObject.class += wp_lib_add_classes( [ 'lib-metabox' ] );
-			
-				// Creates wrapper for meta box, attached to DOM, and sets as parent
-				theParent = $('<dl/>', elementObject ).appendTo( theParent );
-				
-				// Sets title of meta box
-				$('<strong/>', {
-					'html'	: pageItem.title
-				}).appendTo( theParent );
+				// Initialises output of meta fields
+				var metaRows = [];
 				
 				// Iterates through meta fields, rendering them to the meta box
 				$( pageItem.fields ).each( function( i, e ) {
@@ -459,51 +501,62 @@ function wp_lib_render_page( pageArray ) {
 						fieldData = taxTermOutput;
 					}
 					
-					var localParent = $('<div/>', {
-						'class'	: 'meta-row'
-					}).appendTo( theParent );
-					
-					// Renders meta field's name
-					$('<dt/>', {
-						'html'	: fieldName + ':'
-					}).appendTo( localParent );
-					
-					// Renders meta field's value
-					$('<dd/>', {
-						'html'	: fieldData
-					}).appendTo( localParent );
+					// Renders meta row inside div and adds to 
+					metaRows.push( $('<div/>', {
+						'class'	: 'meta-row',
+						html	: [
+							// Meta field's name e.g. Item ID
+							$('<dt/>', {
+								'html'	: fieldName + ':'
+							}),
+							
+							// Meta field's value e.g. 42
+							$('<dd/>', {
+								'html'	: fieldData
+							})
+						]
+					}));
 				});
+				
+				// Creates meta box wrapper
+				var theElement = $('<div/>',elementObject).addClass('lib-metabox');
+				
+				// Sets up meta box
+				theElement.html([
+					$('<strong/>',{
+						html	: pageItem.title
+					}),
+					$('<dl/>',{
+						'class'	: 'lib-metabox',
+						html	: metaRows // GGGG conside using appendTo rather than this array
+					})
+				]);
 			break;
 			
+			// Dynamic table managed by Dynatable
 			case 'dtable':
-				// If dev is an idiot and forgets to give the table a class, assigns one randomly
-				if (typeof( pageItem.id ) === 'undefined' ) {
-					elementObject.id = 'dynamic-table-' + Math.floor((Math.random() * 100) + 1);
-				}
-				
-				// Adds default dynamic table class
-				elementObject.class += wp_lib_add_classes( ['dynatable-table', 'wp-list-table', 'widefat', 'fixed', 'posts'] );
-				
-				// Wraps table in div for styling purposes
-				theParent = $('<div/>', {
-					'class'	: 'dynatable-wrap'
-				} ).appendTo( theParent );
-				
-				// Creates/selects base element
-				theParent = $('<table/>', elementObject ).appendTo( theParent );
-				
-				// Adds head to table
-				var tableHead = $('<thead/>', {} ).appendTo( theParent );
+				// Creates table head
+				var tableHead = $('<thead/>', {} );
 				
 				// Iterates through given table columns, adding them to the table head
 				$( pageItem.headers ).each( function( i, header ) {
 					$('<th/>', {
-						'html'	: header
+						html	: header
 					} ).appendTo( tableHead );
 				});
 				
-				// Renders table body, to be dynamically populated
-				$('<tbody/>', {} ).appendTo( theParent );
+				// If dev is an idiot and forgets to give the table a class, assigns one randomly
+				if ( !pageItem.hasOwnProperty('id') ) {
+					elementObject.id = 'dynamic-table-' + Math.floor((Math.random() * 100) + 1);
+				}
+				
+				// Creates table, adds default classes and sets inner html to table head and body
+				var theTable = $('<table/>',elementObject)
+				.addClass(['dynatable-table', 'wp-list-table', 'widefat', 'fixed', 'posts'].join(' '))
+				.html([
+					tableHead,
+					$('<tbody/>', {} )
+				]);
 				
 				/* Prepares data for Dynatable */
 				
@@ -537,8 +590,14 @@ function wp_lib_render_page( pageArray ) {
 					};
 				}
 				
+				// Wraps element in div, element remains
+				var theElement = $('<div/>',{
+					'class'	: 'dynatable-wrap',
+					html	: theTable
+				}).appendTo(theParent);
+				
 				// Fills table with formatted data
-				$( '#' + elementObject.id ).dynatable({ 
+				theTable.dynatable({
 					dataset: {
 						records: tableRecords,
 						perPageDefault: 15,
@@ -553,14 +612,14 @@ function wp_lib_render_page( pageArray ) {
 				$( '.dynatable-head' ).each( function(i, tableHeader) {
 					$(tableHeader).addClass('manage-column');
 				});
+				
+				// Skips adding element to parent as this was performed earlier so that Dynatable would work properly
+				return;
 			break;
 			
+			// List of items with options to manage/view, managed by Dynatable
 			case 'item-list':
-				// Adds default classes to item table
-				elementObject.class += wp_lib_add_classes( 'item-list' );
-				
-				// Creates list for items and appends to parent DOM object
-				theParent = $('<ul/>', elementObject ).appendTo( theParent );
+				var theTable = $('<ul/>', elementObject ).addClass('item-list');
 				
 				// Function to render a single item (row)
 				function render_item_row( rowIndex, record, columns, cellWriter ) {
@@ -645,7 +704,14 @@ function wp_lib_render_page( pageArray ) {
 					return localParent.prop('outerHTML');
 				}
 				
-				theParent.dynatable({
+				// Wraps table in div
+				var theElement = $('<div/>',{
+					'class'	: 'item-list-wrap',
+					html	: theTable
+				}).appendTo(theParent);
+				
+				// Sets up table as Dynatable
+				theTable.dynatable({
 					table: {
 						bodyRowSelector: 'li'
 					},
@@ -661,17 +727,22 @@ function wp_lib_render_page( pageArray ) {
 						records: 'items'
 					}
 				});
+				
+				// Skips adding element to parent as this was performed earlier so that Dynatable would work properly
+				return;
 			break;
 			
 			default:
-				$('<strong/>', {
+				var theElement = $('<strong/>', {
 					'html'	: 'UNKNOWN ELEMENT TYPE<br/>',
 					'style'	: 'color:red;'
-				}).appendTo( theParent );
+				});
 			break;
 		}
+		
+		// Appends new DOM element to given parent element
+		theElement.appendTo( theParent );
 	}
-
 }
 
 function wp_lib_format_tab_title( title ) {
@@ -733,10 +804,8 @@ jQuery(function($){
 		// Fetches page to be loaded
 		params.dash_page = e.currentTarget.value;
 		
-		// Strips nonce (only needed for dash actions)
-		if ( params.hasOwnProperty('wp_lib_ajax_nonce') ) {
-			delete params.wp_lib_ajax_nonce;
-		}
+		// Deletes nonce as it is only needed for dash actions
+		delete params.wp_lib_ajax_nonce;
 
 		// Loads page
 		wp_lib_load_page( params );
