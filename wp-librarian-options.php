@@ -4,21 +4,20 @@
  * Default WP-Librarian Options
  * These are added when WP-Librarian is first activated
  */
-
-
-	/* -- Library Options -- */
-	/* Settings relating to loaning/returning systems */
-	
-// Loan length in days
-add_option( 'wp_lib_loan_length', 12 );
-
-// Fine length (per day)
-add_option( 'wp_lib_fine_daily', 0.20 );
-
-	/* -- Slugs -- */
-	/* Sections of site urls used when accessing plugin pages e.g. my-site.com/wp-librarian */
 	
 $options = array(
+	/* -- Library Options -- */
+	/* Settings relating to loaning/returning systems */
+	array(
+		// Loan length in days
+		'key'		=> 'wp_lib_loan_length',
+		'default'	=> 12
+	),
+	array(
+		// Fine length (per day)
+		'key'		=> 'wp_lib_fine_daily',
+		'default'	=> 0.20
+	),
 	/* -- Slugs -- */
 	/* Sections of site urls used when accessing plugin pages e.g. my-site.com/wp-librarian */
 	array(

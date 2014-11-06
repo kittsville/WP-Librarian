@@ -505,10 +505,10 @@ add_filter( 'post_updated_messages', function( $messages ) {
 			$preview_link = ' <a target="_blank" href="' . esc_url( add_query_arg( 'preview', 'true', $permalink ) ) . '">' . 'Preview Item' . '</a>';
 
 			$messages['wp_lib_items'] = array(
-				1  => 'Item Updated' . $view_link,
-				6  => 'Item Published' . $view_link,
-				7  => 'Item Saved',
-				8  => 'Item Submitted' . $preview_link,
+				1  => 'Item Updated.' . $view_link,
+				6  => 'Item Published.' . $view_link,
+				7  => 'Item Saved.',
+				8  => 'Item Submitted.' . $preview_link,
 				9  => 'Item\'s publishing scheduled for: <strong>' . date_i18n( 'M j, Y @ G:i', strtotime( $post->post_date ) ) . '</strong>'. $view_link,
 				10 => 'Item draft updated.' . $preview_link
 			);
@@ -520,11 +520,11 @@ add_filter( 'post_updated_messages', function( $messages ) {
 			
 			$messages['wp_lib_members'] = array(
 				1  => 'Member\'s details updated.' . $manage_member_link,
-				6  => 'Member published' . $manage_member_link,
-				7  => 'Member\'s details saved',
-				8  => 'Member Submitted',
+				6  => 'Member published.' . $manage_member_link,
+				7  => 'Member\'s details saved.',
+				8  => 'Member Submitted.',
 				9  => 'Member will be published at: <strong>' . date_i18n( 'M j, Y @ G:i', strtotime( $post->post_date ) ) . '</strong>',
-				10 => 'Member details draft updated'
+				10 => 'Member details draft updated.'
 			);
 		break;
 	}

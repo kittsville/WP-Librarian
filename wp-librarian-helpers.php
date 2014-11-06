@@ -418,15 +418,10 @@ function wp_lib_prep_item_management_header( $item_id ) {
 	// Finalises and returns management header
 	return array(
 		array(
-			'type'		=> 'div',
+			'type'		=> 'metabox',
+			'title'		=> 'Details',
 			'classes'	=> 'item-man',
-			'inner'		=> array(
-				array(
-					'type'	=> 'metabox',
-					'title'	=> 'Details',
-					'fields'=> $meta_fields
-				)
-			)
+			'fields'	=> $meta_fields
 		)
 	);
 }
@@ -450,15 +445,10 @@ function wp_lib_prep_loan_management_header( $loan_id ) {
 	// Finalises and returns management header
 	return array(
 		array(
-			'type'		=> 'div',
+			'type'		=> 'metabox',
+			'title'		=> 'Details',
 			'classes'	=> 'loan-man',
-			'inner'		=> array(
-				array(
-					'type'	=> 'metabox',
-					'title'	=> 'Details',
-					'fields'=> $meta_fields
-				)
-			)
+			'fields'	=> $meta_fields
 		)
 	);
 }
@@ -470,22 +460,17 @@ function wp_lib_prep_fine_management_header( $fine_id ) {
 	// Creates and returns fine management header
 	return array(
 		array(
-			'type'		=> 'div',
+			'type'		=> 'metabox',
+			'title'		=> 'Details',
 			'classes'	=> 'fine-man',
-			'inner'		=> array(
-				array(
-					'type'	=> 'metabox',
-					'title'	=> 'Details',
-					'fields'=> array(
-						array( 'Fine ID', $fine_id ),
-						array( 'Loan ID', wp_lib_hyperlink( wp_lib_manage_loan_url( $meta['wp_lib_loan'][0] ), $meta['wp_lib_loan'][0] ) ),
-						array( 'Item', wp_lib_manage_item_hyperlink( $meta['wp_lib_item'][0] ) ),
-						array( 'Member', wp_lib_manage_member_hyperlink( $meta['wp_lib_member'][0] ) ),
-						array( 'Amount', wp_lib_format_money( $meta['wp_lib_fine'][0] ) ),
-						array( 'Status', wp_lib_format_fine_status( $meta['wp_lib_status'][0] ) ),
-						array( 'Created', get_the_date( '', $fine_id ) )
-					)
-				)
+			'fields'	=> array(
+				array( 'Fine ID', $fine_id ),
+				array( 'Loan ID', wp_lib_hyperlink( wp_lib_manage_loan_url( $meta['wp_lib_loan'][0] ), $meta['wp_lib_loan'][0] ) ),
+				array( 'Item', wp_lib_manage_item_hyperlink( $meta['wp_lib_item'][0] ) ),
+				array( 'Member', wp_lib_manage_member_hyperlink( $meta['wp_lib_member'][0] ) ),
+				array( 'Amount', wp_lib_format_money( $meta['wp_lib_fine'][0] ) ),
+				array( 'Status', wp_lib_format_fine_status( $meta['wp_lib_status'][0] ) ),
+				array( 'Created', get_the_date( '', $fine_id ) )
 			)
 		)
 	);
@@ -508,15 +493,10 @@ function wp_lib_prep_member_management_header( $member_id ) {
 	// Finalises and returns management header
 	return array(
 		array(
-			'type'		=> 'div',
+			'type'		=> 'metabox',
+			'title'		=> 'Details',
 			'classes'	=> 'member-man',
-			'inner'		=> array(
-				array(
-					'type'	=> 'metabox',
-					'title'	=> 'Details',
-					'fields'=> $meta_fields
-				)
-			)
+			'fields'	=> $meta_fields
 		)
 	);
 }
