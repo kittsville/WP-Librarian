@@ -190,8 +190,9 @@ function wp_lib_get_object_type( $post_id ) {
 		
 		default:
 			// Otherwise object does not belong to the Library
-			wp_lib_error( 305, false, $item_id );
+			wp_lib_error( 317 );
 			return false;
+		break;
 	}
 }
 
@@ -346,9 +347,14 @@ function wp_lib_plural( $value, $string, $plural = 's' ) {
 	/* -- Localisation -- */
 
 // Formats money according to user's preferences
-function wp_lib_format_money( $value ) {
+function wp_lib_format_money( $value, $html_ent = true ) {
 	// Fetches user's preferred currency symbol
-	$symbol = '&pound';
+	$symbol = get_option( 'wp_lib_currency_symbol' );
+	
+	// If output doesn't need to use html entities (e.g. &pound; ), converts to actual characters (e.g. £ )
+	if ( !$html_ent ) {
+		$symbol = html_entity_decode( $symbol );
+	}
 	
 	// Fetches user's preferred currency position (before or after the value)
 	$position = get_option( 'wp_lib_currency_position' );
@@ -487,7 +493,7 @@ function wp_lib_prep_member_management_header( $member_id ) {
 		array( 'Email', $meta['wp_lib_member_email'][0] ),
 		array( 'Phone', $meta['wp_lib_member_phone'][0] ),
 		array( 'Mobile', $meta['wp_lib_member_mobile'][0] ),
-		array( 'Total Fines', wp_lib_format_money( wp_lib_fetch_member_owed( $member_id ) ) )
+		array( 'Owed', wp_lib_format_money( wp_lib_fetch_member_owed( $member_id ) ) )
 	);
 	
 	// Finalises and returns management header

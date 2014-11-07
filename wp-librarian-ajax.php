@@ -58,6 +58,10 @@ add_action( 'wp_ajax_wp_lib_page', function() {
 			wp_lib_page_resolution_page();
 		break;
 		
+		case 'pay-fines':
+			wp_lib_page_pay_fines();
+		break;
+		
 		case 'object-deletion':
 			wp_lib_page_confirm_deletion();
 		break;
@@ -213,8 +217,9 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 			// Fetches params from AJAX request
 			$fine_id = $_POST['fine_id'];
 			
-			// Checks if fine ID is valid
-			wp_lib_check_fine_id( $fine_id );
+			// If fine fails to validate, calls error
+			if ( !wp_lib_valid_fine_id( $fine_id ) )
+				wp_lib_stop_ajax( false );
 			
 			// Checks if nonce is valid
 			if ( !wp_lib_verify_nonce( 'Managing Fine: ' . $fine_id ) )
@@ -227,6 +232,44 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 			wp_lib_stop_ajax( $success );
 		break;
 		
+		case 'pay-fine':
+			// Fetches member ID and fine amount
+			$member_id = $_POST['member_id'];
+			$fine_payment = floatval( $_POST['fine_payment'] );
+			
+			// If member fails to validate, calls error
+			if ( !wp_lib_valid_member_id( $member_id ) )
+				wp_lib_stop_ajax( false );
+			
+			// Fetches member's current amount owed
+			$owed = wp_lib_fetch_member_owed( $member_id );
+			
+			// If fine payment is negative or failed to validate (resulting in 0), call error
+			if ( $fine_payment <= 0 )
+				wp_lib_stop_ajax( false, 320 );
+			// If proposed amount is greater than the amount that needs to be paid, call error
+			elseif ( $fine_payment > $owed )
+				wp_lib_stop_ajax( false, 321 );
+			
+			// Subtracts proposed amount from amount owed by member
+			$owed = $owed - $fine_payment;
+			
+			// Updates member's amount owed
+			update_post_meta( $member_id, 'wp_lib_owed', $owed );
+			
+			// Sets up notification for successful fine reduction
+			$notification = wp_lib_format_money( $fine_payment ) . ' in fines has been paid by ' . get_the_title( $member_id ) . '.';
+			
+			// If money is still owed by the member, inform librarian
+			if ( $owed != 0 )
+				$notification .= ' ' . wp_lib_format_money( $owed ) . ' is still owed.';
+			
+			// Informs user of successful fine payment
+			wp_lib_add_notification( $notification );
+			
+			wp_lib_stop_ajax( true );
+		break;
+		
 		case 'delete-object':
 			// Fetches library object ID
 			$post_id = $_POST['post_id'];
@@ -236,11 +279,11 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 			
 			// Validates ID of Library object
 			if ( !$object_type )
-				wp_lib_stop_ajax( false, 317 );
+				wp_lib_stop_ajax( false );
 			
 			// Checks if nonce is valid
 			if ( !wp_lib_verify_nonce( 'Deleting object: ' . $post_id ) )
-				wp_lib_stop_ajax( false, 503 );
+				wp_lib_stop_ajax( false );
 			
 			// Fetches all objects connected to current object
 			$connected_objects = wp_lib_fetch_dependant_objects( $post_id );
@@ -825,6 +868,19 @@ function wp_lib_page_manage_member() {
 		'value'	=> $member_id
 	);
 	
+	// Fetches amount owed by member to Library
+	$owed = wp_lib_fetch_member_owed( $member_id );
+	
+	// If money is owed by the member
+	if ( $owed > 0 ) {
+		$form[] = array(
+			'type'	=> 'button',
+			'link'	=> 'page',
+			'value'	=> 'pay-fines',
+			'html'	=> 'Pay Fines'
+		);
+	}
+	
 	// Button to edit member
 	$form[] = array(
 		'type'	=> 'button',
@@ -1223,6 +1279,51 @@ function wp_lib_page_resolution_page() {
 	$tab_title = 'Resolving Item #' . $item_id;
 	
 	wp_lib_send_page( $page_title, $tab_title, $header, $form );
+}
+
+// Allows Librarian to reduce money owed by a member for late returns
+function wp_lib_page_pay_fines() {
+	// Fetches member ID from AJAX request
+	$member_id = $_POST['member_id'];
+	
+	// Checks ID
+	wp_lib_check_member_id( $member_id );
+	
+	// Checks that there is actually money owed, stopping page load on failure
+	if ( wp_lib_fetch_member_owed( $member_id ) == 0 )
+		wp_lib_stop_ajax( false, 206 );
+	
+	// Renders management header
+	$header = wp_lib_prep_member_management_header( $member_id );
+	
+	$form = array(
+		array(
+			'type'		=> 'paras',
+			'content'	=> array("Enter an amount to reduce the member's total owed to the Library")
+		),
+		array(
+			'type'	=> 'hidden',
+			'name'	=> 'member_id',
+			'value'	=> $member_id
+		),
+		array(
+			'type'			=> 'input',
+			'name'			=> 'fine_payment',
+			'attr'			=> array(
+				'type'			=> 'number',
+				'placeholder'	=> wp_lib_format_money( 0, false ),
+				'step'			=> '0.05'
+			)
+		),
+		array(
+			'type'	=> 'button',
+			'link'	=> 'action',
+			'value'	=> 'pay-fine',
+			'html'	=> 'Pay'
+		)
+	);
+	
+	wp_lib_send_page( 'Managing: ' . get_the_title( $member_id ), 'Managing Member #' . $member_id, $header, $form );
 }
 
 // Confirmation page to make sure the Librarian knows what deleting the item/loan/fine/member will do

@@ -23,7 +23,7 @@ function wp_lib_do_action( dashAction, params ) {
 		case 'return-item-no-fine':
 			data.no_fine = true;
 			data.dash_action = 'return-item';
-			// Deliberate
+			// Deliberate lack of break
 		case 'return-item':
 			data.item_id = params['item_id'];
 			data.end_date = params['end_date'];
@@ -36,6 +36,11 @@ function wp_lib_do_action( dashAction, params ) {
 		
 		case 'cancel-fine':
 			data.fine_id = params['fine_id'];
+		break;
+		
+		case 'pay-fine':
+			data.member_id = params['member_id'];
+			data.fine_payment = params['fine_payment'];
 		break;
 		
 		case 'delete-object':
@@ -223,7 +228,8 @@ function wp_lib_render_page( pageArray ) {
 	if ( pageArray.content.hasOwnProperty('form') ) {
 		// Creates form element for all form elements
 		var libPage = $( '<form/>', {
-			id	: 'library-form'
+			id		: 'library-form',
+			onsubmit: 'return false;' // Prevents default form submission
 		} );
 		
 		// Creates wrapper for all form elements
@@ -437,6 +443,26 @@ function wp_lib_render_page( pageArray ) {
 					type	: pageItem.type,
 					'class'	: 'dash-datepicker'
 				}).datepicker();
+			break;
+			
+			// Input elements, boxes for inputting text, numbers, colours and more
+			case 'input':
+				var theElement = $('<input/>', elementObject );
+				
+				// If input has any special attributes, add them to the input element
+				if ( pageItem.hasOwnProperty('attr') ) {
+					$(pageItem.attr).each(function(i,anAttr){
+						theElement.attr(anAttr,pageItem.attr[anAttr]);
+					});
+				}
+				
+				// If enter key is pressed, carry out dash action
+				theElement.keydown(function(event){
+					
+					if(event.keyCode == 13) {
+						$('form#library-form button').click();
+					}
+				});
 			break;
 			
 			// Dropdown menu with different options
@@ -815,9 +841,6 @@ jQuery(function($){
 		
 		// Performs action
 		wp_lib_do_action( action, params );
-		
-		// Prevents regular form submission
-		return false;
 	});
 	
 	// Adds listener for page loading buttons
@@ -833,8 +856,5 @@ jQuery(function($){
 
 		// Loads page
 		wp_lib_load_page( params );
-		
-		// Prevents regular form submission
-		return false;
 	});
 });
