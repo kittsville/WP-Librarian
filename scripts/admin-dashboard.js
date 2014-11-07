@@ -206,24 +206,48 @@ function wp_lib_render_page( pageArray ) {
 	// Clears and selects Library workspace in preparation of new page
 	var libWorkspace = jQuery( '#wp-lib-workspace' ).empty();
 	
-	// If page has any non-form content, render each element to the Library workspace
-	if ( pageArray.content ) {
-		// Iterates through elements, rendering them
-		jQuery( pageArray.content ).each( function( i, e ) {
-			render_page_element( e, libWorkspace );
+	// If page has a header, renders
+	if ( pageArray.content.hasOwnProperty('header') ) {
+		// Creates wrapper for all header elements
+		var theParent = $('<div/>',{
+			id	: 'wp-lib-header'
+		}).appendTo(libWorkspace);
+		
+		// Iterates through header elements, rendering them to the header wrapper
+		jQuery( pageArray.content.header ).each( function( i, e ) {
+			render_page_element( e, theParent );
 		});
 	}
 	
 	// If page has any form content, render each element inside a form element
-	if ( pageArray.form ) {
-		// Creates and selects form element
+	if ( pageArray.content.hasOwnProperty('form') ) {
+		// Creates form element for all form elements
 		var libPage = $( '<form/>', {
-			'id'	: 'library-form'
-		} ).appendTo( libWorkspace );
+			id	: 'library-form'
+		} );
 		
-		// Iterates through elements, rendering them
-		jQuery( pageArray.form ).each( function( i, e ) {
+		// Creates wrapper for all form elements
+		$('<div/>',{
+			id		: 'wp-lib-form',
+			html	: libPage
+		}).appendTo(libWorkspace);
+		
+		// Iterates through form elements, rendering them to the form
+		jQuery( pageArray.content.form ).each( function( i, e ) {
 			render_page_element( e, libPage );
+		});
+	}
+	
+	// If page has a table, render table
+	if ( pageArray.content.hasOwnProperty('table') ) {
+		// Creates wrapper for all tables
+		var tableWrap = $('<div/>',{
+			'class'	: 'wp-lib-tables'
+		}).appendTo(libWorkspace);
+		
+		// Iterates over all given tables, rendering them inside the wrapper
+		jQuery( pageArray.content.table ).each( function( i, e ) {
+			render_page_element( e, tableWrap );
 		});
 	}
 	

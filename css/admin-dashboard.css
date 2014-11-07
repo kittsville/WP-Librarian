@@ -33,7 +33,11 @@ div.lib-metabox {
 	background: #FFF;
 	border-radius: 5px;
 	padding: 5px 10px;
-	margin: 15px 0px;
+	margin: 10px 0px;
+}
+
+#wp-lib-header, #wp-lib-form, #wp-lib-tables {
+	margin: 5px 0px;
 }
 
 .meta-row {

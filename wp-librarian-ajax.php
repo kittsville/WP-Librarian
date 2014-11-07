@@ -422,29 +422,29 @@ function wp_lib_stop_ajax( $output = '', $error_code = false, $params = false ) 
 }
 
 // Encodes given parameters as an array for client-side JavaScript to render as HTML elements
-function wp_lib_send_page( $page_title, $tab_title, $content = false, $form = false, $page_scripts = false ) {
+function wp_lib_send_page( $page_title, $tab_title, $header = false, $form = false, $table = false, $page_scripts = false ) {
 	// Creates buffer to be encoded and adds parameters
 	$buffer = array(
 		'pageTitle'	=> $page_title,
 		'title'	=> $tab_title
 	);
 	
+	// Iterates over content fields, adding them to the content buffer if they were specified
+	foreach ( ['header','form','table'] as $field ) {
+		if ( isset( $$field ) )
+			$buffer['content'][$field] = $$field;
+	}
+	
 	// Checks if no content has been specified
-	if ( !is_array( $content ) && !is_array( $form ) )
+	if ( !is_array( $buffer['content'] ) )
 		wp_lib_stop_ajax( false, 501 );
 	
-	// If content has been specified, add to array
-	if ( $content )
-		$buffer['content'] = $content;
-	
-	// If a form has been specified, add to array
-	if ( $form )
-		$buffer['form'] = $form;
-		
-	if ( $page_scripts ) {
+	// If any scripts are needed by the page, adds their URLs
+	if ( is_array( $page_scripts ) ) {
 		$buffer['scripts'] = $page_scripts;
 	}
 	
+	// Sends the page to be encoded
 	wp_lib_stop_ajax( $buffer );
 }
 
@@ -583,19 +583,19 @@ function wp_lib_page_view_items() {
 			$items[] = $item;
 		}
 		// Creates element that will hold all items
-		$form[] = array(
+		$table[] = array(
 			'type'		=> 'item-list',
 			'data'		=> $items,
 			'records'	=> 'items'
 		);
 	} else {
-		$header[] = array(
+		$table[] = array(
 			'type'		=> 'paras',
 			'content'	=> array('No items found.')
 		);
 	}
 	
-	wp_lib_send_page( $page_title, $tab_title, $header, $form );
+	wp_lib_send_page( $page_title, $tab_title, $header, $form, $table );
 }
 
 // Displays an item's information and loan history
@@ -777,7 +777,7 @@ function wp_lib_page_manage_item() {
 		}
 		
 		// Adds loans (rows) to table
-		$form[] = array(
+		$table[] = array(
 			'type'		=> 'dtable',
 			'id'		=> 'member-loans',
 			'headers'	=> array(
@@ -794,14 +794,14 @@ function wp_lib_page_manage_item() {
 			)
 		);
 	} else {
-		$form[] = array(
+		$table[] = array(
 			'type'		=> 'paras',
 			'content'	=> array( 'No loans to display' )
 		);
 	}
 	
 	// Encodes page as an array to be rendered client-side
-	wp_lib_send_page( 'Managing: ' . get_the_title( $item_id ), 'Managing Item #' . $item_id, $header, $form );
+	wp_lib_send_page( 'Managing: ' . get_the_title( $item_id ), 'Managing Item #' . $item_id, $header, $form, $table );
 }
 
 // Displays member's details and loan history
@@ -816,24 +816,24 @@ function wp_lib_page_manage_member() {
 	$header = wp_lib_prep_member_management_header( $member_id );
 	
 	// Adds nonce to form
-	$content[] = wp_lib_prep_nonce( 'Managing Member ' . $member_id );
+	$form[] = wp_lib_prep_nonce( 'Managing Member ' . $member_id );
 	
 	// Adds member ID to form
-	$content[] = array(
+	$form[] = array(
 		'type'	=> 'hidden',
 		'name'	=> 'member_id',
 		'value'	=> $member_id
 	);
 	
 	// Button to edit member
-	$content[] = array(
+	$form[] = array(
 		'type'	=> 'button',
 		'link'	=> 'edit',
 		'html'	=> 'Edit',
 	);
 	
 	// Button to delete member
-	$content[] = array(
+	$form[] = array(
 		'type'	=> 'button',
 		'link'	=> 'page',
 		'value'	=> 'object-deletion',
@@ -893,7 +893,7 @@ function wp_lib_page_manage_member() {
 		}
 		
 		// Adds loans (rows) to table
-		$content[] = array(
+		$table[] = array(
 			'type'		=> 'dtable',
 			'id'		=> 'member-loans',
 			'headers'	=> array(
@@ -910,13 +910,13 @@ function wp_lib_page_manage_member() {
 			)
 		);
 	} else {
-		$content[] = array(
+		$table[] = array(
 			'type'		=> 'paras',
 			'content'	=> array( 'No loans to display' )
 		);
 	}
 	
-	wp_lib_send_page( 'Managing: ' . get_the_title( $member_id ), 'Managing Member #' . $member_id, $header, $content );
+	wp_lib_send_page( 'Managing: ' . get_the_title( $member_id ), 'Managing Member #' . $member_id, $header, $form, $table );
 }
 
 // Displays lack of loan management page
@@ -1017,7 +1017,7 @@ function wp_lib_page_scan_item() {
 	$title = 'Scan Item Barcode';
 	
 	// Sends form to client to be rendered
-	wp_lib_send_page( $title, $title, false, $form, $scripts );
+	wp_lib_send_page( $title, $title, false, $form, false, $scripts );
 }
 
 // Allows user to schedule a loan to happen in the future, to be fulfilled when the time comes
@@ -1390,7 +1390,7 @@ function wp_lib_page_confirm_deletion() {
 		}
 		
 		// Creates table using objects
-		$form[] = array(
+		$table[] = array(
 			'type'		=> 'dtable',
 			'id'		=> 'connected-objects',
 			'headers'	=> array(
@@ -1403,12 +1403,12 @@ function wp_lib_page_confirm_deletion() {
 			)
 		);
 	} else {
-		$form[] = array(
+		$table[] = array(
 			'type'		=> 'paras',
 			'content'	=> array( 'No other objects in the Library are connected to this object' )
 		);
 	}
 	
-	wp_lib_send_page( $page_title, $tab_title, $header, $form );
+	wp_lib_send_page( $page_title, $tab_title, $header, $form, $table );
 }
 ?>
