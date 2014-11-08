@@ -184,3 +184,17 @@ function wp_lib_parse_json( rawJSON ) {
 	}
 	return parsedJSON;
 }
+
+function wp_lib_init_object( pageItem ) {
+	// Initialises object properties
+	elementObject = {};
+	
+	// Iterates over basic properties, adding them to the object if they exist
+	jQuery( [ 'id', 'name', 'value', 'html' ] ).each( function( i, e ) {
+		if ( e in pageItem ) {
+			elementObject[e] = pageItem[e];
+		}
+	});
+	
+	return elementObject;
+}

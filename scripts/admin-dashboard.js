@@ -261,13 +261,7 @@ function wp_lib_render_page( pageArray ) {
 	// Function is recursive and will render a div's child nodes using itself
 	function render_page_element( pageItem, theParent ) {
 		// Sets up basic properties of object such as class/ID/name
-		elementObject = {};
-		
-		$( [ 'id', 'name', 'value', 'html' ] ).each( function( i, e ) {
-			if ( e in pageItem ) {
-				elementObject[e] = pageItem[e];
-			}
-		});
+		elementObject = wp_lib_init_object( pageItem );
 		
 		// If any classes need to be added to the specific element, adds them
 		if ( pageItem.hasOwnProperty( 'classes' ) ) {

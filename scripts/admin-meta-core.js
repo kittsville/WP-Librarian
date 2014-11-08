@@ -11,27 +11,24 @@ jQuery( document ).ready(function($) {
 		// Sets up basic object properties
 		metaWrapperArgs = wp_lib_init_object( metaSection );
 		
-		// Sets meta section class
-		metaWrapperArgs.class += wp_lib_add_classes( 'meta-section' );
+		// Creates wrapper for meta section
+		var metaWrapper = $('<div/>', metaWrapperArgs ).addClass( 'meta-section' ).appendTo( metaBox );
 		
 		// If section is specific to item's media type, set class for later use (hiding section)
 		if ( metaSection.value ) {
-			metaWrapperArgs.class += wp_lib_add_classes( 'meta-media-type-section' );
+			metaWrapper.addClass( 'meta-media-type-section' );
 		}
-		
-		// Creates wrapper for meta section
-		var metaWrapper = $('<div/>', metaWrapperArgs ).appendTo( metaBox );
 
-		// Renders section title inside of a div
-		$('<div/>', {
-			'class'	: 'meta-section-title'
-		})
-		.html(
-			$('<h3/>', {
-				'text'	: metaSection.title
+		// Renders section title and adds to meta section wrapper
+		metaWrapper.append(
+			$('<div/>', {
+				'class'	: 'meta-section-title',
+				'html'	:
+					$('<h3/>', {
+						'text'	: metaSection.title
+					})
 			})
-		)
-		.appendTo( metaWrapper );
+		);
 		
 		// Renders then selects fields wrapper
 		var metaFieldsTable = $('<table/>', {
@@ -43,24 +40,23 @@ jQuery( document ).ready(function($) {
 		metaSection.fields.forEach( function( metaField ) {
 			// Fetches previous meta value from meta array
 			var currentMeta = meta[metaField.name];
-		
-			// Creates row that will contain field and adds field title to row
-			var metaRow = $('<tr/>', {
-				'class'	: 'meta-field-row'
-			})
-			.append(
-				$('<td/>', {
-					'text'	: metaField.title,
-					'class'	: 'meta-field-title'
-				})
-			)
-			.appendTo( metaFieldsTable );
 			
 			// Creates field input wrapper
 			var metaInputWrapper = $('<td/>', {
 				'class'	: 'meta-input-wrapper'
-			})
-			.appendTo( metaRow );
+			});
+		
+			// Creates row that will contain field and adds field title to row
+			metaFieldsTable.append( $('<tr/>', {
+				'class'	: 'meta-field-row',
+				'html'	: [
+					$('<td/>', {
+						'text'	: metaField.title,
+						'class'	: 'meta-field-title'
+					}),
+					metaInputWrapper
+				]
+			}));
 			
 			// If field is a dropdown menu (select), renders with options
 			if ( metaField.type === 'select' ) {
@@ -71,21 +67,22 @@ jQuery( document ).ready(function($) {
 				};
 				
 				// If field has an ID, enter it
-				if ( metaField.id ) {
+				if ( metaField.hasOwnProperty('id') ) {
 					selectArgs.id = metaField.id;
 				}
 				
-				// Creates select element then selects it
-				var metaSelect = $('<select/>', selectArgs ).appendTo( metaInputWrapper );
-				
+				// Creates select element
+				var metaSelect = $('<select/>', selectArgs )
 				// Adds default blank option
-				$('<option/>', {
-					'value'	: '',
-					'text'	: 'Select'
-				})
-				.appendTo( metaSelect );
+				.append(
+					$('<option/>', {
+						'value'	: '', // GGG might not need
+						'text'	: 'Select'
+					})
+				)
+				.appendTo( metaInputWrapper );
 				
-				// Iterates through select field's options, rendering them
+				// Iterates through select field's options, adding them to select element
 				metaField.options.forEach( function( option ) {
 					// Initialises option's properties
 					var optionObject = {
@@ -99,7 +96,7 @@ jQuery( document ).ready(function($) {
 					}
 					
 					// Creates option and adds to to select field's options
-					$('<option/>', optionObject).appendTo( metaSelect );
+					metaSelect.append( $('<option/>', optionObject) );
 				});
 			} else {
 				// Initialises field input object
@@ -120,7 +117,9 @@ jQuery( document ).ready(function($) {
 						inputArgs.value = currentMeta;
 					break;
 				}
-				$('<input/>', inputArgs).appendTo( metaInputWrapper );
+				
+				// Adds input element to meta field
+				metaInputWrapper.append( $('<input/>', inputArgs) );
 			}
 		});
 	});
