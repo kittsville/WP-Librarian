@@ -1349,9 +1349,10 @@ function wp_lib_page_confirm_deletion() {
 		foreach( ['item','member','loan','fine'] as $key ) {
 			$key .= '_id';
 			// If field exists, fetch object ID from field
-			if ( isset( $_POST[$key] ) )
+			if ( isset( $_POST[$key] ) ) {
 				$post_id = $_POST[$key];
 				break;
+			}
 		}
 	} else {
 		$post_id = $_POST['post_id'];
