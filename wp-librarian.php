@@ -605,7 +605,7 @@ add_action( 'save_post', function ( $post_id, $post ) {
 			$meta_array = array(
 				array(
 					'key'		=> 'wp_lib_item_isbn',
-					'sanitize'	=> 'sanitize_html_class'
+					'sanitize'	=> 'wp_lib_sanitize_isbn'
 				),
 				array(
 					'key'		=> 'wp_lib_item_loanable',
@@ -867,6 +867,8 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
 	// Registers meta core script, an extension of wp_lib_core with functions useful specifically to meta boxes
 	wp_register_script( 'wp_lib_meta_core', wp_lib_script_url( 'admin-meta-core' ),  array( 'jquery', 'jquery-ui-datepicker', 'wp_lib_core' ), '0.1' );
 	
+	
+	
 	// Registers meta core style, this adds the base styling of meta boxes to post edit pages
 	wp_register_style( 'wp_lib_meta_core_styles', wp_lib_style_url( 'admin-core-meta-box' ), array(), '0.1' );
 
@@ -886,8 +888,9 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
 	if ( $hook == 'post-new.php' || $hook == 'post.php' ) {
 		switch ( $GLOBALS['post_type'] ) {
 			case 'wp_lib_items':
+				wp_register_script( 'wp_lib_hypenate', wp_lib_script_url( 'admin-hyphenateISBN' ), array(), '0.1' );
 				wp_register_style( 'wp_lib_admin_item_meta', wp_lib_style_url( 'admin-item-meta-box' ), array( 'wp_lib_meta_core_styles' ), '0.1' );
-				wp_enqueue_script( 'wp_lib_edit_item', wp_lib_script_url( 'admin-edit-item' ), array( 'wp_lib_meta_core' ), '0.1' );
+				wp_enqueue_script( 'wp_lib_edit_item', wp_lib_script_url( 'admin-edit-item' ), array( 'wp_lib_meta_core', 'wp_lib_hypenate' ), '0.1' );
 			break;
 			
 			case 'wp_lib_members':

@@ -485,16 +485,6 @@ function wp_lib_render_page( pageArray ) {
 				var theElement = $('<h' + pageItem.size + '/>', elementObject );
 			break;
 			
-			// Text input field
-			case 'text':
-				var theElement = $('<input/>', elementObject ).attr('type','text');
-				
-				// Sets property if property exists
-				if ( pageItem.hasOwnProperty('autofocus') ) {
-					theElement.attr('autofocus','autofocus');
-				}
-			break;
-			
 			// A div with elements inside
 			case 'div':
 				// Creates div

@@ -351,21 +351,33 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 		case 'scan-barcode':
 			// Fetches barcode
 			$barcode = $_POST['code'];
-
-			// If barcode is zero, invalid barcode was given
-			if ( !ctype_digit( $barcode ) )
+			
+			$isbn = wp_lib_sanitize_isbn( $barcode );
+			
+			if ( $isbn != '' ) {
+				$meta_query = array(
+					'key'	=> 'wp_lib_item_isbn',
+					'value'	=> $isbn,
+					'compare'	=> 'IN'
+				);
+			} else {
+				// If barcode is zero, invalid barcode was given
+				if ( !ctype_digit( $barcode ) )
 				wp_lib_stop_ajax( false, 318 );
+				
+				$meta_query = array(
+					'key'	=> 'wp_lib_item_barcode',
+					'value'	=> $barcode,
+					'compare'	=> 'IN'
+				);
+			}
 				
 			// Sets up meta query arguments
 			$args = array(
 				'post_type'	=> 'wp_lib_items',
 				'post_status'	=> 'publish',
 				'meta_query'	=> array(
-					array(
-						'key'	=> 'wp_lib_item_barcode',
-						'value'	=> $barcode,
-						'compare'	=> 'IN'
-					)
+					$meta_query
 				)
 			);
 			
@@ -1055,10 +1067,13 @@ function wp_lib_page_scan_item() {
 			'content'	=> array( 'Once the barcode is scanned the item will be retried automatically' )
 		),
 		array(
-			'type'		=> 'text',
+			'type'		=> 'input',
 			'id'		=> 'barcode-input',
 			'name'		=> 'item_barcode',
-			'autofocus'	=> true
+			'attr'		=> array(
+				'autofocus'	=> true,
+				'type'		=> 'text'
+			)
 		),
 		array(
 			'type'	=> 'button',

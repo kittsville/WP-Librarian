@@ -35,6 +35,53 @@ function wp_lib_sanitize_checkbox( $raw ) {
 		return false;
 }
 
+// Sanitizes string then checks if it is a valid ISBN, returns sanitized ISBN on success or empty string on failure.
+function wp_lib_sanitize_isbn( $raw ) {
+	// Strips all non-numeric characters, excluding x
+	$isbn = ereg_replace('[^0-9.x]', '', strtolower( $raw ) );
+	
+	// Checks ISBN validity
+	return wp_lib_valid_isbn( $isbn ) ? $isbn : '';
+}
+
+// Checks if given string is a valid ISBN, returns ISBN type (10/13) on success or false on failure
+// Uses Cryptic's (http://stackoverflow.com/users/1592648) answer to a question on ISBN validation (http://stackoverflow.com/questions/14095778) on Stack Overflow
+function wp_lib_valid_isbn( $isbn ) {
+	// Sets check digit
+	$check = 0;
+	
+	// Performs ISBN validity checks based on ISBN length
+	switch ( strlen( $isbn ) ) {
+		case 10:
+			for ($i = 0; $i < 10; $i++) {
+				if ('x' === $isbn[$i]) {
+					$check += 10 * (10 - $i);
+				} elseif (is_numeric($isbn[$i])) {
+					$check += (int)$isbn[$i] * (10 - $i);
+				} else {
+					return false;
+				}
+			}
+
+			return (0 === ($check % 11)) ? 10 : false;
+		break;
+		
+		case 13:
+			for ($i = 0; $i < 13; $i += 2) {
+				$check += (int)$isbn[$i];
+			}
+
+			for ($i = 1; $i < 12; $i += 2) {
+				$check += 3 * $isbn[$i];
+			}
+
+			return (0 === ($check % 10)) ? 13 : false;
+		break;
+	}
+	// If string is not the length of a valid ISBN, return false
+	return false;
+}
+
 	/* -- Data Validation Functions -- */
 
 // AJAX Wrapper for wp_lib_valid_item_id

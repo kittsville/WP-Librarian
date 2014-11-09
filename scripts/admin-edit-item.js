@@ -13,11 +13,17 @@ function wp_lib_post_render($) {
 		}
 	});
 	
-
 	// Creates listener on item Media Type being changed
 	$( metaTypeSelector ).change( function() {
 		currentMediaType = wp_lib_update_meta_box_display( metaTypeSelector.val(), currentMediaType );
 	});
+	
+	// Formats ISBN field, if input exists
+	var isbnField = $( '[name="wp_lib_item_isbn"]' );
+	
+	if ( isbnField.val() != '' ) {
+		isbnField.val( hyphenateISBN( isbnField.val() ) );
+	}
 }
 
 function wp_lib_update_meta_box_display( newMediaType, oldMediaType ) {
