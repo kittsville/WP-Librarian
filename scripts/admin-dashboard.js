@@ -562,11 +562,7 @@ function wp_lib_render_page( pageArray ) {
 					}));
 				});
 				
-				// Creates meta box wrapper
-				var theElement = $('<div/>',elementObject).addClass('lib-metabox');
-				
-				// Sets up meta box
-				theElement.html([
+				elementObject.html = [
 					$('<strong/>',{
 						html	: pageItem.title
 					}),
@@ -574,7 +570,10 @@ function wp_lib_render_page( pageArray ) {
 						'class'	: 'lib-metabox',
 						html	: metaRows // GGGG conside using appendTo rather than this array
 					})
-				]);
+				];
+				
+				// Creates meta box wrapper
+				var theElement = $('<div/>',elementObject).addClass('lib-metabox');
 			break;
 			
 			// Dynamic table managed by Dynatable

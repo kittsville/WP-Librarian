@@ -76,7 +76,6 @@ jQuery( document ).ready(function($) {
 				// Adds default blank option
 				.append(
 					$('<option/>', {
-						'value'	: '', // GGG might not need
 						'text'	: 'Select'
 					})
 				)
