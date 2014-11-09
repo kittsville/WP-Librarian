@@ -107,6 +107,9 @@ function wp_lib_register_post_and_tax() {
 			'public'				=> true,
 			'public'				=> true,
 			'capability_type'		=> 'wp_lib_loans_cap',
+			'capabilities'			=> array(
+				'create_posts'		=> false
+			),
 			'map_meta_cap'			=> true,
 			'exclude_from_search'	=> true,
 			'publicly_queryable'	=> true,
@@ -135,6 +138,9 @@ function wp_lib_register_post_and_tax() {
 			),
 			'public'				=> true,
 			'capability_type'		=> 'wp_lib_fines_cap',
+			'capabilities'			=> array(
+				'create_posts'		=> false
+			),
 			'map_meta_cap'			=> true,
 			'exclude_from_search'	=> true,
 			'publicly_queryable'	=> true,
@@ -341,6 +347,9 @@ add_filter( 'manage_wp_lib_loans_posts_columns', function ( $columns ) {
 	return $columns;
 });
 
+// Removes bulk actions from loans table
+add_filter('bulk_actions-edit-wp_lib_loans',function(){ return array(); });
+
 // Adds data to custom columns in loans table
 add_action( 'manage_wp_lib_loans_posts_custom_column' , function ( $column, $loan_id ) {
 	switch ( $column ) {
@@ -415,6 +424,9 @@ add_filter( 'manage_wp_lib_fines_posts_columns', function ( $columns ) {
 	
 	return $columns;
 });
+
+// Removes bulk actions from fines table
+add_filter('bulk_actions-edit-wp_lib_fines',function(){ return array(); });
 
 // Adds data to custom columns in fines table
 add_action( 'manage_wp_lib_fines_posts_custom_column', function ( $column, $fine_id ) {

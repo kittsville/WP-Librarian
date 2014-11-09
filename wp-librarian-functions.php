@@ -663,8 +663,6 @@ function wp_lib_update_user_capabilities( $user_id, $role ) {
 		
 		// Removes all item/member specific capabilities
 		if ( $term == 'wp_lib_items_cap' || $term == 'wp_lib_members_cap' ) {
-			$term_p = $term . 's';
-			$user->remove_cap( 'edit_others_' . $term_p );
 			$user->remove_cap( 'edit_published_' . $term_p );
 			$user->remove_cap( 'publish_' . $term_p );
 			$user->remove_cap( 'delete_others_' . $term_p );
@@ -680,24 +678,20 @@ function wp_lib_update_user_capabilities( $user_id, $role ) {
 	if ( $role < 5 )
 		return;
 	
-	//$user->add_cap( 'read' );
-	
-	// Iterates through custom post types, stripping user's capabilities to interact with them
+	// Iterates through custom post types, adding capabilities to user
 	foreach( $post_cap_terms as $term ) {
 		// Creates plural version of post type 
 		$term_p = $term . 's';
 		
-		// Removes all general purpose capabilities
+		// Adds all general purpose capabilities
 		$user->add_cap( 'read_' . $term );
 		$user->add_cap( 'read_private_' . $term_p );
 		$user->add_cap( 'edit_' . $term );
 		$user->add_cap( 'edit_' . $term_p );
 		$user->add_cap( 'edit_others_' . $term_p );
 		
-		// Removes all item/member specific capabilities
+		// Adds all item/member specific capabilities
 		if ( $term == 'wp_lib_items_cap' || $term == 'wp_lib_members_cap' ) {
-			$term_p = $term . 's';
-			$user->add_cap( 'edit_others_' . $term_p );
 			$user->add_cap( 'edit_published_' . $term_p );
 			$user->add_cap( 'publish_' . $term_p );
 			$user->add_cap( 'delete_others_' . $term_p );
