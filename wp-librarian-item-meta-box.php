@@ -14,13 +14,21 @@ wp_nonce_field( "Updating item {$item->ID} meta", 'wp_lib_item_meta_nonce' );
 // Fetches list of media types
 $media_type_objects = get_terms( 'wp_lib_media_type', 'hide_empty=0' );
 
+// Adds default media type option
+$media_types[] = array(
+	'html'	=> 'Select'
+);
+
 // Creates meta formatting array of media types
 foreach ( $media_type_objects as $type ) {
 	$media_types[] = array(
 		'value'	=> $type->slug,
-		'text'	=> $type->name
+		'html'	=> $type->name
 	);
 }
+
+// Fetches list of possible item donors
+$donors = wp_lib_prep_member_options( false );
 
 // Array of all item meta, consisting of each section, then each section's fields and their properties
 $meta_formatting = array(
@@ -55,21 +63,29 @@ $meta_formatting = array(
 				'options'	=> array(
 					array(
 						'value' => '4',
-						'text'	=> wp_lib_format_item_condition( 4 )
+						'html'	=> wp_lib_format_item_condition( 4 )
 					),
 					array(
 						'value' => '3',
-						'text'	=> wp_lib_format_item_condition( 3 )
+						'html'	=> wp_lib_format_item_condition( 3 )
 					),
 					array(
 						'value' => '2',
-						'text'	=> wp_lib_format_item_condition( 2 )
+						'html'	=> wp_lib_format_item_condition( 2 )
 					),
 					array(
 						'value' => '1',
-						'text'	=> wp_lib_format_item_condition( 1 )
+						'html'	=> wp_lib_format_item_condition( 1 )
 					)
 				)
+			),
+			array(
+				'title'		=> 'Donor',
+				'id'		=> 'meta-donor-selector',
+				'alt-text'	=> 'Select member that donated the item',
+				'name'		=> 'wp_lib_item_donor',
+				'type'		=> 'select',
+				'options'	=> $donors
 			),
 			array(
 				'title'		=> 'Barcode',
@@ -94,11 +110,11 @@ $meta_formatting = array(
 				'options'	=> array(
 					array(
 						'value'	=> '2',
-						'text'	=> 'HardCover'
+						'html'	=> 'HardCover'
 					),
 					array(
 						'value'	=> '3',
-						'text'	=> 'Softcover'
+						'html'	=> 'Softcover'
 					)
 				),
 			),

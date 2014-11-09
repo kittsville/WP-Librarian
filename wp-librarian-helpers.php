@@ -82,6 +82,11 @@ function wp_lib_valid_isbn( $isbn ) {
 	return false;
 }
 
+// If member exists, return member ID, otherwise return empty string
+function wp_lib_sanitize_donor( $member_id ) {
+	return ( get_post_type( $member_id ) === 'wp_lib_members' ) ? $member_id : '';
+}
+
 	/* -- Data Validation Functions -- */
 
 // AJAX Wrapper for wp_lib_valid_item_id
@@ -438,6 +443,18 @@ function wp_lib_prep_item_management_header( $item_id ) {
 		array( 'Condition', wp_lib_format_item_condition( $meta['wp_lib_item_condition'][0] ) )
 	);
 	
+	// If item has a donor and the ID matches an existing member
+	if ( isset( $meta['wp_lib_item_donor'] ) && wp_lib_sanitize_donor( $meta['wp_lib_item_donor'][0] ) ) {
+		// Fetches member ID
+		$member_id = $meta['wp_lib_item_donor'][0];
+		
+		// Adds meta field, displaying donor with a link to manage the member
+		$meta_fields[] = array(
+			'Donor',
+			array( array( get_the_title( $member_id ), wp_lib_manage_member_url( $member_id ) ) )
+		);
+	}
+	
 	// Taxonomy terms to be fetched
 	$tax_terms = array(
 		'Media Type'=> 'wp_lib_media_type',
@@ -555,12 +572,17 @@ function wp_lib_prep_member_management_header( $member_id ) {
 }
 
 // Creates option element for each member in the library, stored as an array
-function wp_lib_prep_member_options() {
-	// Initialises options with default option
-	$options[] = array(
-		'value'	=> '',
-		'html'	=> 'Member'
-	);
+function wp_lib_prep_member_options( $default_option = true ) {
+	// Initialises options
+	$option = array();
+	
+	// Adds default option, if specified
+	if ( $default_option ) {
+		$options[] = array(
+			'value'	=> '',
+			'html'	=> 'Member'
+		);
+	}
 	
 	$args = array(
 		'post_type'			=> 'wp_lib_members',

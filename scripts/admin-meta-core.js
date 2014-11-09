@@ -76,7 +76,7 @@ jQuery( document ).ready(function($) {
 				// Adds default blank option
 				.append(
 					$('<option/>', {
-						'text'	: 'Select'
+						'html'	: 'Select'
 					})
 				)
 				.appendTo( metaInputWrapper );
@@ -86,7 +86,7 @@ jQuery( document ).ready(function($) {
 					// Initialises option's properties
 					var optionObject = {
 						'value'	: option.value,
-						'text'	: option.text
+						'html'	: option.html
 					};
 					
 					// If option is the current value, pre-select as that option

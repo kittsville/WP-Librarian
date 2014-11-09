@@ -631,6 +631,10 @@ add_action( 'save_post', function ( $post_id, $post ) {
 					'key'		=> 'wp_lib_media_type',
 					'sanitize'	=> 'sanitize_title',
 					'tax'		=> true
+				),
+				array(
+					'key'		=> 'wp_lib_item_donor',
+					'sanitize'	=> 'wp_lib_sanitize_donor'
 				)
 			);
 		break;
