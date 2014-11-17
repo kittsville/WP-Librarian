@@ -6,6 +6,7 @@
  */
 ?>
 <div class="wrap">
+	<?php wp_lib_render_plugin_version(); ?>
 	<div id="title-wrap">
 		<h2>
 			<div id="page-title"></div>

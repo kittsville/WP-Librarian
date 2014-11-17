@@ -155,7 +155,7 @@ function wp_lib_cherry_pie( $loan_id, $date ) {
 	$due_date = get_post_meta( $loan_id, 'wp_lib_end_date', true );
 	
 	// If loan doesn't have a due date, error is thrown
-	if ( $due_date == '' || !is_numeric( $due_date ) ) {
+	if ( !is_numeric( $due_date ) ) {
 		wp_lib_error( 405 );
 		return false;
 	}
@@ -378,7 +378,7 @@ function wp_lib_give_item( $item_id, $loan_id, $member_id, $date = false ) {
 	/* Updates other meta */
 	
 	// Updates loan status from 'Scheduled' to 'On Loan'
-	update_post_meta( $loan_id, 'wp_lib_status', 1 );	
+	update_post_meta( $loan_id, 'wp_lib_status', 1 );
 	
 	// Sets date item was loaned
 	add_post_meta( $loan_id, 'wp_lib_loaned_date', $date );
@@ -386,7 +386,7 @@ function wp_lib_give_item( $item_id, $loan_id, $member_id, $date = false ) {
 	wp_lib_add_meta( $item_id,
 		array(
 			'wp_lib_member'	=> $member_id, // Assigns item to member to signify the physical item is in their possession
-			'wp_lib_loan'	=> $loan_id
+			'wp_lib_loan'	=> $loan_id // Adds loan ID to item meta as caching, until item returns to Library possession
 		)
 	);
 
@@ -394,7 +394,7 @@ function wp_lib_give_item( $item_id, $loan_id, $member_id, $date = false ) {
 }
 
 // Returns a loaned item, allowing it to be re-loaned. The opposite of wp_lib_give_item
-function wp_lib_return_item( $item_id, $date = false, $no_fine = false ) {
+function wp_lib_return_item( $item_id, $date = false, $fine = true ) {
 	// Sets date to current date, if unspecified
 	wp_lib_prep_date( $date );
 	
@@ -419,8 +419,8 @@ function wp_lib_return_item( $item_id, $date = false, $no_fine = false ) {
 	// Fetches if a fine has been charged
 	$fined = get_post_meta( $loan_id, 'wp_lib_fine', true );
 	
-	// If item is late, a fine hasn't been charged and $no_fine isn't true, render fine resolution page
-	if ( $late && !$no_fine && !$fined ) {
+	// If item is late, a fine hasn't been charged and the fine hasn't specifically be wavered, call error
+	if ( $late && $fine && $fined === '' ) {
 		wp_lib_error( 410 );
 		return false;
 	}
@@ -528,14 +528,16 @@ function wp_lib_create_fine( $item_id, $date = false, $return = true ) {
 	$fine_total = wp_lib_fetch_member_owed( $member_id ) + $fine;
 	
 	// Saves new total to member meta
-	update_post_meta( $fine_total, 'wp_lib_owed' );
+	update_post_meta( $member_id, 'wp_lib_owed', $fine_total );
 	
 	// Notifies user of successful fine creation
 	wp_lib_add_notification( get_the_title( $member_id ) . ' has been charged ' . wp_lib_format_money( $fine ) . ' for the late return of ' . get_the_title( $item_id ) );
 	
 	// Return item unless otherwise specified
 	if ( $return )
-		wp_lib_return_item( $item_id );
+		return wp_lib_return_item( $item_id, $date );
+	else
+		return true;
 }
 
 // Cancels fine so that it is no longer is required to be paid
@@ -543,18 +545,40 @@ function wp_lib_cancel_fine( $fine_id ) {
 	// Fetches (unformatted) fine status
 	$fine_status = get_post_meta( $fine_id, 'wp_lib_status', true );
 
-	// If fine has already been cancelled
+	// If fine has already been cancelled, calls error
 	if ( $fine_status == 2 ) {
-		// Calls error
 		wp_lib_error( 313 );
 		return false;
 	}
+	
+	// Fetches member ID
+	$member_id = get_post_meta( $fine_id, 'wp_lib_member', true );
+	
+	// Fetches current amount owed by member
+	$owed = wp_lib_fetch_member_owed( $member_id );
+	
+	// Fetches fine total
+	$fine_total = get_post_meta( $fine_id, 'wp_lib_fine', true );
+	
+	// If cancelling fine would leave member with negative money owed, call error
+	if ( $owed - $fine_total < 0 ) {
+		wp_lib_error( 207 );
+		return false;
+	}
+	
+	// Removes fine from member's debt
+	$owed -= $fine_total;
+	
+	// Updates member debt
+	update_post_meta( $member_id, 'wp_lib_owed', $owed );
 
 	// Changes fine status to Cancelled
-	update_post_meta( $fine_id, 'wp_lib_status', 3 );
+	update_post_meta( $fine_id, 'wp_lib_status', 2 );
 	
 	// Notifies user that fine has been cancelled
 	wp_lib_add_notification( "Fine #{$fine_id} has been cancelled" );
+	
+	return true;
 }
 
 // Returns explanation of error given error code
@@ -583,6 +607,7 @@ function wp_lib_error( $error_id, $die = false, $param = 'NULL' ) {
 		204 => 'Multiple items have the same barcode',
 		205	=> 'Deletion can not be completed while an item is on loan',
 		206	=> 'Member does not owe the Library money',
+		207	=> 'Unable to cancel fine as it would result in member owing less than nothing',
 		300 => "{$param} ID not given and required",
 		301 => "{$param} ID given is not a number",
 		302 => 'No loans found for that item ID',

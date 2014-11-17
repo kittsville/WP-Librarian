@@ -7,6 +7,10 @@ function wp_lib_do_action( dashAction, params ) {
 	
 	// AJAX action switch, decides what action should be taken
 	switch ( dashAction ) {
+		case 'run-test-loan':
+			data.item_id = params['item_id'];
+		break;
+		
 		case 'loan':
 			data.item_id = params['item_id'];
 			data.member_id = params['member_id'];
@@ -21,7 +25,7 @@ function wp_lib_do_action( dashAction, params ) {
 		break;
 		
 		case 'return-item-no-fine':
-			data.no_fine = true;
+			data.fine_member = false;
 			data.dash_action = 'return-item';
 			// Deliberate lack of break
 		case 'return-item':
@@ -30,8 +34,9 @@ function wp_lib_do_action( dashAction, params ) {
 		break;
 		
 		case 'fine-member':
+			data.fine_member = true;
+			data.dash_action = 'return-item';
 			data.item_id = params['item_id'];
-			data.end_date = params['end_date'];
 		break;
 		
 		case 'cancel-fine':
@@ -503,8 +508,10 @@ function wp_lib_render_page( pageArray ) {
 			
 			// An item/member/etc. meta box containing information on the object concerned
 			case 'metabox':
-				// Initialises output of meta fields
-				var metaRows = [];
+				// Initialises metabox
+				var metaBox = $('<dl/>',{
+					'class'	: 'lib-metabox',
+				});
 				
 				// Iterates through meta fields, rendering them to the meta box
 				$( pageItem.fields ).each( function( i, e ) {
@@ -536,7 +543,7 @@ function wp_lib_render_page( pageArray ) {
 					}
 					
 					// Renders meta row inside div and adds to 
-					metaRows.push( $('<div/>', {
+					metaBox.append( $('<div/>', {
 						'class'	: 'meta-row',
 						html	: [
 							// Meta field's name e.g. Item ID
@@ -552,14 +559,12 @@ function wp_lib_render_page( pageArray ) {
 					}));
 				});
 				
+				// Sets up meta box wrapper's internal elements
 				elementObject.html = [
 					$('<strong/>',{
 						html	: pageItem.title
 					}),
-					$('<dl/>',{
-						'class'	: 'lib-metabox',
-						html	: metaRows // GGGG conside using appendTo rather than this array
-					})
+					metaBox
 				];
 				
 				// Creates meta box wrapper

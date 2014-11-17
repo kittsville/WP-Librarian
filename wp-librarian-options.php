@@ -56,7 +56,7 @@ $options = array(
 	array(
 		// Currency position relative to the numerical value (1 - Before: £20, 0 - After: 20£)
 		'key' 		=> 'wp_lib_currency_position',
-		'default'	=> '1'
+		'default'	=> '2'
 	),
 );
 

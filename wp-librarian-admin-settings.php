@@ -28,22 +28,39 @@ if ( isset( $_GET['settings-updated'] ) ) {
 		wp_lib_add_notification_on_load( 'Settings failed to update' );
 	}
 }
+
+// Sets settings tab to display based on GET param
+switch ( $_GET['tab'] ) {
+	case 'slugs':
+		$settings_tab = 'wp_lib_slug_group-options';
+	break;
+	
+	default:
+		$settings_tab = 'wp_lib_library_group-options';
+	break;
+}
 ?>
 <div id="wp-lib-admin-wrapper" class="wrap">
+	<?php wp_lib_render_plugin_version(); ?>
 	<div id="title-wrap">
 		<h2>WP-Librarian Settings</h2>
 	</div>
 	<!-- Filled with any notifications waiting in a session -->
 	<div id="wp-lib-notifications"></div>
+	
+	<h2 class="nav-tab-wrapper">
+		<a href="?post_type=wp_lib_items&page=wp-lib-settings" class="nav-tab <?php echo !isset( $_GET['tab'] ) ? 'nav-tab-active' : ''; ?>">General</a>
+		<a href="?post_type=wp_lib_items&page=wp-lib-settings&tab=slugs" class="nav-tab <?php echo ( $_GET['tab'] ) === 'slugs' ? 'nav-tab-active' : ''; ?>">Slugs</a>
+    </h2>
 
 	<div id="wp-lib-main-content">
 		<form method="POST" action="options.php">
 			<?php
 			// Handles nonces and other page security
-			settings_fields( 'wp_lib_slug_group' );
+			settings_fields( $settings_tab );
 			
-			// Renders all slug fields 
-			do_settings_sections( 'wp_lib_items_page_wp-lib-settings' );
+			// Renders selected tab's settings fields
+			do_settings_sections( $settings_tab );
 			
 			// Submit button to update options
 			submit_button( 'Update', 'primary' );

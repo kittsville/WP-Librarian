@@ -409,15 +409,15 @@ function wp_lib_format_money( $value, $html_ent = true ) {
 	}
 	
 	// Fetches user's preferred currency position (before or after the value)
-	$position = get_option( 'wp_lib_currency_position' );
+	$position = (int)get_option( 'wp_lib_currency_position' );
 	
 	// Ensures number has correct number of decimal places
 	$value = number_format( $value, 2 );
 	
 	// Formats $value with currency symbol at preferred position
-	if ( $position == 1 )
+	if ( $position === 2 )
 		$value = $symbol . $value;
-	elseif ( $position == 0 )
+	elseif ( $position === 3 )
 		$value = $value . $symbol;
 	else
 		wp_lib_error( 111, true );
@@ -617,6 +617,27 @@ function wp_lib_prep_member_options( $default_option = true ) {
 }
 
 	/* -- Debugging -- */
+
+// Renders current plugin's version, update channel and similar information
+function wp_lib_render_plugin_version() {
+	// Fetches plugin's current version/update channel/build
+	$version = get_option( 'wp_lib_version' );
+	
+	?>
+	<div id="version-wrap">
+		<span>
+			<?php
+				echo 'Running WP-Librarian ' .  $version['channel'];
+			?>
+		</span>
+		<span>
+			<?php
+				echo 'Version: ' . $version['version'] . ' (' . $version['nickname'] . ') Build: ' . $version['subversion'];
+			?>
+		</span>
+	</div>
+	<?php
+}
 
 // Dumps any number of given variables between <pre> tags
 function wp_lib_var_dump() {

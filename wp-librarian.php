@@ -10,6 +10,22 @@
  * License: GPL2
  */
 
+
+	/* -- Current Plugin Version -- */
+
+// Updates WordPress's current listed version of WP-Librarian running
+register_activation_hook( __FILE__, function() {
+	update_option( 'wp_lib_version',
+		array(
+			'channel'	=> 'Alpha',
+			'version'	=> '0.1',
+			'subversion'=> '001',
+			'nickname'	=> 'Fox Paw'
+		)
+	);
+});
+
+
 	/* -- External Files used -- */
 	
 require_once (plugin_dir_path(__FILE__) . '/wp-librarian-functions.php');
@@ -416,8 +432,8 @@ add_filter( 'manage_wp_lib_fines_posts_columns', function ( $columns ) {
 	$new_columns = array(
 		'fine_item'			=> 'Item',
 		'fine_member'		=> 'Member',
-		'fine_amount'		=> 'Amount',
 		'fine_status'		=> 'Status',
+		'fine_amount'		=> 'Amount'
 	);
 	
 	$columns = array_slice( $columns, 0, 2, true ) + $new_columns + array_slice( $columns, 2, NULL, true );
@@ -445,22 +461,23 @@ add_action( 'manage_wp_lib_fines_posts_custom_column', function ( $column, $fine
 			// Renders member's name with link to manage said member
 			echo wp_lib_fetch_member_name( $fine_id, true );
 		break;
-
-		case 'fine_amount':
-			// Fetches fine amount from fine's post meta
-			$fine = get_post_meta( $fine_id, 'wp_lib_fine', true );
-			
-			// Formats fine with local currency and displays it
-			echo wp_lib_format_money( $fine );
-		break;
 		
-		
+		// Displays status of fine (whether it is unpaid/paid/cancelled)
 		case 'fine_status':
 			// Fetches fine status then formats as readable string e.g. 1 => 'Unpaid'
 			$status = wp_lib_format_fine_status( get_post_meta( $fine_id, 'wp_lib_status', true ) );
 			
 			// Renders fine status 
 			echo wp_lib_hyperlink( wp_lib_manage_fine_url( $fine_id ), $status );
+		break;
+		
+		// Displays total charge to member
+		case 'fine_amount':
+			// Fetches fine amount from fine's post meta
+			$fine = get_post_meta( $fine_id, 'wp_lib_fine', true );
+			
+			// Formats fine with local currency and displays it
+			echo wp_lib_format_money( $fine );
 		break;
 	}
 }, 10, 2 );
@@ -800,30 +817,116 @@ add_action( 'admin_menu', function() {
 
 // Sets up plugin settings
 add_action( 'admin_init', function () {
-	// Registers settings groups and their sanitization callbacks
+
+	/* -- General Library Settings -- */
+
+	// Registers settings groups and their sanitization callbacks for the slugs used on the front-end of the plugin
+	add_settings_section(
+		'wp_lib_library_group',
+		'General Settings',
+		false,
+		'wp_lib_library_group-options'
+	);
+	
+	// All Library options settings parameters
+	$library_settings = array(
+		array(
+			'name'		=> 'wp_lib_loan_length',
+			'title'		=> 'Default Loan Length',
+			'alt'		=> 'The default number of days to loan an item.',
+			'callback'	=>
+				function( $raw ) {
+					$raw = (int)trim($raw);
+					
+					if ( is_numeric($raw) && $raw > 0 ) {
+						return $raw;
+					} else {
+						return '';
+					}
+				}
+		),
+		array(
+			'name'		=> 'wp_lib_fine_daily',
+			'title'		=> 'Late Fine',
+			'alt'		=> 'Amount to charge a member, per day, for a late item.',
+			'filter'	=> function( &$input ) { $input['value'] = number_format( $input['value'], 2 ); },
+			'callback'	=>
+				function( $raw ) {
+					$raw = (float)trim($raw);
+					
+					if ( is_numeric($raw) && $raw >= 0 ) {
+						return $raw;
+					} else {
+						return '';
+					}
+				}
+		),
+		array(
+			'name'		=> 'wp_lib_currency_symbol',
+			'title'		=> 'Currency Symbol',
+			'alt'		=> 'Set the symbol to be used before or after money is displayed',
+			'callback'	=>
+			function( $raw ) {
+				return htmlentities( substr( iconv('UTF-8', 'ISO-8859-15', trim( $raw )), 0, 4 ), ENT_QUOTES, 'ISO-8859-15' );
+			}
+		),
+		array(
+			'name'		=> 'wp_lib_currency_position',
+			'title'		=> 'Currency Position',
+			'alt'		=> 'Check box to display currency symbol after value e.g. 0.40EUR',
+			'filter'	=>
+			function( &$input ) {
+				if ( $input['value'] == 3 )
+					$input['checked'] = 'checked';
+				$input['value'] = '3';
+				$input['type'] = 'checkbox';
+			},
+			'callback'	=>
+			function ( $raw ) {
+				// If checkbox is checked, set currency symbol as after value (3)
+				if ( $raw == 3 )
+					return 3;
+				// Else set symbol as before value (2)
+				else
+					return 2;
+			}
+		)
+	);
+	
+	foreach ( $library_settings as $setting ) {
+		add_settings_field( $setting['name'], $setting['title'], 'wp_lib_render_field_lib_options', 'wp_lib_library_group-options', 'wp_lib_library_group', $setting );
+		register_setting( 'wp_lib_library_group-options', $setting['name'], $setting['callback'] );
+	}
+
+	/* -- Slug Settings -- */
+
+	// Registers settings groups and their sanitization callbacks for the slugs used on the front-end of the plugin
 	add_settings_section(
 		'wp_lib_slug_group',
 		'Slugs',
 		function(){
 			echo '<p>These form the URLs of the front end of your website</p>';
 		},
-		'wp_lib_items_page_wp-lib-settings'
+		'wp_lib_slug_group-options'
 	);
 	
 	// All slugs settings parameters
-	$all_slugs = array(
+	$slugs_settings = array(
 		array(
 			'name'	=> 'wp_lib_main_slug',
-			'title'	=> 'Main'
+			'title'	=> 'Main',
+			'alt'	=> 'This forms the base of all public Library pages'
 		),
 		array(
 			'name'	=> 'wp_lib_authors_slug',
 			'title'	=> 'Authors',
+			'alt'	=> 'This forms the url for browsing items by author',
 			'end'	=> 'terry-pratchett'
 		),
 		array(
 			'name'	=> 'wp_lib_media_type_slug',
 			'title'	=> 'Media Type',
+			'alt'	=> 'This forms the url for browsing items by media type',
 			'end'	=> 'comic-books'
 		)
 	);
@@ -835,21 +938,52 @@ add_action( 'admin_init', function () {
 	$main_slug = get_option( 'wp_lib_main_slug', 'null' );
 	
 	// Creates settings field for each slug
-	foreach ( $all_slugs as $slug ) {
-		$slug['url'] = $site_url;
-		$slug['main'] = $main_slug;
-		add_settings_field( $slug['name'], $slug['title'], 'wp_lib_render_field_slug', 'wp_lib_items_page_wp-lib-settings', 'wp_lib_slug_group', $slug );
-		register_setting( 'wp_lib_slug_group', $slug['name'], 'sanitize_title' );
+	foreach ( $slugs_settings as $setting ) {
+		$setting['url'] = $site_url;
+		$setting['main'] = $main_slug;
+		add_settings_field( $setting['name'], $setting['title'], 'wp_lib_render_field_slug', 'wp_lib_slug_group-options', 'wp_lib_slug_group', $setting );
+		register_setting( 'wp_lib_slug_group-options', $setting['name'], 'sanitize_title' );
 	}
 });
+
+// Renders a single setting field for general library options
+function wp_lib_render_field_lib_options( $args ) {
+	// Sets up input field's default properties
+	$input = array(
+		'type'	=> 'text',
+		'id'	=> $args['name'],
+		'name'	=> $args['name'],
+		'class'	=> 'lib-option-input',
+		'value'	=> get_option( $args['name'], '' )
+	);
+	
+	// If one exists, runs input properties through setting field's filtering function
+	if ( isset($args['filter']) )
+		$args['filter']( $input );
+	
+	// Initialises input element's properties
+	$input_properties = '';
+	
+	// Iterates over input element's properties, turning them into a single string e.g. $key='$value'
+	foreach ( $input as $key => $value ) {
+		$input_properties .= $key . '=\'' . $value . '\' ';
+	}
+	
+	// Renders input form and text explaining what the setting is for
+	echo '<input ' . $input_properties .  '/>';
+	
+	if ( isset( $args['alt'] ) ) {
+		echo '<p class="tooltip description">' . $args['alt'] . '</p>';
+	}
+}
 
 // Renders a single settings option for editing a slug
 function wp_lib_render_field_slug( $args ) {
 	// If the current slug is not the main slug, the slug's current value must be fetched
-	if ( $args['name'] != 'wp_lib_main_slug' )
+	if ( $args['name'] != 'wp_lib_main_slug' ) {
 		$current_slug = get_option( $args['name'], 'null' );
 	// Otherwise current slug is main slug, so the option has already been fetched
-	else {
+	} else {
 		$current_slug = $args['main'];
 		$is_main = true;
 	}
@@ -865,6 +999,10 @@ function wp_lib_render_field_slug( $args ) {
 	else
 		echo "{$args['url']}/<span class=\"wp_lib_main_slug-text\">{$args['main']}</span>/<span class=\"{$args['name']}-text\">{$current_slug}</span>/{$args['end']}/";
 	echo '</label>';
+	
+	if ( isset( $args['alt'] ) ) {
+		echo '<p class="tooltip description">' . $args['alt'] . '</p>';
+	}
 }
 
 // Renders plugin settings page
@@ -883,19 +1021,20 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
 	// Registers meta core script, an extension of wp_lib_core with functions useful specifically to meta boxes
 	wp_register_script( 'wp_lib_meta_core', wp_lib_script_url( 'admin-meta-core' ),  array( 'jquery', 'jquery-ui-datepicker', 'wp_lib_core' ), '0.1' );
 	
-	
-	
 	// Registers meta core style, this adds the base styling of meta boxes to post edit pages
 	wp_register_style( 'wp_lib_meta_core_styles', wp_lib_style_url( 'admin-core-meta-box' ), array(), '0.1' );
+	
+	// Registers admin-core, a file of core CSS rules for WP-Librarian's admin-end
+	wp_register_style( 'wp_lib_admin_core_styles', wp_lib_style_url( 'admin-core' ), array(), '0.1' );
 
 	// Sets up array of variables to be passed to JavaScript
 	$vars = array(
-			'siteUrl' 	=> get_option( 'siteurl' ),
-			'adminUrl'	=> admin_url(),
-			'pluginsUrl'=> plugins_url( '', __FILE__ ),
-			'dashUrl'	=> wp_lib_format_dash_url(),
-			'siteName'	=> get_bloginfo( 'name' ),
-			'getParams'	=> $_GET
+			'siteUrl' 		=> get_option( 'siteurl' ),
+			'adminUrl'		=> admin_url(),
+			'pluginsUrl'	=> plugins_url( '', __FILE__ ),
+			'dashUrl'		=> wp_lib_format_dash_url(),
+			'siteName'		=> get_bloginfo( 'name' ),
+			'getParams'		=> $_GET
 	);
 	
 	// Sends variables to user
@@ -920,14 +1059,14 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
 		// Plugin settings page
 		case 'wp_lib_items_page_wp-lib-settings':
 			wp_enqueue_script( 'wp_lib_settings', wp_lib_script_url( 'admin-settings' ), array( 'wp_lib_core' ), '0.2' );
-			wp_register_style( 'wp_lib_admin_settings', wp_lib_style_url( 'admin-settings' ), array(), '0.1' );
+			wp_register_style( 'wp_lib_admin_settings', wp_lib_style_url( 'admin-settings' ), array( 'wp_lib_admin_core_styles' ), '0.1' );
 		break;
 		
 		// Library Dashboard
 		case 'wp_lib_items_page_dashboard':
 			wp_enqueue_script( 'wp_lib_dashboard', wp_lib_script_url( 'admin-dashboard' ), array( 'wp_lib_core' ), '0.1' );
 			wp_enqueue_script( 'dynatable', wp_lib_script_url( 'dynatable' ), array(), '0.3.1' );
-			wp_enqueue_style( 'wp_lib_dashboard', wp_lib_style_url( 'admin-dashboard' ), array(), '0.1' );
+			wp_enqueue_style( 'wp_lib_dashboard', wp_lib_style_url( 'admin-dashboard' ), array( 'wp_lib_admin_core_styles' ), '0.1' );
 			wp_enqueue_style( 'wp_lib_mellon-datepicker', wp_lib_style_url( 'mellon-datepicker' ), array(), '0.1' ); // Styles Datepicker
 			wp_enqueue_style( 'jquery-ui', wp_lib_style_url( 'jquery-ui' ), array(), '1.10.1' ); // Core Datepicker Styles
 			wp_enqueue_style( 'dynatable', wp_lib_style_url( 'dynatable' ), array( 'jquery-ui' ), '0.3.1' );
@@ -972,7 +1111,7 @@ function wp_lib_flush_permalinks() {
 // Performs necessary checks before an item, loan or fine is deleted
 function wp_lib_check_post_pre_trash( $post_id ) {
 	// If object doesn't belong to the Library it is ignored
-	if ( !in_array( $GLOBALS['post_type'], ['wp_lib_items', 'wp_lib_members', 'wp_lib_loans', 'wp_lib_fines'] ) )
+	if ( !in_array( $GLOBALS['post_type'], ['wp_lib_items', 'wp_lib_members', 'wp_lib_loans', 'wp_lib_fines'] ) || wp_is_post_autosave( $post_id ) )
 		return;
 	
 	// If object is being deleted via an AJAX request

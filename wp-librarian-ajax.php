@@ -13,6 +13,9 @@ add_action( 'wp_ajax_wp_lib_page', function() {
 	if ( !wp_lib_is_librarian() )
 		wp_lib_stop_ajax( false, 112 );
 	
+	// Trims client data
+	array_filter( $_POST, function( &$raw ){ $value = trim( $value ); } );
+	
 	// Sets dash page to nothing if unspecified
 	$dash_page = isset( $_POST['dash_page'] ) ? $_POST['dash_page'] : null;
 	
@@ -78,6 +81,9 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 	// If user does not have a proper Library role, disallows access
 	if ( !wp_lib_is_librarian() )
 		wp_lib_stop_ajax( false, 112 );
+	
+	// Trims client data
+	array_filter( $_POST, function( &$raw ){ $value = trim( $value ); } );
 	
 	switch( $_POST['dash_action'] ) {
 		case 'loan':
@@ -151,13 +157,8 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 			if ( !wp_lib_valid_item_id( $item_id ) )
 				wp_lib_stop_ajax( false );
 			
-			/* The nonce needed to validate will be different depending on if the function
-			 * was called from the Item management page or the return past page
-			 * the_more_you_know.jpeg
-			 */
-			
-			// If the date is given (item is not being returned currently)
-			if ( $end_date ) {
+			// Attempts to validate the relevant nonce depending on wether the item is being returned at a past date, late or on time/early
+			if ( $end_date ) {				
 				// Checks if nonce is valid
 				if ( !wp_lib_verify_nonce( 'Past returning: ' . $item_id ) )
 					wp_lib_stop_ajax( false );
@@ -165,52 +166,58 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 				// Attempts to converts formatted date to Unix timestamp e.g. 12/08/2013 -> 1386460800
 				wp_lib_convert_date( $end_date );
 				
-				// If date failed to convert
+				// If date failed to convert, call error
 				if ( !$end_date )
 					wp_lib_stop_ajax( false, 310 );
+				
+				// Attempts to return item at a past date
+				wp_lib_stop_ajax( wp_lib_return_item( $item_id, $end_date ) );
+			} elseif ( isset( $_POST['fine_member'] ) ) {
+				// Checks if nonce is valid
+				if ( !wp_lib_verify_nonce( 'Resolution of item ' . $item_id . ' for loan '. wp_lib_fetch_loan_id( $item_id ) ) )
+					wp_lib_stop_ajax( false );
+				
+				// If member is to be fined for late return, fine member before returning item, otherwise return item suppressing fine
+				if ( $_POST['fine_member'] === 'true' ) {
+					wp_lib_stop_ajax( wp_lib_create_fine( $item_id ) );
+				} else {
+					wp_lib_stop_ajax( wp_lib_return_item( $item_id, false, false ) );
+				}
 			} else {
 				// Checks if nonce is valid
 				if ( !wp_lib_verify_nonce( 'Managing Item: ' . $item_id ) )
 					wp_lib_stop_ajax( false );
 				
-				$end_date = false;
+				// Attempts to return item
+				wp_lib_stop_ajax( wp_lib_return_item( $item_id ) );
 			}
-			
-			// Converts 'no fine' to boolean
-			if ( $_POST['no_fine'] === 'true' )
-				$no_fine = true;
-			else
-				$no_fine = false;
-			
-			// Attempts to return item, returning success/failure
-			wp_lib_stop_ajax( wp_lib_return_item( $item_id, $end_date, $no_fine ) );
 		break;
 		
-		case 'fine-member':
+		// Debugging action
+		case 'run-test-loan':
 			// Fetches params from AJAX request
 			$item_id = $_POST['item_id'];
-			$end_date = $_POST['end_date'];
 			
 			// If item ID fails to validate, return false
 			if ( !wp_lib_valid_item_id( $item_id ) )
 				wp_lib_stop_ajax( false );
+				
+			$start_date = current_time( 'timestamp' ) - ( 10 * 24 * 60 * 60 );
+			$end_date = current_time( 'timestamp' ) - ( 3 * 24 * 60 * 60 );
 			
-			// Checks if nonce is valid
-			if ( !wp_lib_verify_nonce( 'Resolution of item ' . $item_id . ' for loan '. get_post_meta( $item_id, 'wp_lib_loan', true ) ) )
+			// If possible creates loan of item starting 10 days ago, due 3 days ago
+			$loan_id = wp_lib_schedule_loan( $item_id, '127', $start_date, $end_date );
+			
+			if ( !is_numeric( $loan_id ) )
 				wp_lib_stop_ajax( false );
 			
-			// If the date is given (item is not being returned currently)
-			if ( $end_date ) {
-				// Attempts to converts formatted date to Unix timestamp e.g. 12/08/2013 -> 1386460800
-				wp_lib_convert_date( $end_date );
-				
-				// If date failed to convert
-				if ( !$end_date )
-					wp_lib_stop_ajax( false, 310 );
+			if ( wp_lib_give_item( $item_id, $loan_id, '127', current_time( 'timestamp' ) - ( 10 * 24 * 60 * 60 ) + 900 ) ) {
+				wp_lib_add_notification( "Debugging loan created!" );
+				wp_lib_stop_ajax( true );
+			} else {
+				wp_lib_add_notification( "Failure" );
+				wp_lib_stop_ajax( false );
 			}
-			
-			// Fines member and returns item. Returns result
-			wp_lib_stop_ajax( wp_lib_create_fine( $item_id, $end_date ) );
 		break;
 		
 		case 'cancel-fine':
@@ -225,11 +232,8 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 			if ( !wp_lib_verify_nonce( 'Managing Fine: ' . $fine_id ) )
 				wp_lib_stop_ajax( false );
 			
-			// Attempts to cancel fine
-			$success = wp_lib_cancel_fine( $fine_id );
-			
-			// Returns success/failure as boolean
-			wp_lib_stop_ajax( $success );
+			// Attempts to cancel fine, returning success/failure as boolean
+			wp_lib_stop_ajax( wp_lib_cancel_fine( $fine_id ) );
 		break;
 		
 		case 'pay-fine':
@@ -674,6 +678,13 @@ function wp_lib_page_manage_item() {
 		'value'	=> $item_id
 	);
 	
+	$form[] = array(
+		'type'	=> 'button',
+		'link'	=> 'action',
+		'value'	=> 'run-test-loan',
+		'html'	=> 'Create Debug Entry'
+	);
+	
 	// Fetches if item is currently on loan
 	$on_loan = wp_lib_on_loan( $item_id );
 	
@@ -696,7 +707,7 @@ function wp_lib_page_manage_item() {
 				'type'	=> 'button',
 				'link'	=> 'page',
 				'html'	=> 'Resolve',
-				'value'	=> 'resolve'
+				'value'	=> 'resolve-loan'
 			);
 		
 		} else {
@@ -1025,20 +1036,25 @@ function wp_lib_page_manage_fine() {
 	
 	// Checks if fine ID is valid
 	wp_lib_check_fine_id( $fine_id );
-
+	
 	$header = wp_lib_prep_fine_management_header( $fine_id );
 	
 	// Fetches fine status
 	$fine_status = get_post_meta( $fine_id, 'wp_lib_status', true );
 	
-	// Adds nonce to form
-	$content[] = wp_lib_prep_nonce( 'Managing Fine: ' . $fine_id );
-	
-	// Adds fine ID to form
-	$form[] = array(
+	// Multiple columns to form
+	$form = array(
+		wp_lib_prep_nonce( 'Managing Fine: ' . $fine_id ),
+		// Adds fine ID to form
+		array(
 		'type'	=> 'hidden',
 		'name'	=> 'fine_id',
 		'value'	=> $fine_id
+		),
+		array(
+			'type'		=> 'paras',
+			'content'	=> array( 'Fines can be paid from the member\'s management page.' )
+		)
 	);
 	
 	// If fine has not already been cancelled, allows fine to be cancelled
@@ -1051,8 +1067,16 @@ function wp_lib_page_manage_fine() {
 		);
 	}
 	
+	// Adds deletion option
+	$form[] = array(
+		'type'	=> 'button',
+		'link'	=> 'page',
+		'value'	=> 'object-deletion',
+		'html'	=> 'Delete'
+	);
+	
 	// Sends entire page to be encoded in JSON
-	wp_lib_send_form( 'Managing: Fine #' . $fine_id, 'Managing Fine #' . $fine_id, $header, $form );
+	wp_lib_send_page( 'Managing: Fine #' . $fine_id, 'Managing Fine #' . $fine_id, $header, $form );
 }
 
 // Page for looking up an item by its barcode
@@ -1105,7 +1129,7 @@ function wp_lib_page_scheduling_page() {
 	$member_options = wp_lib_prep_member_options();
 	
 	// Formats placeholder loan start date (current date)
-	$start_date = Date( 'Y-m-d' );
+	$start_date = Date( 'Y-m-d', current_time( 'timestamp' ) );
 	
 	// Formats placeholder loan end date (current date + default loan length)
 	$end_date = Date( 'Y-m-d', current_time( 'timestamp' ) + ( get_option( 'wp_lib_loan_length', 12 ) * 24 * 60 * 60) );
@@ -1213,7 +1237,7 @@ function wp_lib_page_return_past() {
 					'type'	=> 'date',
 					'name'	=> 'end_date',
 					'id'	=> 'loan-end-date',
-					'value'	=> Date( 'Y-m-d' )
+					'value'	=> Date( 'Y-m-d', current_time( 'timestamp' ) )
 				)
 			)
 		),
@@ -1250,6 +1274,9 @@ function wp_lib_page_resolution_page() {
 	// Renders item management header
 	$header = wp_lib_prep_item_management_header( $item_id );
 	
+	// Fetches current date
+	$date = current_time( 'timestamp' );
+	
 	// Useful variables:
 	// Formatted string of item lateness
 	$days_late = wp_lib_prep_item_due( $item_id, $date, array( 'late' => '\d day\p' ) );
@@ -1258,22 +1285,24 @@ function wp_lib_page_resolution_page() {
 	// Librarian set charge for each day an item is late
 	$fine_per_day = get_option( 'wp_lib_fine_daily' );
 	// Days item is late
-	$late = -wp_lib_cherry_pie( $loan_id, false );
+	$late = -wp_lib_cherry_pie( $loan_id, $date );
 	// Total fine member member is facing, if charged
 	$fine = wp_lib_format_money( $fine_per_day * $late );
 	// Fine per day formatted
 	$fine_per_day_formatted = wp_lib_format_money( $fine_per_day );
+	// Member's name
+	$member_name = get_the_title( get_post_meta( $item_id, 'wp_lib_member', true ) );
 	
 	$form = array(
 		wp_lib_prep_nonce( 'Resolution of item ' . $item_id . ' for loan '. $loan_id ),
 		array(
-			'type'		=> 'paras',
-			'content'	=> array( "{$title} is late by {$days_late}. If fined, the member would incur a fine of {$fine} ({$fine_per_day_formatted} per day x {$days_late})" )
-		),
-		array(
 			'type'	=> 'hidden',
 			'name'	=> 'item_id',
 			'value'	=> $item_id
+		),
+		array(
+			'type'		=> 'paras',
+			'content'	=> array( "{$title} is late by {$days_late}. If fined, {$member_name} would incur a fine of {$fine} ({$fine_per_day_formatted} per day x {$days_late})." )
 		),
 		array(
 			'type'	=> 'button',
@@ -1286,6 +1315,12 @@ function wp_lib_page_resolution_page() {
 			'link'	=> 'action',
 			'value'	=> 'return-item-no-fine',
 			'html'	=> 'Return with no Fine'
+		),
+		array(
+			'type'	=> 'button',
+			'link'	=> 'page',
+			'value'	=> 'manage-item',
+			'html'	=> 'Cancel'
 		)
 	);
 	
@@ -1386,7 +1421,7 @@ function wp_lib_page_confirm_deletion() {
 			$header[] = array(
 				'type'		=> 'paras',
 				'content'	=> array(
-					'Deleting items is a permanent action. Any loans or fines connected to this member will be deleted as well.',
+					'Deleting items is a permanent action. Any loans or fines dependant on this member will be deleted as well.',
 					'If you want to delete items in bulk, without this prompt, allow bulk deletion via WP-Librarian\'s settings'
 				)
 			);
@@ -1408,7 +1443,7 @@ function wp_lib_page_confirm_deletion() {
 			$header[] = array(
 				'type'		=> 'paras',
 				'content'	=> array(
-					'Deleting a loan is a permanent action. Any fines connected to this loan will also be deleted.',
+					'Deleting a loan is a permanent action. Any fines dependant on this loan will also be deleted.',
 					'If you want to delete loans in bulk, without this prompt, allow bulk deletion via WP-Librarian\'s settings'
 				)
 			);
@@ -1426,7 +1461,7 @@ function wp_lib_page_confirm_deletion() {
 			$form[] = array(
 				'type'		=> 'paras',
 				'content'	=> array(
-					'Deleting a fine is a permanent action and will result in the deletion of any loan connected to this fine',
+					'Deleting a fine is a permanent action and will result in the deletion of any loan dependant on this fine',
 					'If you want to delete fines in bulk, without this prompt, allow bulk deletion via WP-Librarian\'s settings'
 				)
 			);
@@ -1444,7 +1479,7 @@ function wp_lib_page_confirm_deletion() {
 			$header[] = array(
 				'type'		=> 'paras',
 				'content'	=> array(
-					'Deleting a member is a permanent action. You can choose to also delete all loans/fines tied to this member',
+					'Deleting a member is a permanent action. You can choose to also delete all loans/fines dependant on this member',
 					'If you want to delete members in bulk, without this prompt, allow bulk deletion via WP-Librarian\'s settings'
 				)
 			);
@@ -1479,7 +1514,7 @@ function wp_lib_page_confirm_deletion() {
 		$form[] = array(
 			'type'	=> 'header',
 			'size'	=> 4,
-			'html'	=> wp_lib_plural( count( $connected_objects ), 'Connected object\p:' )
+			'html'	=> wp_lib_plural( count( $connected_objects ), 'Dependant object\p:' )
 		);
 		
 		foreach ( $connected_objects as $connected_object ) {
@@ -1516,13 +1551,13 @@ function wp_lib_page_confirm_deletion() {
 			),
 			'data'		=> $objects,
 			'labels'	=> array(
-				'records'	=> 'connected objects'
+				'records'	=> 'dependant objects'
 			)
 		);
 	} else {
 		$table[] = array(
 			'type'		=> 'paras',
-			'content'	=> array( 'No other objects in the Library are connected to this object' )
+			'content'	=> array( 'No other objects in the Library are dependant on this object' )
 		);
 	}
 	
