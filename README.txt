@@ -15,7 +15,7 @@ Copyright © 2013 Aurimas Vinckevicius
 https://gist.github.com/aurimasv/6693537
 
 Dynatable
-Copyright (C) 2013  Steve Schwartz
+Copyright © 2013  Steve Schwartz
 http://www.dynatable.com/license/
 
 ============
