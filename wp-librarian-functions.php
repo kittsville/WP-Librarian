@@ -114,39 +114,52 @@ function wp_lib_create_loan_index( $item_id ) {
 		)
 	);
 	
-	// Searches post table for all loans of the item
+	// Searches post table for all loans of the item. Note that loans are returned in creation order which isn't necessarily loan start/end order
 	$query = NEW WP_Query( $args );
 	
-	// Iterates through loans
-	while ( $query->have_posts() ) {
-		// Selects current post (loan)
-		$query->the_post();
+	if ( $query->have_posts() ) {
+		// Iterates through loans
+		while ( $query->have_posts() ) {
+			// Selects current post (loan)
+			$query->the_post();
+			
+			// Fetches loan meta
+			$meta = get_post_meta( get_the_ID() );
+			
+			// Sets start date to date item was given to member, falls back to scheduled start date
+			if ( isset( $meta['wp_lib_loaned_date'] ) )
+				$start_date = $meta['wp_lib_loaned_date'][0];
+			else
+				$start_date = $meta['wp_lib_start_date'][0];
+			
+			// Sets end date to date item was returned, falls back to scheduled end date
+			if ( isset( $meta['wp_lib_returned_date'] ) )
+				$end_date = $meta['wp_lib_returned_date'][0];
+			else
+				$end_date = $meta['wp_lib_end_date'][0];
+			
+			// Adds loan index entry
+			$loan_index[] = array(
+				'start'		=> $start_date,
+				'end'		=> $end_date,
+				'loan_id'	=> get_the_ID()
+			);
+		}
 		
-		// Fetches loan meta
-		$meta = get_post_meta( get_the_ID() );
-		
-		// Sets start date to date item was given to member, falls back to scheduled start date
-		if ( isset( $meta['wp_lib_loaned_date'] ) )
-			$start_date = $meta['wp_lib_loaned_date'][0];
-		else
-			$start_date = $meta['wp_lib_start_date'][0];
-		
-		// Sets end date to date item was returned, falls back to scheduled end date
-		if ( isset( $meta['wp_lib_returned_date'] ) )
-			$end_date = $meta['wp_lib_returned_date'][0];
-		else
-			$end_date = $meta['wp_lib_end_date'][0];
-		
-		
-		$loan_index[] = array(
-			'start'		=> $start_date,
-			'end'		=> $end_date,
-			'loan_id'	=> get_the_ID()
-		);
+		// Sorts array by start/end date rather than post creation order, then returns
+		// Thanks to Nightmare's (http://stackoverflow.com/users/1495319/nightmare) answer to a question to sorting multidimensional arrays (http://stackoverflow.com/questions/11288778)
+		return uasort( $loan_index, function( $a, $b ) {
+			if ($a['start'] > $b['start'])
+				return 1;
+			elseif ($a['start'] < $b['start'])
+				return -1;
+			elseif ($a['start'] == $b['start'])
+				return 0;
+		});
+	} else {
+		// If item has loans, return blank array
+		return array();
 	}
-	
-	// Returns output, a blank array if $query->have_posts == false
-	return $loan_index;
 }
 
 // Calculates days until item needs to be returned, returns negative if item is late

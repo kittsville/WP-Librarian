@@ -120,7 +120,7 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 			}
 
 			// Checks if nonce is valid
-			if ( !wp_lib_verify_nonce( 'Managing Item: ' . $item_id ) )
+			if ( !wp_lib_verify_nonce( 'Scheduling Item: ' . $item_id ) )
 				wp_lib_stop_ajax( false );
 			
 			// Attempts to convert given dates to Unix timestamps
