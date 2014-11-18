@@ -9,10 +9,10 @@ jQuery(function($){
 });
 
 // Collects of a submitted form's parameters, removes the blank ones, then returns the result as an object
-function wp_lib_collect_form_params() {
-
+function wp_lib_collect_form_params( clickedElement ) {
+	
 	// Fetches all form elements and creates an array of objects
-	var objects = jQuery( '#library-form' ).serializeArray();
+	var objects = jQuery( clickedElement ).closest('form').serializeArray();
 	
 	// Initialises results object
 	var result = {};
@@ -95,6 +95,17 @@ function wp_lib_render_notifications( notificationsArray ) {
 function wp_lib_render_notification( notificationText ) {
 	// Formats notification inside div and gives notification ID (to keep track of it)
 	var result = wp_lib_format_notification( notificationText );
+	
+	// Notification is an error and browser supports the browser console, logs to console as well
+	if ( notificationText[0] != 0 && typeof console !== 'undefined' ) {
+		if ( typeof console.error !== 'undefined' ) {
+			// If console.error is supported, report error as error
+			console.error( result[2] );
+		} else {
+			// Else report error using regular console.log entry
+			console.log( result[2] );
+		}
+	}
 
 	// Adds notification to the notification holder
 	notificationHolder.append( result[1] ).hide().fadeIn( 500 );
@@ -126,7 +137,7 @@ function wp_lib_format_notification( notification ) {
 	// Initialises variables
 	var classes = uID + ' ';
 	var message = '';
-	var onClick = " onclick='wp_lib_hide_notification(this)";
+	var consoleMessage = '';
 	
 	// If notification has no error code (defaulted to 0 )
 	if ( notification[0] == 0 ) {
@@ -136,15 +147,17 @@ function wp_lib_format_notification( notification ) {
 	} else if ( notification[0] == 1 ) {
 		// Uses error classes, which displays a red flared box
 		classes += 'wp-lib-error error';
-		message = "<strong style='color: red;'>WP-Librarian Error: " + notification[1] + "</strong>";
+		consoleMessage = 'WP-Librarian Error: ' + notification[1];
+		message = '<strong style="color: red;">' + consoleMessage + '</strong>';
 	} else {
 		// Uses error classes, which displays a red flared box
 		classes += 'wp-lib-error error';
-		message = "<strong style='color: red;'>WP-Librarian Error " + notification[0] + ": " + notification[1] + "</strong>";
+		consoleMessage = 'WP-Librarian Error ' + notification[0] + ': ' + notification[1];
+		message = '<strong style="color: red;">' + consoleMessage + '</strong>';
 	}
 	
 	// Returns HTML formatted notification
-	return [ uID, "<div onclick='wp_lib_hide_notification(this)' class='" + classes + "'><p>" + message + "</p></div>" ];
+	return [ uID, '<div onclick="wp_lib_hide_notification(this)" class="' + classes + '"><p>' + message + '</p></div>', consoleMessage ];
 }
 
 // Hides then deletes notification, called when notification is clicked or some time after it appeared

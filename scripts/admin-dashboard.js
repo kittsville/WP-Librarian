@@ -108,6 +108,11 @@ function wp_lib_load_page( ajaxData, stateLoad ) {
 	// Sets action, which specifies the name of the hook it will have in WordPress ( wp_ajax_{$hook} )
 	ajaxData.action = 'wp_lib_page';
 	
+	// Adds referrer to AJAX request, to allow page elements to be selectively loaded
+	if ( wp_lib_vars.hasOwnProperty( 'dash_page' ) ) {
+		ajaxData.ref = wp_lib_vars.dash_page;
+	}
+	
 	// Sends AJAX page request with given params, fills workspace div with response
 	jQuery.post( ajaxurl, ajaxData )
 	.done( function( response ) {
@@ -131,11 +136,15 @@ function wp_lib_load_page( ajaxData, stateLoad ) {
 			// Renders page using AJAX returned data
 			wp_lib_render_page( ajaxResult );
 			
+			// Pushes current dash page to wp_lib_vars
+			wp_lib_vars.dash_page = ajaxData.dash_page;
+			
 			// Checks if new page is replacing existing dynamically loaded page
 			// If it isn't then there's no need to add a new history entry
 			if ( stateLoad != 'history' ) {
-				// Deletes redundant parameter
+				// Deletes redundant parameters
 				delete ajaxData.action;
+				delete ajaxData.ref;
 				
 				// Deletes dash page if it's redundant
 				if ( ajaxData.dash_page == 'dashboard' ) {
@@ -203,16 +212,6 @@ function wp_lib_render_page( pageArray ) {
 	// Changes title of browser tab
 	document.title = wp_lib_format_tab_title( pageArray.title );
 	
-	// If any scripts are required by the page, loads them
-	if ( pageArray.hasOwnProperty('scripts') && pageArray.scripts instanceof Array ) {
-		$( pageArray.scripts ).each( function( i, scriptURL ) {
-			jQuery.getScript( scriptURL )
-			.fail( function( jqxhr, settings, exception ) {
-				wp_lib_local_error( "Failed to load JavaScript needed for this page" );
-			});
-		});
-	}
-	
 	// Clears and selects Library workspace in preparation of new page
 	var libWorkspace = jQuery( '#wp-lib-workspace' ).empty();
 	
@@ -259,6 +258,16 @@ function wp_lib_render_page( pageArray ) {
 		// Iterates over all given tables, rendering them inside the wrapper
 		jQuery( pageArray.content.table ).each( function( i, e ) {
 			render_page_element( e, tableWrap );
+		});
+	}
+	
+	// If any scripts are required by the page, loads them
+	if ( pageArray.hasOwnProperty('scripts') && pageArray.scripts instanceof Array ) {
+		$( pageArray.scripts ).each( function( i, scriptURL ) {
+			jQuery.getScript( wp_lib_vars.pluginsUrl + '/scripts/' + scriptURL + '.js' )
+			.fail( function( jqxhr, settings, exception ) {
+				wp_lib_local_error( "Failed to load JavaScript needed for this page" );
+			});
 		});
 	}
 	
@@ -727,16 +736,32 @@ function wp_lib_render_page( pageArray ) {
 						'html'	: listItemElements
 					});
 					
-					// Creates 'Manage' and 'View' buttons to loan/return item or view its public listing
-					[ [record.manage,'Manage','item-manage'], [record.view,'View','item-view'] ].forEach(function(itemButton,i) {
-						render_page_element( {
-							'type'		: 'button',
-							'link'		: 'url',
-							'href'		: itemButton[0],
-							'html'		: itemButton[1],
-							'classes'	: itemButton[2]
-						}, localParent );
-					});
+					// Renders manage item button to invisible form containing item's ID
+					render_page_element( {
+							type	: 'button',
+							link	: 'page',
+							value	: 'manage-item',
+							html	: 'Manage',
+							classes	: 'item-manage'
+						},
+						$('<form/>',{ // GGGG
+							html	:
+								$('<input/>',{
+									type	: 'hidden',
+									name	: 'item_id',
+									value	: record.item_id
+								})
+						}).appendTo( localParent )
+					);
+					
+					// Creates 'View' button to view items public listing
+					render_page_element( {
+						type		: 'button',
+						link		: 'url',
+						href		: record.view,
+						html		: 'View',
+						classes		: 'item-view'
+					}, localParent );
 					
 					// Converts to html string, as Dynatable doesn't accept DOM objects
 					return localParent.prop('outerHTML');
@@ -825,7 +850,7 @@ jQuery(function($){
 		var action = e.currentTarget.value;
 		
 		// Fetches form parameters that have been set
-		var params = wp_lib_collect_form_params();
+		var params = wp_lib_collect_form_params(e.originalEvent.explicitOriginalTarget);
 		
 		// Performs action
 		wp_lib_do_action( action, params );
@@ -834,7 +859,7 @@ jQuery(function($){
 	// Adds listener for page loading buttons
 	jQuery('#wp-lib-workspace').on('click', '[name="dash_page"]', function ( e ){
 		// Fetches form parameters that have been set
-		var params = wp_lib_collect_form_params();
+		var params = wp_lib_collect_form_params(e.originalEvent.explicitOriginalTarget);
 		
 		// Fetches page to be loaded
 		params.dash_page = e.currentTarget.value;

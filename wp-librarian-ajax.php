@@ -635,7 +635,8 @@ function wp_lib_page_view_items() {
 				$item['authors'] = false;
 			}
 			
-			$item['manage'] = wp_lib_manage_item_url( $item_id );
+			$item['item_id'] = $item_id;
+			
 			$item['view'] = get_permalink();
 			
 			// Adds prepared item to array of all items
@@ -790,81 +791,8 @@ function wp_lib_page_manage_item() {
 		);
 	}
 	
-	// Sets up loan history query arguments
-	$args = array(
-		'post_type' 	=> 'wp_lib_loans',
-		'post_status'	=> 'publish',
-		'meta_query'	=> array(
-			array(
-				'key'		=> 'wp_lib_item',
-				'value'		=> $item_id,
-				'compare'	=> 'IN'
-			)
-		)
-	);
-	
-	// Creates query of all loans of this item
-	$loan_query = new WP_Query( $args );
-	
-	// Checks for any loans in query
-	if ( $loan_query->have_posts() ){
-		// Initialises loans array
-		$loans = array();
-		
-		// Iterates through loans
-		while ( $loan_query->have_posts() ) {
-			// Selects current post (loan)
-			$loan_query->the_post();
-			
-			// Fetches loan ID
-			$loan_id = get_the_ID();
-			
-			// Fetches all loan's meta
-			$meta = get_post_meta( $loan_id );
-			
-			// Gets member ID from loan meta
-			$member_id = $meta['wp_lib_member'][0];
-			
-			$loan_status = wp_lib_format_loan_status( $meta['wp_lib_status'][0] );
-			
-			// If loan incurred fine, change loan status to include a link to manage said fine
-			if ( $meta['wp_lib_status'][0] == 4 ) {
-				$loan_status = array( $loan_status, wp_lib_manage_fine_url( $meta['wp_lib_fine'][0] ) );
-			}
-			
-			$loans[] = array(
-				'loan'		=> array( '#' . get_the_ID(), wp_lib_manage_loan_url( $loan_id ) ),
-				'member'	=> array( get_the_title( $member_id ), wp_lib_manage_member_url( $member_id ) ),
-				'status'	=> $loan_status,
-				'loaned'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_start_date'][0] ),
-				'expected'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_end_date'][0] ),
-				'returned'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_returned_date'][0] )
-			);
-		}
-		
-		// Adds loans (rows) to table
-		$table[] = array(
-			'type'		=> 'dtable',
-			'id'		=> 'member-loans',
-			'headers'	=> array(
-				'Loan',
-				'Member',
-				'Status',
-				'Loaned',
-				'Expected',
-				'Returned'
-			),
-			'data'		=> $loans,
-			'labels'	=> array(
-				'records'	=> 'loans'
-			)
-		);
-	} else {
-		$table[] = array(
-			'type'		=> 'paras',
-			'content'	=> array( 'No loans to display' )
-		);
-	}
+	// Fetches list of loans of item
+	$table = wp_lib_prep_loans_table( $item_id );
 	
 	// Encodes page as an array to be rendered client-side
 	wp_lib_send_page( 'Managing: ' . get_the_title( $item_id ), 'Managing Item #' . $item_id, $header, $form, $table );
@@ -1082,7 +1010,7 @@ function wp_lib_page_manage_fine() {
 // Page for looking up an item by its barcode
 function wp_lib_page_scan_item() {
 	// Enqueues barcode page script
-	$scripts[] = wp_lib_script_url( 'admin-barcode-scanner' );
+	$scripts[] = 'admin-barcode-scanner';
 	
 	$form = array(
 		wp_lib_prep_nonce( 'Lookup Item Barcode' ),
@@ -1200,7 +1128,10 @@ function wp_lib_page_scheduling_page() {
 		)
 	);
 	
-	wp_lib_send_page( 'Scheduling loan of ' . get_the_title( $item_id ), 'Scheduling loan of #' . $item_id, $header, $form );
+	// Fetches list of loans of item
+	$table = wp_lib_prep_loans_table( $item_id );
+	
+	wp_lib_send_page( 'Scheduling loan of ' . get_the_title( $item_id ), 'Scheduling loan of #' . $item_id, $header, $form, $table );
 }
 
 // Displays page for returning an item in the past
@@ -1324,11 +1255,14 @@ function wp_lib_page_resolution_page() {
 		)
 	);
 	
+	// Fetches list of loans of item
+	$table = wp_lib_prep_loans_table( $item_id );
+	
 	$page_title = 'Resolving Late Item: ' . $title;
 	
 	$tab_title = 'Resolving Item #' . $item_id;
 	
-	wp_lib_send_page( $page_title, $tab_title, $header, $form );
+	wp_lib_send_page( $page_title, $tab_title, $header, $form, $table );
 }
 
 // Allows Librarian to reduce money owed by a member for late returns
