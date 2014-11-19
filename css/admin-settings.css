@@ -1,3 +1,11 @@
+/*
+ * Name:		WP-Librarian Admin Settings Styles
+ * Author:		Kit Maywood
+ * Description:	Used on the WP-Librarian settings page.
+ * Extends:		WP-Librarian Admin Core Styles
+ * Version:		0.1
+ */
+
 .slug-label {
 	margin-left: 6px;
 }

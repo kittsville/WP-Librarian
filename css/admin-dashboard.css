@@ -1,9 +1,17 @@
+/*
+ * Name:		WP-Librarian Admin Dashboard Styles
+ * Author:		Kit Maywood
+ * Description:	Contains all CSS rules specific to the Library Dashboard.
+ * Extends:		WP-Librarian Admin Core Styles
+ * Version:		0.1
+ */
+
 div.manage-item {
 	margin: 15px 0px;
 }
 
 .dashboard-button {
-	background: none repeat scroll 0% 0% #2EA2CC;
+	background-color: #2EA2CC;
 	border-color: #0074A2;
 	box-shadow: 0px 1px 0px rgba(120, 200, 230, 0.5) inset, 0px 1px 0px rgba(0, 0, 0, 0.15);
 	color: #FFF;
@@ -30,7 +38,7 @@ div.lib-metabox * {
 
 div.lib-metabox {
 	width: 350px;
-	background: #FFF;
+	background-color: #FFF;
 	border-radius: 5px;
 	padding: 5px 10px;
 	margin: 10px 0px;
@@ -74,7 +82,7 @@ a.dynatable-sort-header, a.dynatable-sort-header:hover {
 /* Item List Styling */
 
 li.single-item {
-	background-color: #F9F9F9;
+	background-color: #FFF;
 	border-radius: 5px;
 	list-style-type: none;
 	margin-right: 20px;
@@ -83,6 +91,10 @@ li.single-item {
 	display: block;
 	float: left;
 	position: relative;
+}
+
+li.single-item.late-item {
+	background-color: #EA958C
 }
 
 ul.item-list {
