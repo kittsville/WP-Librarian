@@ -126,6 +126,9 @@ function wp_lib_load_page( ajaxData, stateLoad ) {
 		
 		// If page load failed, stops function execution, see wp_lib_parse_json
 		if ( ajaxResult === 0 ) {
+			// Fetches and renders any new notifications, as one have been generated in the process of the server failing to return a valid response
+			wp_lib_display_notifications();
+			
 			return false;
 		}
 		
