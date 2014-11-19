@@ -635,9 +635,15 @@ function wp_lib_page_view_items() {
 				$item['authors'] = false;
 			}
 			
+			// Fetches various item details
+			$item['status'] = wp_lib_prep_item_status( $item_id, true, true );
 			$item['item_id'] = $item_id;
-			
 			$item['view'] = get_permalink();
+			
+			// If item is on loan, fetches if item is late
+			if ( wp_lib_on_loan( $item_id ) ) {
+				$item['late'] = wp_lib_item_late( wp_lib_fetch_loan_id( $item_id ) );
+			}
 			
 			// Adds prepared item to array of all items
 			$items[] = $item;

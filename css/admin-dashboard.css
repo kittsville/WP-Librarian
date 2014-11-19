@@ -159,10 +159,9 @@ button.item-view {
 
 p.item-authors {
 	font-style: italic;
-	margin: 0px;
 }
 
-h4.item-title {
+.item-title, .item-authors, .item-status {
 	margin: 0px;
 }
 

@@ -284,7 +284,7 @@ add_action( 'manage_wp_lib_items_posts_custom_column' , function ( $column, $ite
 	switch ( $column ) {
 		// Displays the current status of the item (On Loan/Available/Late)
 		case 'item_status':
-			echo wp_lib_prep_item_available( $item_id, false, true );
+			echo wp_lib_prep_item_status( $item_id, false, true );
 		break;
 		
 		// Fetches and formats the condition the item is in, using a placeholder if the condition is unspecified

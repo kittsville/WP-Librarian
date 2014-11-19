@@ -722,6 +722,14 @@ function wp_lib_render_page( pageArray ) {
 						);
 					}
 					
+					// Adds item status (Available/on loan/etc.) to item meta
+					itemMeta.push(
+						$('<p/>',{
+							'class'	: 'item-status',
+							'html'	: 'Status: ' + record.status
+						})
+					);
+					
 					// Adds item title and details to entry elements
 					listItemElements.push(
 						$('<div/>',{
@@ -735,6 +743,11 @@ function wp_lib_render_page( pageArray ) {
 						'class'	: 'single-item',
 						'html'	: listItemElements
 					});
+					
+					// Adds class to colour item red if it is currently late
+					if ( record.late == true ) {
+						localParent.addClass( 'late-item' );
+					}
 					
 					// Renders manage item button to invisible form containing item's ID
 					render_page_element( {

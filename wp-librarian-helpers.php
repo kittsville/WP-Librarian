@@ -483,7 +483,7 @@ function wp_lib_prep_item_management_header( $item_id ) {
 	}
 	
 	// Adds item status as last meta field
-	$meta_fields[] = array( 'Status', wp_lib_prep_item_available( $item_id, true ) );
+	$meta_fields[] = array( 'Status', wp_lib_prep_item_status( $item_id, true ) );
 	
 	// Finalises and returns management header
 	return array(
@@ -913,7 +913,7 @@ function wp_lib_prep_admin_meta( $post_id, $formatting ) {
 }
 
 // Returns "Available" or "Unavailable" string depending on if item if available to loan
-function wp_lib_prep_item_available( $item_id, $no_url = false, $short = false ) {
+function wp_lib_prep_item_status( $item_id, $no_url = false, $short = false ) {
 	// Checks if the current user was the permissions of a Librarian
 	$is_librarian = wp_lib_is_librarian();
 	
@@ -967,7 +967,7 @@ function wp_lib_fetch_meta( $item_id ) {
 		'authors'		=> wp_lib_prep_meta( get_the_terms( $item_id, 'wp_lib_author' ), 'Author' ),
 		'donor'			=> wp_lib_prep_meta( get_post_meta( $item_id, 'wp_lib_donor', true ), 'Donor' ),
 		'isbn'			=> wp_lib_prep_meta( get_post_meta( $item_id, 'wp_lib_item_isbn', true ), 'ISBN' ),
-		'available'		=> wp_lib_prep_meta( wp_lib_prep_item_available( $item_id ), 'Status' ),
+		'available'		=> wp_lib_prep_meta( wp_lib_prep_item_status( $item_id ), 'Status' ),
 	);
 	$all_meta = '';
 	// Runs through each meta value and, if the meta exists, adds it to the end of the $all_meta string
