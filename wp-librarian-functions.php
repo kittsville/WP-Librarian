@@ -740,6 +740,15 @@ function wp_lib_update_user_capabilities( $user_id, $role ) {
 	
 	// Adds capability to interact with tax terms
 	$user->add_cap( 'wp_lib_manage_taxs' );
+	
+	// If role is not sufficient to have Library Admin caps, return
+	if ( $role < 10 )
+		return;
+	
+	// Adds capability to view settings page
+	$user->add_cap( 'wp_lib_change_settings' );
+	
+	return;
 }
 
 // Renders item meta box below item description on item creation/editing page

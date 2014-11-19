@@ -804,11 +804,11 @@ add_filter( 'enter_title_here', function() {
 add_action( 'admin_menu', function() {
 	if ( wp_lib_is_library_admin() )
 		// Adds settings page to Library submenu of wp-admin menu
-		add_submenu_page('edit.php?post_type=wp_lib_items', 'WP Librarian Settings', 'Settings', 'activate_plugins', 'wp-lib-settings', 'wp_lib_render_settings');
+		add_submenu_page('edit.php?post_type=wp_lib_items', 'WP Librarian Settings', 'Settings', 'wp_lib_change_settings', 'wp-lib-settings', 'wp_lib_render_settings');
 
 	// Registers Library Dashboard and saves handle to variable
 	if ( wp_lib_is_librarian() ) {
-		$page = add_submenu_page('edit.php?post_type=wp_lib_items', 'Library Dashboard', 'Dashboard', 'edit_post', 'dashboard', 'wp_lib_render_dashboard');
+		add_submenu_page('edit.php?post_type=wp_lib_items', 'Library Dashboard', 'Dashboard', 'edit_wp_lib_items_cap', 'dashboard', 'wp_lib_render_dashboard');
 	}
 });
 
