@@ -10,6 +10,10 @@
  * License: GPL2
  */
 
+	/* -- Constants -- */
+
+define( 'WP_LIB_DEBUG_MODE', true );
+
 
 	/* -- Current Plugin Version -- */
 
@@ -300,7 +304,7 @@ add_filter( 'manage_wp_lib_members_posts_columns', function ( $columns ) {
 	$new_columns = array(
 		'member_name'		=> 'Name',
 		'member_loans'		=> 'Items on Loan',
-		'member_fines'		=> 'Late Fines Owed'
+		'member_fines'		=> 'Owed in Fines'
 	);
 	
 	// Adds new columns between existing ones
@@ -317,24 +321,7 @@ add_action( 'manage_wp_lib_members_posts_custom_column' , function ( $column, $m
 		
 		// Displays number of items currently in the possession of the member
 		case 'member_loans':
-			// Sets up meta query arguments
-			$args = array(
-				'post_type'		=> 'wp_lib_items',
-				'post_status'	=> 'publish',
-				'meta_query'	=> array(
-					array(
-						'key'		=> 'wp_lib_member',
-						'value'		=> $member_id,
-						'compare'	=> 'IN'
-					)
-				)
-			);
-			
-			// Queries post table for all items marked as currently in member's possession
-			$query = NEW WP_Query( $args );
-
-			// Renders number of items to post table
-			echo $query->post_count;
+			echo wp_lib_prep_members_items_out( $member_id );
 		break;
 		
 		case 'member_fines':
@@ -1034,7 +1021,8 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
 			'pluginsUrl'	=> plugins_url( '', __FILE__ ),
 			'dashUrl'		=> wp_lib_format_dash_url(),
 			'siteName'		=> get_bloginfo( 'name' ),
-			'getParams'		=> $_GET
+			'getParams'		=> $_GET,
+			'debugMode'		=> WP_LIB_DEBUG_MODE
 	);
 	
 	// Sends variables to user

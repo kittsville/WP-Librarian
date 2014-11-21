@@ -14,10 +14,8 @@ wp_nonce_field( "Updating item {$item->ID} meta", 'wp_lib_item_meta_nonce' );
 // Fetches list of media types
 $media_type_objects = get_terms( 'wp_lib_media_type', 'hide_empty=0' );
 
-// Adds default media type option
-$media_types[] = array(
-	'html'	=> 'Select'
-);
+// Initialises media types
+$media_types = array();
 
 // Creates meta formatting array of media types
 foreach ( $media_type_objects as $type ) {

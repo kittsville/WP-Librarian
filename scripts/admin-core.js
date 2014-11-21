@@ -1,6 +1,9 @@
 // Counter used as part of simple UID for notifications
 var notificationCount = 0;
+
+// Psudo-constant
 var WP_LIB_NONCE = 'wp_lib_ajax_nonce';
+
 wp_lib_vars.onClick = 'wp_lib_click_button( this )';
 
 jQuery(function($){
@@ -26,11 +29,6 @@ function wp_lib_collect_form_params( clickedElement ) {
 	return result;
 }
 
-// General purpose AJAX failed message, probably a network issue, unless the server is hosted off some terrible cloud server
-function wp_lib_ajax_fail() {
-	wp_lib_local_error( "Unable to contact website. It might be down or you may be having connection issues." );
-}
-
 // Adds notification to client-side buffer
 function wp_lib_add_notification( array ) {
 	if (typeof window.wp_lib_notification_buffer === 'undefined') {
@@ -44,21 +42,16 @@ function wp_lib_display_notifications() {
 	// Initialises notifications array by fetching any client-side notifications
 	var notifications = wp_lib_fetch_local_notifications();
 	
-	// Checks server for notifications
-	jQuery.post( ajaxurl, { 'action' : 'wp_lib_fetch_notifications' } )
-	.done( function( response ) {
-		// Parses response
-		var serverNotifications = JSON.parse( response );
-		
-		// If there are any server-side notifications, merge them into client-side notifications
-		if ( jQuery.isArray( serverNotifications ) ) {
-			notifications = notifications.concat( serverNotifications );
+	// Requests any notifications currently in the server-side buffer
+	wp_lib_send_ajax( { 'action' : 'wp_lib_fetch_notifications' }, true, function( serverResponse ) {
+		// If server response is valid
+		if ( serverResponse[0] === 4 ) {
+			// If there are any server-side notifications, merge them into client-side notifications
+			if ( jQuery.isArray( serverResponse[1] ) ) {
+				notifications = notifications.concat( serverResponse[1] );
+			}
 		}
-	})
-	.fail( function() {
-		wp_lib_ajax_fail();
-	})
-	.always( function() {
+		
 		// Renders all collected local and server notifications
 		wp_lib_render_notifications( notifications );
 	});
@@ -177,17 +170,97 @@ function wp_lib_parse_json( rawJSON ) {
 		var parsedJSON = JSON.parse( rawJSON );
 	}
 	catch(e) {
-		wp_lib_local_error( "Unable to complete request. Server returned invalid response" );
+		wp_lib_local_error( "Server returned invalid response" );
 		
-		// Debugging - Renders un-parseable returned data to workspace
-		jQuery('<div/>', {
-			'style'	: 'background:grey;',
-			'html'	: '<strong style="color:red;">Server Response</strong></br/>' + rawJSON
-		}).appendTo( '#wp-lib-workspace' );
+		// If debugging is on, displays un-parse-able response
+		if ( wp_lib_vars.debugMode === '1' ) {
+			// Debugging - Renders un-parse-able returned data to workspace
+			jQuery('<div/>', {
+				'style'	: 'background:grey;',
+				'html'	: '<strong style="color:red;">Server Response</strong></br/>' + rawJSON
+			}).appendTo( '#wp-lib-workspace' );
+		}
 		
 		parsedJSON = 0;
 	}
 	return parsedJSON;
+}
+
+/* Performs AJAX query to WordPress AJAX url, returns array status:
+ * 0 - Failed to connect
+ * 1 - Connected, WP-Librarian never hooked
+ * 2 - Connected, server returned invalid JSON
+ * 3 - Connected, server returned valid response of boolean false
+ * 4 - Connected, server returned valid response of boolean true
+ * Followed by server's actual response, if any
+ */
+function wp_lib_send_ajax( ajaxData, noNotificationFetch, postCallFunction ) {
+	// Sets notification default settings, if function parameter wasn't specified
+	if ( typeof noNotificationFetch === 'undefined' ) {
+		var noNotificationFetch = false;
+	}
+	
+	// Queries server with AJAX data
+	var outputBuffer = [];
+	
+	jQuery.post( ajaxurl, ajaxData )
+	.done( function( response ) {
+		// Checks if WP_AJAX hook does not exist
+		if ( response == '0' ) {
+			wp_lib_local_error( "WordPress AJAX action invalid, most likely a permissions issue." );
+			
+			// Sets output status
+			outputBuffer[0] = 1;
+			return;
+		} else {
+			// Attempts to parse server response
+			var ajaxResult = wp_lib_parse_json( response );
+			
+			// Performs actions depending on result of parsed JSON
+			switch( ajaxResult ) {
+				// If server response could not be parsed as JSON
+				case 0:
+					// Fetches and renders any new notifications, as one have been generated in the process of the server failing to return a valid response
+					wp_lib_display_notifications();
+					
+					// Sets output status
+					outputBuffer[0] = 2;
+				break;
+				
+				// If server response was the boolean false, call error
+				case false:
+					// Sets output status and includes server's actual response
+					outputBuffer = [ 3, ajaxResult ];
+				break;
+				
+				// Else server responded with parse-able JSON that did not indicate server failure
+				default:
+					// Sets output status and includes server's actual response
+					outputBuffer = [ 4, ajaxResult ];
+				break;
+			}
+		}
+		
+		// If AJAX request didn't result in a success response and notification checking isn't suppressed (e.g. by the notification function, to avoid an inf loop), check notifications
+		if ( outputBuffer[0] !== 4 && noNotificationFetch === false ) {
+			wp_lib_display_notifications();
+		}
+	})
+	.fail( function() {
+		wp_lib_local_error( "Unable to contact website. It might be down or you may be having connection issues." );
+		
+		// Sets output status
+		outputBuffer[0] = 0;
+	})
+	.always( function() {
+		// Regardless of AJAX success/failure, passes output buffer to post AJAX function, if send_ajax was called with one defined
+		if ( typeof postCallFunction === 'function' ) {
+			postCallFunction( outputBuffer );
+		}
+	});
+
+	// GGGGGG
+	// Owing to the nature of AJAX, you need to tie up functions to be passed to this function, rather than have something returned at the end of this function
 }
 
 function wp_lib_init_object( pageItem ) {

@@ -557,7 +557,8 @@ function wp_lib_prep_member_management_header( $member_id ) {
 		array( 'Email', $meta['wp_lib_member_email'][0] ),
 		array( 'Phone', $meta['wp_lib_member_phone'][0] ),
 		array( 'Mobile', $meta['wp_lib_member_mobile'][0] ),
-		array( 'Owed', wp_lib_format_money( wp_lib_fetch_member_owed( $member_id ) ) )
+		array( 'Owed', wp_lib_format_money( wp_lib_fetch_member_owed( $member_id ) ) ),
+		array( 'On Loan', wp_lib_prep_members_items_out( $member_id ) )
 	);
 	
 	// Finalises and returns management header
@@ -614,6 +615,28 @@ function wp_lib_prep_member_options( $default_option = true ) {
 	}
 	
 	return $options;
+}
+
+// Returns the number of items currently on loan by the member
+function wp_lib_prep_members_items_out( $member_id ) {
+	// Sets up meta query arguments
+	$args = array(
+		'post_type'		=> 'wp_lib_items',
+		'post_status'	=> 'publish',
+		'meta_query'	=> array(
+			array(
+				'key'		=> 'wp_lib_member',
+				'value'		=> $member_id,
+				'compare'	=> 'IN'
+			)
+		)
+	);
+	
+	// Queries post table for all items marked as currently in member's possession
+	$query = NEW WP_Query( $args );
+
+	// Returns number of items to post table
+	return $query->post_count;
 }
 
 function wp_lib_prep_loans_table( $item_id ) {
@@ -706,15 +729,20 @@ function wp_lib_render_plugin_version() {
 	?>
 	<div id="version-wrap">
 		<span>
-			<?php
-				echo 'Running WP-Librarian ' .  $version['channel'];
-			?>
+			<?php echo 'Running WP-Librarian ' .  $version['channel']; ?>
 		</span>
 		<span>
-			<?php
-				echo 'Version: ' . $version['version'] . ' (' . $version['nickname'] . ') Build: ' . $version['subversion'];
-			?>
+			<?php echo 'Version: ' . $version['version'] . ' (' . $version['nickname'] . ') Build: ' . $version['subversion']; ?>
 		</span>
+		<?php
+			if ( WP_LIB_DEBUG_MODE === true ) {
+				?>
+					<span>
+						<?php echo 'DEBUGGING MODE ON'; ?>
+					</span>
+				<?php
+			}
+		?>
 	</div>
 	<?php
 }

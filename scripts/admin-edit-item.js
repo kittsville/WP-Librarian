@@ -14,7 +14,7 @@ function wp_lib_post_render($) {
 	});
 	
 	// Creates listener on item Media Type being changed
-	$( metaTypeSelector ).change( function() {
+	metaTypeSelector.change( function() {
 		currentMediaType = wp_lib_update_meta_box_display( metaTypeSelector.val(), currentMediaType );
 	});
 	

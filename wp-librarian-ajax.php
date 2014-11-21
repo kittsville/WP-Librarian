@@ -352,6 +352,55 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 				wp_lib_stop_ajax( false );
 		break;
 		
+		default:
+			wp_lib_stop_ajax( false, 500 );
+		break;
+	}
+});
+
+	/* -- Dashboard Parts -- */
+	/* AJAX requests for parts of pages or specific information */
+
+add_action( 'wp_ajax_wp_lib_api', function() {
+	// If user does not have a proper Library role, disallows access
+	if ( !wp_lib_is_librarian() )
+		wp_lib_stop_ajax( false, 112 );
+	
+	// Trims client data
+	array_filter( $_POST, function( &$raw ){ $value = trim( $value ); } );
+	
+	// Performs action based on request
+	switch( $_POST['api_request'] ) {
+		case 'member-metabox':
+			// Fetches member ID from AJAX request
+			$member_id = $_POST['member_id'];
+			
+			// Checks if member ID is valid
+			if ( !wp_lib_valid_member_id( $member_id ) )
+				wp_lib_stop_ajax( false );
+			
+			// Fetches member meta
+			$meta = get_post_meta( $member_id );
+			
+			// Sets up header's meta fields
+			$meta_fields = array(
+				array( 'Name', get_the_title( $member_id ) ),
+				array( 'Email', $meta['wp_lib_member_email'][0] ),
+				array( 'On Loan', wp_lib_prep_members_items_out( $member_id ) ),
+				array( 'Owed', wp_lib_format_money( wp_lib_fetch_member_owed( $member_id ) ) )
+			);
+			
+			// Finalises and returns management header
+			wp_lib_stop_ajax( array(
+				array(
+					'type'		=> 'metabox',
+					'title'		=> 'Member Details',
+					'classes'	=> 'member-man',
+					'fields'	=> $meta_fields
+				)
+			));
+		break;
+		
 		case 'scan-barcode':
 			// Fetches barcode
 			$barcode = $_POST['code'];
@@ -396,7 +445,7 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 				$query->the_post();
 				
 				// Return item ID
-				echo json_encode( get_the_ID() );
+				wp_lib_stop_ajax( get_the_ID() );
 				
 				wp_lib_stop_ajax();
 			} elseif ( $posts_found > 1 ) {
@@ -409,12 +458,9 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 		break;
 		
 		default:
-			wp_lib_stop_ajax( false, 500 );
+			wp_lib_stop_ajax( false, 504 );
 		break;
 	}
-	
-	// Fail-safe
-	wp_lib_stop_ajax( false, 500 );
 });
 
 // Fetches all buffered notifications, this includes errors
@@ -470,7 +516,7 @@ function wp_lib_stop_ajax( $output = '', $error_code = false, $params = false ) 
 		wp_lib_error( $error_code, false, $params );
 	
 	// If an output has been specified, render
-	if ( is_bool( $output ) || is_array( $output ) )
+	if ( $output !== '' )
 		echo json_encode( $output );
 	
 	// Closes PHP session
@@ -533,6 +579,12 @@ function wp_lib_page_dashboard() {
 			'pType'	=> 'wp_lib_members'
 		),
 		array(
+			'title'	=> 'Manage Loans',
+			'icon'	=> 'default',
+			'link'	=> 'post-type',
+			'pType'	=> 'wp_lib_loans'
+		),
+		array(
 			'title'	=> 'Manage Fines',
 			'icon'	=> 'default',
 			'link'	=> 'post-type',
@@ -548,7 +600,7 @@ function wp_lib_page_dashboard() {
 			'title'	=> 'Help',
 			'icon'	=> 'default',
 			'link'	=> 'url',
-			'url'	=> 'http://sci1.co.uk/wp-librarian/'
+			'url'	=> 'https://github.com/kittsville/WP-Librarian/wiki'
 		)
 	);
 
@@ -685,12 +737,15 @@ function wp_lib_page_manage_item() {
 		'value'	=> $item_id
 	);
 	
-	$form[] = array(
-		'type'	=> 'button',
-		'link'	=> 'action',
-		'value'	=> 'run-test-loan',
-		'html'	=> 'Create Debug Entry'
-	);
+	// If debugging is enabled, add test loan creation button to every loan's page
+	if ( WP_LIB_DEBUG_MODE ) {
+		$form[] = array(
+			'type'	=> 'button',
+			'link'	=> 'action',
+			'value'	=> 'run-test-loan',
+			'html'	=> 'Create Debug Entry'
+		);
+	}
 	
 	// Fetches if item is currently on loan
 	$on_loan = wp_lib_on_loan( $item_id );
@@ -735,7 +790,7 @@ function wp_lib_page_manage_item() {
 			'type'			=> 'select',
 			'options'		=> $options,
 			'optionClass'	=> 'member-choice-option',
-			'classes'		=> array( 'member-choice' ),
+			'classes'		=> 'member-select',
 			'name'			=> 'member_id'
 		);
 		
@@ -800,8 +855,11 @@ function wp_lib_page_manage_item() {
 	// Fetches list of loans of item
 	$table = wp_lib_prep_loans_table( $item_id );
 	
+	// Lists additional scripts needed for Dash page
+	$scripts = array( 'admin-dashboard-manage-item' );
+	
 	// Encodes page as an array to be rendered client-side
-	wp_lib_send_page( 'Managing: ' . get_the_title( $item_id ), 'Managing Item #' . $item_id, $header, $form, $table );
+	wp_lib_send_page( 'Managing: ' . get_the_title( $item_id ), 'Managing Item #' . $item_id, $header, $form, $table, $scripts );
 }
 
 // Displays member's details and loan history
@@ -1035,8 +1093,8 @@ function wp_lib_page_scan_item() {
 		),
 		array(
 			'type'	=> 'button',
+			'link'	=> 'none',
 			'id'	=> 'barcode-submit',
-			'link'	=> 'action',
 			'value'	=> 'scan-barcode',
 			'html'	=> 'Scan'
 		)
@@ -1086,11 +1144,10 @@ function wp_lib_page_scheduling_page() {
 				),
 				array(
 					'type'			=> 'select',
-					'id'			=> 'member-select',
 					'name'			=> 'member_id',
 					'options'		=> $member_options,
 					'optionClass'	=> 'member-select-option',
-					'class'			=> 'member-select'
+					'classes'		=> 'member-select'
 				)
 			)
 		),
@@ -1137,7 +1194,10 @@ function wp_lib_page_scheduling_page() {
 	// Fetches list of loans of item
 	$table = wp_lib_prep_loans_table( $item_id );
 	
-	wp_lib_send_page( 'Scheduling loan of ' . get_the_title( $item_id ), 'Scheduling loan of #' . $item_id, $header, $form, $table );
+	// Lists additional scripts needed for Dash page
+	$scripts = array( 'admin-dashboard-manage-item' );
+	
+	wp_lib_send_page( 'Scheduling loan of ' . get_the_title( $item_id ), 'Scheduling loan of #' . $item_id, $header, $form, $table, $scripts );
 }
 
 // Displays page for returning an item in the past
@@ -1358,7 +1418,7 @@ function wp_lib_page_confirm_deletion() {
 			$object_type = 'Item';
 			
 			// Informs user of implications of deletion
-			$header[] = array(
+			$form[] = array(
 				'type'		=> 'paras',
 				'content'	=> array(
 					'Deleting items is a permanent action. Any loans or fines dependant on this member will be deleted as well.',
@@ -1380,7 +1440,7 @@ function wp_lib_page_confirm_deletion() {
 			$tab_title = 'Deleting Loan #' . $post_id;
 			
 			// Informs user of implications of deletion
-			$header[] = array(
+			$form[] = array(
 				'type'		=> 'paras',
 				'content'	=> array(
 					'Deleting a loan is a permanent action. Any fines dependant on this loan will also be deleted.',
@@ -1416,7 +1476,7 @@ function wp_lib_page_confirm_deletion() {
 			$tab_title = 'Deleting Member #' . $post_id;
 			
 			// Informs user of implications of deletion
-			$header[] = array(
+			$form[] = array(
 				'type'		=> 'paras',
 				'content'	=> array(
 					'Deleting a member is a permanent action. You can choose to also delete all loans/fines dependant on this member',
@@ -1427,23 +1487,26 @@ function wp_lib_page_confirm_deletion() {
 	}
 	
 	// Adds page nonce, object ID and relevant buttons to form
-	$form = array(
-		wp_lib_prep_nonce( 'Deleting object: ' . $post_id ),
+	$form = array_merge(
+		$form,
 		array(
-			'type'	=> 'hidden',
-			'name'	=> 'post_id',
-			'value'	=> $post_id
-		),
-		array(
-			'type'	=> 'button',
-			'link'	=> 'action',
-			'value'	=> 'delete-object',
-			'html'	=> 'Delete ' . ucwords( $object_type )
-		),
-		array(
-			'type'	=> 'button',
-			'link'	=> 'page',
-			'html'	=> 'Cancel'
+			wp_lib_prep_nonce( 'Deleting object: ' . $post_id ),
+			array(
+				'type'	=> 'hidden',
+				'name'	=> 'post_id',
+				'value'	=> $post_id
+			),
+			array(
+				'type'	=> 'button',
+				'link'	=> 'action',
+				'value'	=> 'delete-object',
+				'html'	=> 'Delete ' . ucwords( $object_type )
+			),
+			array(
+				'type'	=> 'button',
+				'link'	=> 'page',
+				'html'	=> 'Cancel'
+			)
 		)
 	);
 	

@@ -41,24 +41,31 @@ div.lib-metabox {
 	background-color: #FFF;
 	border-radius: 5px;
 	padding: 5px 10px;
-	margin: 10px 0px;
+	margin: 10px 10px 10px 0px;
+	float: left;
 }
 
 #wp-lib-header, #wp-lib-form, #wp-lib-tables {
 	margin: 5px 0px;
 }
 
+#wp-lib-header {
+	overflow: auto;
+}
+
 .meta-row {
 	overflow: auto;
 }
 
-dl.lib-metabox dt {
-	float: left;
-	width: 25%;
+table.lib-metabox th {
+	white-space: nowrap;
+	font-weight: normal;
+	vertical-align: text-top;
+	text-align: left;
 }
-dl.lib-metabox dd {
-	float: right;
-	width: 75%;
+
+table.lib-metabox td {
+	padding-left: 5px;
 }
 
 #library-form button {
