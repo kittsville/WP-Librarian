@@ -25,7 +25,7 @@ jQuery(function($){
 		$( '.member-man.lib-metabox' ).hide();
 		
 		// If given value isn't a member ID (e.g. if 'Select' is chosen), no meta needs to be fetched
-		if ( parseInt( newMember ) === 'NaN' ) {
+		if ( isNaN(parseInt(newMember)) ) {
 			return '';
 		}
 		
