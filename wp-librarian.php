@@ -332,11 +332,9 @@ add_action( 'manage_wp_lib_members_posts_custom_column' , function ( $column, $m
 
 // Add custom columns to wp-admin loans table and removes unneeded ones
 add_filter( 'manage_wp_lib_loans_posts_columns', function ( $columns ) {
-	// Removes 'Date' and 'Title' columns
-	unset( $columns['date'], $columns['title'] );
-
-	// Adds useful loan meta to loan table
-	$new_columns = array(
+	// As no existing columns are needed, returns new columns, ignoring previous columns
+	return array(
+		'loan_loan'			=> 'Loan',
 		'loan_item'			=> 'Item',
 		'loan_member'		=> 'Member',
 		'loan_status'		=> 'Status',
@@ -344,10 +342,6 @@ add_filter( 'manage_wp_lib_loans_posts_columns', function ( $columns ) {
 		'loan_end'			=> 'Expected',
 		'loan_returned'		=> 'Returned',
 	);
-	
-	$columns = array_slice( $columns, 0, 2, true ) + $new_columns + array_slice( $columns, 2, NULL, true );
-	
-	return $columns;
 });
 
 // Removes bulk actions from loans table
@@ -356,6 +350,11 @@ add_filter('bulk_actions-edit-wp_lib_loans',function(){ return array(); });
 // Adds data to custom columns in loans table
 add_action( 'manage_wp_lib_loans_posts_custom_column' , function ( $column, $loan_id ) {
 	switch ( $column ) {
+		// Displays link to manage loan
+		case 'loan_loan':
+			echo wp_lib_hyperlink( wp_lib_manage_loan_url( $loan_id ), '#' . $loan_id );
+		break;
+		
 		// Displays title of loaned item with link to view item
 		case 'loan_item':
 			// Fetches item ID from loan meta
@@ -412,20 +411,14 @@ add_action( 'manage_wp_lib_loans_posts_custom_column' , function ( $column, $loa
 
 // Add custom columns to wp-admin fines table and removes unneeded ones
 add_filter( 'manage_wp_lib_fines_posts_columns', function ( $columns ) {
-	// Removes 'Date' and 'Title' columns
-	unset( $columns['date'], $columns['title'] );
-
-	// Adds useful loan meta to loan table
-	$new_columns = array(
+	// As no existing columns are needed, returns new columns, ignoring previous columns
+	return array(
+		'fine_fine'			=> 'Fine',
 		'fine_item'			=> 'Item',
 		'fine_member'		=> 'Member',
 		'fine_status'		=> 'Status',
 		'fine_amount'		=> 'Amount'
 	);
-	
-	$columns = array_slice( $columns, 0, 2, true ) + $new_columns + array_slice( $columns, 2, NULL, true );
-	
-	return $columns;
 });
 
 // Removes bulk actions from fines table
@@ -434,6 +427,11 @@ add_filter('bulk_actions-edit-wp_lib_fines',function(){ return array(); });
 // Adds data to custom columns in fines table
 add_action( 'manage_wp_lib_fines_posts_custom_column', function ( $column, $fine_id ) {
 	switch ( $column ) {
+		// Displays link to manage fine
+		case 'fine_fine':
+			echo wp_lib_hyperlink( wp_lib_manage_fine_url( $fine_id ), '#' . $fine_id );
+		break;
+		
 		// Displays title of item fine is for with link to view item
 		case 'fine_item':
 			// Fetches item ID from loan meta
@@ -1041,6 +1039,8 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
 				wp_enqueue_script( 'wp_lib_edit_member', wp_lib_script_url( 'admin-edit-member' ), array( 'wp_lib_meta_core' ), '0.1' );
 			break;
 		}
+	} elseif ( $hook == 'edit.php' && in_array( $GLOBALS['post_type'], array( 'wp_lib_items', 'wp_lib_members', 'wp_lib_loans', 'wp_lib_fines' ), true ) ) {
+		wp_enqueue_style( 'wp_lib_admin_post_table_core', wp_lib_style_url( 'admin-post-table-core' ), array(), '0.1' );
 	}
 	
 	switch ( $hook ) {

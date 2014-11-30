@@ -405,15 +405,11 @@ add_action( 'wp_ajax_wp_lib_api', function() {
 			// Fetches barcode
 			$barcode = $_POST['code'];
 			
+			// Attempts to sanitize barcode as an ISBN
 			$isbn = wp_lib_sanitize_isbn( $barcode );
 			
-			if ( $isbn != '' ) {
-				$meta_query = array(
-					'key'	=> 'wp_lib_item_isbn',
-					'value'	=> $isbn,
-					'compare'	=> 'IN'
-				);
-			} else {
+			// If sanitization fails, assumes given value is a barcode
+			if ( $isbn == '' ) {
 				// If barcode is zero, invalid barcode was given
 				if ( !ctype_digit( $barcode ) )
 				wp_lib_stop_ajax( false, 318 );
@@ -421,6 +417,12 @@ add_action( 'wp_ajax_wp_lib_api', function() {
 				$meta_query = array(
 					'key'	=> 'wp_lib_item_barcode',
 					'value'	=> $barcode,
+					'compare'	=> 'IN'
+				);
+			} else {
+				$meta_query = array(
+					'key'	=> 'wp_lib_item_isbn',
+					'value'	=> $isbn,
 					'compare'	=> 'IN'
 				);
 			}
@@ -725,7 +727,7 @@ function wp_lib_page_manage_item() {
 	wp_lib_check_item_id( $item_id );
 	
 	// Prepares the management header
-	$header = wp_lib_prep_item_management_header( $item_id );
+	$header = wp_lib_prep_item_meta_box( $item_id );
 	
 	// Adds page nonce
 	$form[] = wp_lib_prep_nonce( 'Managing Item: ' . $item_id );
@@ -871,7 +873,7 @@ function wp_lib_page_manage_member() {
 	wp_lib_check_member_id( $member_id );
 	
 	// Renders management header
-	$header = wp_lib_prep_member_management_header( $member_id );
+	$header = wp_lib_prep_member_meta_box( $member_id );
 	
 	// Adds nonce to form
 	$form[] = wp_lib_prep_nonce( 'Managing Member ' . $member_id );
@@ -999,7 +1001,7 @@ function wp_lib_page_manage_loan() {
 	wp_lib_check_loan_id( $loan_id );
 	
 	// Renders header with useful loan information
-	$header = wp_lib_prep_loan_management_header( $loan_id );
+	$header = wp_lib_prep_loan_meta_box( $loan_id );
 	
 	// If loan is not open, displays delete button
 	if ( get_post_meta( $loan_id, 'wp_lib_status', true ) != 1 ) {
@@ -1029,7 +1031,7 @@ function wp_lib_page_manage_fine() {
 	// Checks if fine ID is valid
 	wp_lib_check_fine_id( $fine_id );
 	
-	$header = wp_lib_prep_fine_management_header( $fine_id );
+	$header = wp_lib_prep_fine_meta_box( $fine_id );
 	
 	// Fetches fine status
 	$fine_status = get_post_meta( $fine_id, 'wp_lib_status', true );
@@ -1116,7 +1118,7 @@ function wp_lib_page_scheduling_page() {
 	wp_lib_check_item_id( $item_id );
 	
 	// Displays the management header
-	$header = wp_lib_prep_item_management_header( $item_id );
+	$header = wp_lib_prep_item_meta_box( $item_id );
 	
 	$member_options = wp_lib_prep_member_options();
 	
@@ -1213,7 +1215,7 @@ function wp_lib_page_return_past() {
 		wp_lib_stop_ajax( false, 402 );
 	
 	// Renders the management header
-	$header = wp_lib_prep_item_management_header( $item_id );
+	$header = wp_lib_prep_item_meta_box( $item_id );
 	
 	$form = array(
 		wp_lib_prep_nonce( 'Past returning: ' . $item_id ),
@@ -1269,7 +1271,7 @@ function wp_lib_page_resolution_page() {
 		wp_lib_stop_ajax( false, 406 );
 	
 	// Renders item management header
-	$header = wp_lib_prep_item_management_header( $item_id );
+	$header = wp_lib_prep_item_meta_box( $item_id );
 	
 	// Fetches current date
 	$date = current_time( 'timestamp' );
@@ -1344,7 +1346,7 @@ function wp_lib_page_pay_fines() {
 		wp_lib_stop_ajax( false, 206 );
 	
 	// Renders management header
-	$header = wp_lib_prep_member_management_header( $member_id );
+	$header = wp_lib_prep_member_meta_box( $member_id );
 	
 	$form = array(
 		array(
@@ -1408,7 +1410,7 @@ function wp_lib_page_confirm_deletion() {
 				wp_lib_stop_ajax( false, 205 );
 			
 			// Renders management header, displaying useful information about the item
-			$header = wp_lib_prep_item_management_header( $post_id );
+			$header = wp_lib_prep_item_meta_box( $post_id );
 			
 			// Sets titles of Dash page and browser tab
 			$page_title = 'Deleting: ' . get_the_title( $post_id );
@@ -1433,7 +1435,7 @@ function wp_lib_page_confirm_deletion() {
 				wp_lib_stop_ajax( false, 205 );
 			
 			// Renders management header, displaying useful information about the loan
-			$header = wp_lib_prep_loan_management_header( $post_id );
+			$header = wp_lib_prep_loan_meta_box( $post_id );
 			
 			// Sets titles of Dash page and browser tab
 			$page_title = 'Deleting: Loan #' . $post_id;
@@ -1451,7 +1453,7 @@ function wp_lib_page_confirm_deletion() {
 		
 		case 'fine':
 			// Renders management header, displaying useful information about the fine
-			$header = wp_lib_prep_fine_management_header( $post_id );
+			$header = wp_lib_prep_fine_meta_box( $post_id );
 			
 			// Sets titles of Dash page and browser tab
 			$page_title = 'Deleting: Fine #' . $post_id;
@@ -1462,6 +1464,7 @@ function wp_lib_page_confirm_deletion() {
 				'type'		=> 'paras',
 				'content'	=> array(
 					'Deleting a fine is a permanent action and will result in the deletion of any loan dependant on this fine',
+					'To remove any money owed by the member because of this fine, cancel the fine first',
 					'If you want to delete fines in bulk, without this prompt, allow bulk deletion via WP-Librarian\'s settings'
 				)
 			);
@@ -1469,7 +1472,7 @@ function wp_lib_page_confirm_deletion() {
 		
 		case 'member':
 			// Renders management header, displaying useful information about the member
-			$header = wp_lib_prep_member_management_header( $post_id );
+			$header = wp_lib_prep_member_meta_box( $post_id );
 			
 			// Sets dash page title and tab title
 			$page_title = 'Deleting: ' . get_the_title( $post_id );

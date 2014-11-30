@@ -430,7 +430,7 @@ function wp_lib_format_money( $value, $html_ent = true ) {
 
 
 // Given item ID, returns header for management pages containing useful information on the item
-function wp_lib_prep_item_management_header( $item_id ) {
+function wp_lib_prep_item_meta_box( $item_id ) {
 	// Fetches title of item e.g. 'Moby-Dick'
 	$title = get_the_title( $item_id );
 	
@@ -497,7 +497,7 @@ function wp_lib_prep_item_management_header( $item_id ) {
 }
 
 // Given loan ID, returns header for management pages containing useful information on the loan
-function wp_lib_prep_loan_management_header( $loan_id ) {
+function wp_lib_prep_loan_meta_box( $loan_id ) {
 	$meta = get_post_meta( $loan_id );
 	
 	// Adds basic loan meta fields
@@ -524,7 +524,7 @@ function wp_lib_prep_loan_management_header( $loan_id ) {
 }
 
 // Given fine ID, returns header for management pages containing useful information on the fine
-function wp_lib_prep_fine_management_header( $fine_id ) {
+function wp_lib_prep_fine_meta_box( $fine_id ) {
 	$meta = get_post_meta( $fine_id );
 	
 	// Creates and returns fine management header
@@ -547,7 +547,7 @@ function wp_lib_prep_fine_management_header( $fine_id ) {
 }
 
 // Given member ID, returns header for management pages containing useful information on the member
-function wp_lib_prep_member_management_header( $member_id ) {
+function wp_lib_prep_member_meta_box( $member_id ) {
 	// Fetches member meta
 	$meta = get_post_meta( $member_id );
 	
@@ -752,12 +752,17 @@ function wp_lib_var_dump() {
 	// Gets all given params
 	$args = func_get_args();
 	
+	// Wraps all dumped variables in a div
+	echo '<div class="wp-lib-debug-wrap">';
+	
 	// For each param, var_dump between <pre> tags to format code properly in browser
 	foreach ( $args as $arg ){
 		echo '<pre style="background:white;">';
 		var_dump( $arg );
 		echo '</pre>';
 	}
+	
+	echo '</div>';
 }
 
 	/* -- Statuses -- */
