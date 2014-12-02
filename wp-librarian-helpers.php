@@ -262,44 +262,52 @@ function wp_lib_prefix_url( $option, $slug ) {
 	return $main_slug . '/' . $sub_slug;
 }
 
-// Formats a URL to manage member with the given ID
-function wp_lib_manage_member_url( $member_id ) {
-	$args = array(
+function wp_lib_prep_manage_item_params( $item_id ) {
+	return array(
+		'dash_page'	=> 'manage-item',
+		'item_id'	=> $item_id
+	);
+}
+
+function wp_lib_prep_manage_member_params( $member_id ) {
+	return array(
 		'dash_page'	=> 'manage-member',
 		'member_id'	=> $member_id
 	);
-	
-	return wp_lib_format_dash_url( $args );
+}
+
+function wp_lib_prep_manage_loan_params( $loan_id ) {
+	return array(
+		'dash_page'	=> 'manage-loan',
+		'loan_id'	=> $loan_id
+	);
+}
+
+function wp_lib_prep_manage_fine_params( $fine_id ) {
+	return array(
+		'dash_page'	=> 'manage-fine',
+		'fine_id'	=> $fine_id
+	);
 }
 
 // Formats a URL to manage item with the given ID
 function wp_lib_manage_item_url( $item_id ) {
-	$args = array(
-		'dash_page'	=> 'manage-item',
-		'item_id'	=> $item_id
-	);
-	
-	return wp_lib_format_dash_url( $args );
+	return wp_lib_format_dash_url( wp_lib_prep_manage_item_params( $item_id ) );
 }
 
-// Formats a URL to manage fine with the given ID
-function wp_lib_manage_fine_url( $fine_id ) {
-	$args = array(
-		'dash_page'	=> 'manage-fine',
-		'fine_id'	=> $fine_id
-	);
-	
-	return wp_lib_format_dash_url( $args );
+// Formats a URL to manage member with the given ID
+function wp_lib_manage_member_url( $member_id ) {
+	return wp_lib_format_dash_url( wp_lib_prep_manage_member_params( $member_id ) );
 }
 
 // Formats a URL to manage loan with the given ID
 function wp_lib_manage_loan_url( $loan_id ) {
-	$args = array(
-		'dash_page'	=> 'manage-loan',
-		'loan_id'	=> $loan_id
-	);
-	
-	return wp_lib_format_dash_url( $args );
+	return wp_lib_format_dash_url( wp_lib_prep_manage_loan_params( $loan_id ) );
+}
+
+// Formats a URL to manage fine with the given ID
+function wp_lib_manage_fine_url( $fine_id ) {
+	return wp_lib_format_dash_url( wp_lib_prep_manage_fine_params( $fine_id ) );
 }
 
 // Formats and returns a Library Dashboard URL with any desired variables formatted as GET parameters
@@ -340,6 +348,47 @@ function wp_lib_manage_member_hyperlink( $member_id ) {
 // Creates a hyperlink given a url and some text
 function wp_lib_hyperlink( $link, $text ) {
 	return '<a href="' . $link . '">' . $text . '</a>';
+}
+
+// Creates dash URL element given a set of parameters
+function wp_lib_prep_dash_hyperlink( $name, $params ) {
+	return array(
+		'type'	=> 'dash-url',
+		'params'=> $params,
+		'html'	=> $name
+	);
+}
+
+// Creates Dash page element that appears as a hyperlink and dynamically loads item management page
+function wp_lib_manage_item_dash_hyperlink( $item_id ) {
+	return wp_lib_prep_dash_hyperlink(
+		get_the_title( $item_id ),
+		wp_lib_prep_manage_item_params( $item_id )
+	);
+}
+
+// Creates Dash page element that appears as a hyperlink and dynamically loads member management page
+function wp_lib_manage_member_dash_hyperlink( $member_id ) {
+	return wp_lib_prep_dash_hyperlink(
+		get_the_title( $member_id ),
+		wp_lib_prep_manage_member_params( $member_id )
+	);
+}
+
+// Creates Dash page element that appears as a hyperlink and dynamically loads loan management page
+function wp_lib_manage_loan_dash_hyperlink( $loan_id ) {
+	return wp_lib_prep_dash_hyperlink(
+		'#' . $loan_id,
+		wp_lib_prep_manage_loan_params( $loan_id )
+	);
+}
+
+// Creates Dash page element that appears as a hyperlink and dynamically loads fine management page
+function wp_lib_manage_fine_dash_hyperlink( $fine_id ) {
+	return wp_lib_prep_dash_hyperlink(
+		'#' . $fine_id,
+		wp_lib_prep_manage_fine_params( $fine_id )
+	);
 }
 
 	/* -- Dates and times -- */
@@ -445,13 +494,10 @@ function wp_lib_prep_item_meta_box( $item_id ) {
 	
 	// If item has a donor and the ID matches an existing member
 	if ( isset( $meta['wp_lib_item_donor'] ) && wp_lib_sanitize_donor( $meta['wp_lib_item_donor'][0] ) ) {
-		// Fetches member ID
-		$member_id = $meta['wp_lib_item_donor'][0];
-		
 		// Adds meta field, displaying donor with a link to manage the member
 		$meta_fields[] = array(
 			'Donor',
-			array( array( get_the_title( $member_id ), wp_lib_manage_member_url( $member_id ) ) )
+			wp_lib_manage_member_dash_hyperlink( $meta['wp_lib_item_donor'][0] )
 		);
 	}
 	
@@ -509,7 +555,7 @@ function wp_lib_prep_loan_meta_box( $loan_id ) {
 	
 	// If fine was incurred for loan, fetch details and add to metabox
 	if ( isset( $meta['wp_lib_fine'] ) ) {
-		$meta_fields[] = array( 'Fine ID', wp_lib_hyperlink( wp_lib_manage_fine_url( $meta['wp_lib_fine'][0] ), $meta['wp_lib_fine'][0] ) );
+		$meta_fields[] = array( 'Fine ID', wp_lib_prep_dash_hyperlink( $meta['wp_lib_fine'][0], wp_lib_prep_manage_fine_params( $meta['wp_lib_fine'][0] ) ) );
 	}
 	
 	// Finalises and returns management header
@@ -535,9 +581,9 @@ function wp_lib_prep_fine_meta_box( $fine_id ) {
 			'classes'	=> 'fine-man',
 			'fields'	=> array(
 				array( 'Fine ID', $fine_id ),
-				array( 'Loan ID', wp_lib_hyperlink( wp_lib_manage_loan_url( $meta['wp_lib_loan'][0] ), $meta['wp_lib_loan'][0] ) ),
-				array( 'Item', wp_lib_manage_item_hyperlink( $meta['wp_lib_item'][0] ) ),
-				array( 'Member', wp_lib_manage_member_hyperlink( $meta['wp_lib_member'][0] ) ),
+				array( 'Loan ID', wp_lib_prep_dash_hyperlink( $meta['wp_lib_loan'][0], wp_lib_prep_manage_loan_params( $meta['wp_lib_loan'][0] ) ) ),
+				array( 'Item', wp_lib_manage_item_dash_hyperlink( $meta['wp_lib_item'][0] ) ),
+				array( 'Member', wp_lib_manage_member_dash_hyperlink( $meta['wp_lib_member'][0] ) ),
 				array( 'Amount', wp_lib_format_money( $meta['wp_lib_fine'][0] ) ),
 				array( 'Status', wp_lib_format_fine_status( $meta['wp_lib_status'][0] ) ),
 				array( 'Created', get_the_date( '', $fine_id ) )
@@ -639,6 +685,7 @@ function wp_lib_prep_members_items_out( $member_id ) {
 	return $query->post_count;
 }
 
+// Displays list of loans associated with an item
 function wp_lib_prep_loans_table( $item_id ) {
 	// Sets up loan history query arguments
 	$args = array(
@@ -672,19 +719,20 @@ function wp_lib_prep_loans_table( $item_id ) {
 			// Fetches all loan's meta
 			$meta = get_post_meta( $loan_id );
 			
-			// Gets member ID from loan meta
-			$member_id = $meta['wp_lib_member'][0];
-			
 			$loan_status = wp_lib_format_loan_status( $meta['wp_lib_status'][0] );
 			
-			// If loan incurred fine, change loan status to include a link to manage said fine
-			if ( $meta['wp_lib_status'][0] == 4 ) {
-				$loan_status = array( $loan_status, wp_lib_manage_fine_url( $meta['wp_lib_fine'][0] ) );
+			// If loan incurred fine
+			if ( $meta['wp_lib_status'][0] === '4' ) {
+				// Loan status will act as a hyperlink to manage the fine
+				$loan_status = wp_lib_prep_dash_hyperlink( wp_lib_format_loan_status( $meta['wp_lib_status'][0] ), wp_lib_prep_manage_fine_params( $meta['wp_lib_fine'][0] ) );
+			} else {
+				// Loan status displays as formatted string e.g. 'Returned'
+				$loan_status = wp_lib_format_loan_status( $meta['wp_lib_status'][0] );
 			}
 			
 			$loans[] = array(
-				'loan'		=> array( '#' . get_the_ID(), wp_lib_manage_loan_url( $loan_id ) ),
-				'member'	=> array( get_the_title( $member_id ), wp_lib_manage_member_url( $member_id ) ),
+				'loan'		=> wp_lib_manage_loan_dash_hyperlink( $loan_id ),
+				'member'	=> wp_lib_manage_member_dash_hyperlink( $meta['wp_lib_member'][0] ),
 				'status'	=> $loan_status,
 				'loaned'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_start_date'][0] ),
 				'expected'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_end_date'][0] ),

@@ -948,16 +948,16 @@ function wp_lib_page_manage_member() {
 			// Gets item ID from loan meta
 			$item_id = $meta['wp_lib_item'][0];
 			
-			$loan_status = wp_lib_format_loan_status( $meta['wp_lib_status'][0] );
-			
 			// If loan incurred fine, change loan status to include a link to manage said fine
 			if ( $meta['wp_lib_status'][0] == 4 ) {
-				$loan_status = array( $loan_status, wp_lib_manage_fine_url( $meta['wp_lib_fine'][0] ) );
+				$loan_status = wp_lib_prep_dash_hyperlink( wp_lib_format_loan_status( $meta['wp_lib_status'][0] ), wp_lib_prep_manage_fine_params( $meta['wp_lib_fine'][0] ) );
+			} else {
+				$loan_status = wp_lib_format_loan_status( $meta['wp_lib_status'][0] );
 			}
 			
 			$loans[] = array(
-				'loan'		=> array( '#' . get_the_ID(), wp_lib_manage_loan_url( $loan_id ) ),
-				'item'		=> array( get_the_title( $item_id ), wp_lib_manage_item_url( $item_id ) ),
+				'loan'		=> wp_lib_manage_loan_dash_hyperlink( $loan_id ),
+				'item'		=> wp_lib_manage_item_dash_hyperlink( $item_id ),
 				'status'	=> $loan_status,
 				'loaned'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_start_date'][0] ),
 				'expected'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_end_date'][0] ),
@@ -1523,24 +1523,20 @@ function wp_lib_page_confirm_deletion() {
 			'html'	=> wp_lib_plural( count( $connected_objects ), 'Dependant object\p:' )
 		);
 		
+		// Iterates over connected objects, creating table rows for each object
 		foreach ( $connected_objects as $connected_object ) {
-			// Initialises table row
-			$object_entry = array(
-				'id'	=> $connected_object[0],
-			);
-			
 			// Adds table row with post ID and link to manage loan/fine
 			switch( $connected_object[1] ) {
 				case 'wp_lib_loans':
 					$objects[] = array(
-						'id'	=> array( $connected_object[0], wp_lib_manage_loan_url( $connected_object[0] ) ),
+						'id'	=> wp_lib_manage_loan_dash_hyperlink( $connected_object[0] ),
 						'type'	=> 'Loan'
 					);
 				break;
 				
 				case 'wp_lib_fines':
 					$objects[] = array(
-						'id'	=> array( $connected_object[0], wp_lib_manage_fine_url( $connected_object[0] ) ),
+						'id'	=> wp_lib_manage_fine_dash_hyperlink( $connected_object[0] ),
 						'type'	=> 'Fine'
 					);
 				break;

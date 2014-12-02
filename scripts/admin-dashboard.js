@@ -280,6 +280,7 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 	}
 	
 	// Performs actions on page element based on element type
+	// Note that each element type has requirements specific to the Dashboard, otherwise they would rendered without calling this function
 	switch ( pageItem.type ) {
 		// Hidden inputs used to store information such as the item ID
 		case 'hidden':
@@ -353,6 +354,33 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 					return;
 				break;
 			}
+		break;
+		
+		// Dash urls give the appearance of regular URLs, but are loaded dynamically when clicked
+		case 'dash-url':
+			// Sets up local parent that will hold URL's parameters
+			var theElement = $('<form/>',{
+				'class'	: 'dash-url-form'
+			});
+			
+			// Iterates over URL parameters, rendering them as hidden inputs
+			$.each( pageItem.params, function( paramName, paramValue ) {
+				theElement.append(
+					$('<input/>',{
+						type	: 'hidden',
+						name	: paramName,
+						value	: paramValue
+					})
+				);
+			});
+			
+			// Creates hyperlink with mock URL
+			theElement.append(
+				$('<a/>',elementObject)
+				.attr('href', wp_lib_vars.dashUrl + '&' + $.param(pageItem.params) )
+				.addClass('dash-url')
+			);
+			
 		break;
 		
 		// Dash buttons are the large buttons on the Dashboard homepage
@@ -459,7 +487,7 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 			// If enter key is pressed, carry out dash action
 			theElement.keydown(function(event){
 				
-			if(event.keyCode == 13) { // GGGG
+			if(event.keyCode == 13) {
 				theElement.siblings('button.button').click();
 			}
 			});
@@ -520,27 +548,37 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 				var fieldName = e[0];
 				var fieldData = e[1];
 				
-				// If meta field is array of tax terms, format into hyperlinks
+				// If meta field is a collection of one or more URLs (e.g. tax terms like item authors)
 				if ( fieldData instanceof Array ) {
-					// If array has more than one tax term, pluralises tax term name
+					// If array has more than one url, pluralises field name
 					if ( fieldData.length > 1 ) {
 						fieldName += 's';
 					}
-				
-					// Initialises Output
-					var taxTermOutput = '';
 					
-					// Iterates through tax terms, creating hyperlink and adding to output
+					// Initialises Output
+					var multiUrlOutput = [];
+					
+					// Iterates through urls, creating hyperlink and adding to output
 					$( fieldData ).each( function( i, taxData ) {
-						// If term is higher than the 1st term, adds separator before term
+						// If url is not the first, prepends with comma
 						if ( i > 0 ) {
-							taxTermOutput += ', ';
+							multiUrlOutput.push( ', ' );
 						}
-						taxTermOutput += '<a href="' + taxData[1] + '">' + taxData[0] + '</a>';
+						
+						// Adds url to output buffer
+						multiUrlOutput.push( $('<a/>',{
+							href	: taxData[1],
+							html	: taxData[0]
+						}));
 					});
 					
 					// Sets output variable to actual output
-					fieldData = taxTermOutput;
+					fieldData = multiUrlOutput;
+				
+				// If fieldData is a single URL
+				} else if ( fieldData instanceof Object ) {
+					// Renders URL element and sets as fieldData
+					fieldData = wp_lib_render_page_element( fieldData );
 				}
 				
 				// Renders meta row inside div and adds to 
@@ -610,8 +648,8 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 				// Iterates through row's data, setting up values for Dynatable
 				$.each( row, function( columnName, columnData ) {
 					// If row is a hyperlink, formats
-					if ( columnData instanceof Array ) {
-						columnData = '<a href="' + columnData[1] + '">' + columnData[0] + '</a>'; // Dynatable, Y U NO ACCEPT DOM OBJECTS?
+					if ( columnData instanceof Object ) {
+						columnData = wp_lib_render_page_element( columnData ).prop('outerHTML');
 					}
 					
 					// Creates entry in table row named with column's slug (e.g. load-id) and sets value to 
@@ -749,7 +787,7 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 						html	: 'Manage',
 						classes	: 'item-manage'
 					},
-					$('<form/>',{ // GGGG
+					$('<form/>',{
 						html	:
 							$('<input/>',{
 								type	: 'hidden',
@@ -808,8 +846,16 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 		break;
 	}
 	
-	// Appends new DOM element to given parent element
-	return theElement.appendTo( theParent );
+	// If parent to append element to was not supplied
+	if ( typeof theParent === 'undefined' ) {
+		// Returns created DOM element
+		return theElement;
+	} else {
+		// Appends new DOM element to given parent element
+		return theElement.appendTo( theParent );
+	}
+	
+	
 }
 
 function wp_lib_format_tab_title( title ) {
@@ -850,7 +896,6 @@ jQuery(function($){
 	
 	// Adds listener for action performing buttons
 	jQuery('#wp-lib-workspace').on('click', '[name="dash_action"]', function ( e ){
-		console.log( e );
 		// Fetches action to be performed
 		var action = e.currentTarget.value;
 		
@@ -874,5 +919,14 @@ jQuery(function($){
 
 		// Loads page
 		wp_lib_load_page( params );
+	});
+	
+	// Adds listener for Dash URL being clicked
+	jQuery('#wp-lib-workspace').on('click', '.dash-url', function ( e ){
+		// Loads dash page using parameters collected from hyperlink's parent form
+		wp_lib_load_page( wp_lib_collect_form_params(e.target) );
+		
+		// Prevents normal behaviour
+		return false;
 	});
 });

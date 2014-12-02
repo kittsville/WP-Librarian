@@ -186,13 +186,14 @@ function wp_lib_parse_json( rawJSON ) {
 	return parsedJSON;
 }
 
-/* Performs AJAX query to WordPress AJAX url, returns array status:
+/* Performs AJAX query to WordPress AJAX url:
  * 0 - Failed to connect
  * 1 - Connected, WP-Librarian never hooked
  * 2 - Connected, server returned invalid JSON
  * 3 - Connected, server returned valid response of boolean false
  * 4 - Connected, server returned valid response of boolean true
- * Followed by server's actual response, if any
+ * Followed by server's raw response
+ * Passes result to postCallFunction, if one was specified
  */
 function wp_lib_send_ajax( ajaxData, noNotificationFetch, postCallFunction ) {
 	// Sets notification default settings, if function parameter wasn't specified
@@ -258,9 +259,6 @@ function wp_lib_send_ajax( ajaxData, noNotificationFetch, postCallFunction ) {
 			postCallFunction( outputBuffer );
 		}
 	});
-
-	// GGGGGG
-	// Owing to the nature of AJAX, you need to tie up functions to be passed to this function, rather than have something returned at the end of this function
 }
 
 function wp_lib_init_object( pageItem ) {
