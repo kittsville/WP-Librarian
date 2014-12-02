@@ -544,12 +544,18 @@ function wp_lib_prep_item_meta_box( $item_id ) {
 
 // Given loan ID, returns header for management pages containing useful information on the loan
 function wp_lib_prep_loan_meta_box( $loan_id ) {
+	// Fetches loan meta
 	$meta = get_post_meta( $loan_id );
 	
 	// Adds basic loan meta fields
 	$meta_fields = array(
 		array( 'Loan ID', $loan_id ),
-		array( 'Created', get_the_date( '', $loan_id ) ),
+		array( 'Item', wp_lib_manage_item_dash_hyperlink( $meta['wp_lib_item'][0] ) ),
+		array( 'Member', wp_lib_manage_member_dash_hyperlink( $meta['wp_lib_member'][0] ) ),
+		array( 'Expected Start', wp_lib_format_unix_timestamp( $meta['wp_lib_start_date'][0] ) ),
+		array( 'Expected End', wp_lib_format_unix_timestamp( $meta['wp_lib_end_date'][0] ) ),
+		array( 'Actual Start', ( isset( $meta['wp_lib_loaned_date'] ) ? wp_lib_format_unix_timestamp( $meta['wp_lib_loaned_date'][0] ) : 'N/A' ) ),
+		array( 'Actual End', ( isset( $meta['wp_lib_returned_date'] ) ? wp_lib_format_unix_timestamp( $meta['wp_lib_returned_date'][0] ) : 'N/A' ) ),
 		array( 'Status', wp_lib_format_loan_status( $meta['wp_lib_status'][0] ) )
 	);
 	
