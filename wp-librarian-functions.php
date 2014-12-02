@@ -655,7 +655,7 @@ function wp_lib_error( $error_id, $die = false, $param = 'NULL' ) {
 		412 => 'Unable to check if item is late',
 		500 => "Action requested does not exist",
 		501	=> 'No content has been specified for the given page, as such page cannot be rendered',
-		502 => 'No page of that name found',
+		502 => 'Specified Dashboard page not found',
 		503	=> 'Nonce failed to verify, try reloading the page',
 		504	=> 'Unknown API request',
 		504	=> 'Object not authorised for deletion',
