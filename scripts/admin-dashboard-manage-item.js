@@ -12,11 +12,13 @@ jQuery(function($){
 		// Fetches member select's updated value
 		var memberID = memberSelect.val();
 		
+		// Updates current member meta box displaying based on new member selected
 		currentMember = update_displayed_member( memberID, currentMember );
 	});
 	
 	// Updates current member meta box (if any) being displayed
 	function update_displayed_member( newMember, currentMember ) {
+		// If member selected hasn't changed, no action is necessary
 		if ( currentMember === newMember ) {
 			return currentMember;
 		}
