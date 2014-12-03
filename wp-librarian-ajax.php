@@ -45,6 +45,10 @@ add_action( 'wp_ajax_wp_lib_page', function() {
 			wp_lib_page_manage_fine();
 		break;
 		
+		case 'give-item-past':
+			wp_lib_page_give_item_past();
+		break;
+		
 		case 'scan-item':
 			wp_lib_page_scan_item();
 		break;
@@ -193,15 +197,52 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 			}
 		break;
 		
+		// When a scheduled loan is fulfilled as the item is given to the member
+		case 'give-item':
+			// Fetches params from AJAX request, setting end date as false if not given (will cause item to be given on current date)
+			$loan_id = $_POST['loan_id'];
+			$give_date = ( isset( $_POST['give_date'] ) ? $_POST['give_date'] : false );
+			
+			// Checks loan validity
+			if ( !wp_lib_valid_loan_id( $loan_id ) )
+				wp_lib_stop_ajax( false );
+			
+			// Checks end date validity
+			if ( $give_date !== false ) {
+				// Attempts to convert date to unix timestamp
+				wp_lib_convert_date( $give_date );
+				
+				// Calls error on failure
+				if ( $give_date === false )
+					wp_lib_stop_ajax( false, 312 );
+			}
+			
+			// Fetches item and member IDs
+			$item_id = get_post_meta( $loan_id, 'wp_lib_item', true );
+			$member_id = get_post_meta( $loan_id, 'wp_lib_member', true );
+			
+			// If item is successfully loaned
+			if ( wp_lib_give_item( $item_id, $loan_id, $member_id, $give_date ) ) {
+				// Inform user of success via notification
+				wp_lib_add_notification( get_the_title( $item_id ) . ' has been loaned to ' . get_the_title( $member_id ) );
+				
+				// Return success
+				wp_lib_stop_ajax( true );
+			} else {
+				// Otherwise return failure
+				wp_lib_stop_ajax( false );
+			}
+		break;
+		
 		// Debugging action
 		case 'run-test-loan':
 			// Fetches params from AJAX request
 			$item_id = $_POST['item_id'];
 			
-			// If item ID fails to validate, return false
-			if ( !wp_lib_valid_item_id( $item_id ) )
+			// If item ID fails to validate or debugging mode isn't on, stop action
+			if ( !wp_lib_valid_item_id( $item_id ) || WP_LIB_DEBUGGING_MODE !== true )
 				wp_lib_stop_ajax( false );
-				
+			
 			$start_date = current_time( 'timestamp' ) - ( 10 * 24 * 60 * 60 );
 			$end_date = current_time( 'timestamp' ) - ( 3 * 24 * 60 * 60 );
 			
@@ -827,11 +868,11 @@ function wp_lib_page_manage_item() {
 			'html'	=> 'Loan Item'
 		);
 		
-		// Button to schedule a loan in the future
+		// Button to schedule a loan to be fulfilled later
 		$form[] = array(
 			'type'	=> 'button',
 			'link'	=> 'page',
-			'html'	=> 'Schedule Future Loan',
+			'html'	=> 'Schedule Loan',
 			'value'	=> 'scheduling-page'
 		);
 
@@ -959,7 +1000,7 @@ function wp_lib_page_manage_member() {
 				'loan'		=> wp_lib_manage_loan_dash_hyperlink( $loan_id ),
 				'item'		=> wp_lib_manage_item_dash_hyperlink( $item_id ),
 				'status'	=> $loan_status,
-				'loaned'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_start_date'][0] ),
+				'loaned'	=> wp_lib_format_unix_timestamp( ( isset( $meta['wp_lib_loaned_date'] ) ? $meta['wp_lib_loaned_date'][0] : $meta['wp_lib_start_date'][0] ) ),
 				'expected'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_end_date'][0] ),
 				'returned'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_returned_date'][0] )
 			);
@@ -1000,23 +1041,72 @@ function wp_lib_page_manage_loan() {
 	// Checks if loan ID is valid
 	wp_lib_check_loan_id( $loan_id );
 	
+	// Fetches loan meta
+	$meta = get_post_meta( $loan_id );
+	
 	// Renders header with useful loan information
 	$header = wp_lib_prep_loan_meta_box( $loan_id );
 	
-	// If loan is not open, displays delete button
-	if ( get_post_meta( $loan_id, 'wp_lib_status', true ) != 1 ) {
-		$form = array(
-			array(
-				'type'	=> 'hidden',
-				'name'	=> 'post_id', // Saves time on object-deletion page. No need using member_id as there are no other buttons on the page
-				'value'	=> $loan_id
-			),
-			array(
+	// Fetches item status
+	$status = $meta['wp_lib_status'][0];
+	
+	// Initialises form
+	$form = array(
+		array(
+			'type'	=> 'hidden',
+			'name'	=> 'loan_id',
+			'value'	=> $loan_id
+		)
+	);
+	
+	// Fetches current local time
+	$time = current_time( 'timestamp' );
+	
+	// If loan is scheduled and the loan's start date has already happened
+	if ( $status === '5' && $meta['wp_lib_start_date'][0] <= $time ) {
+		// If loan's end date has not passed yet
+		if ( $time <= $meta['wp_lib_end_date'][0] ) {
+			$form[] = array(
 				'type'	=> 'button',
-				'link'	=> 'page',
-				'value'	=> 'object-deletion',
-				'html'	=> 'Delete'
-			)
+				'link'	=> 'action',
+				'value'	=> 'give-item',
+				'html'	=> 'Loan Item'
+			);
+		}
+		
+		// Adds option to fulfil loan at a past date
+		$form[] = array(
+			'type'	=> 'button',
+			'link'	=> 'page',
+			'value'	=> 'give-item-past',
+			'html'	=> 'Loan Item at a Past Date'
+		);
+	
+	// If item is currently on loan, provides button to return item
+	} else if ( $status === '1' ) {
+		// Adds hidden element with item ID
+		$form[] = array(
+			'type'	=> 'hidden',
+			'name'	=> 'item_id',
+			'value'	=> get_post_meta( $loan_id, 'wp_lib_item', true )
+		);
+		
+		// Adds button to return item (redirects to item management page)
+		$form[] = array(
+			'type'	=> 'button',
+			'link'	=> 'page',
+			'value'	=> 'manage-item',
+			'html'	=> 'Return Item'
+		);
+	}
+	
+	// If loan is not open, displays delete button
+	if ( $status !== '1' ) {
+		$form[] = array(
+			'type'	=> 'button',
+			'link'	=> 'page',
+			'value'	=> 'object-deletion',
+			'html'	=> 'Delete'
 		);
 	}
 	
@@ -1071,6 +1161,56 @@ function wp_lib_page_manage_fine() {
 	
 	// Sends entire page to be encoded in JSON
 	wp_lib_send_page( 'Managing: Fine #' . $fine_id, 'Managing Fine #' . $fine_id, $header, $form );
+}
+
+// Displays date selection for member to decide when they want to give an item
+function wp_lib_page_give_item_past() {
+	// Fetches loan ID from AJAX request
+	$loan_id = $_POST['loan_id'];
+	
+	// Checks if loan ID is valid
+	wp_lib_check_loan_id( $loan_id );
+	
+	// Fetches loan meta
+	$meta = get_post_meta( $loan_id );
+	
+	// Checks if loan has correct status to be allowed to 
+	if ( $meta['wp_lib_status'][0] !== '5' || $meta['wp_lib_start_date'][0] > current_time( 'timestamp' ) ) {
+		wp_lib_stop_ajax( false, 322 );
+	}
+	
+	// Renders header with useful loan information
+	$header = wp_lib_prep_loan_meta_box( $loan_id );
+	
+	// Fetches item status
+	$status = $meta['wp_lib_status'][0];
+	
+	// Initialises form
+	$form = array(
+		array(
+			'type'	=> 'hidden',
+			'name'	=> 'loan_id',
+			'value'	=> $loan_id
+		),
+		array(
+			'type'		=> 'paras',
+			'content'	=> array( 'Enter date that item was given to member. In future do not release the item from the Library without recording it first.' )
+		),
+		array(
+			'type'	=> 'date',
+			'name'	=> 'give_date',
+			'id'	=> 'loan-give-date',
+			'value'	=> Date( 'Y-m-d', $meta['wp_lib_start_date'][0] )
+		),
+		array(
+			'type'	=> 'button',
+			'link'	=> 'action',
+			'value'	=> 'give-item',
+			'html'	=> 'Loan Item'
+		)
+	);
+	
+	wp_lib_send_page( 'Managing: Loan #' . $loan_id, 'Managing Loan #' . $loan_id, $header, $form );
 }
 
 // Page for looking up an item by its barcode

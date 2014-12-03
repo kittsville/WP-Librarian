@@ -641,6 +641,7 @@ function wp_lib_error( $error_id, $die = false, $param = 'NULL' ) {
 		319	=> 'No item found with that barcode',
 		320	=> 'Fine payment amount is invalid',
 		321	=> 'Proposed fine payment is greater than amount owed by member',
+		322	=> 'Loan must be scheduled and the start date must have passed to give item to member',
 		400 => 'Loan creation failed for unknown reason, sorry :/',
 		401 => 'Can not loan item, it is already on loan or not allowed to be loaned.<br/>This can happen if you have multiple tabs open or refresh the loan page after a loan has already been created.',
 		402 => 'Item not on loan (Loan ID not found in item meta)<br/>This can happen if you refresh the page having already returned an item',

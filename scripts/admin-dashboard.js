@@ -43,6 +43,13 @@ function wp_lib_do_action( dashAction, params ) {
 			data.end_date = params['end_date'];
 		break;
 		
+		case 'give-item':
+			data.loan_id = params['loan_id'];
+			if ( params.hasOwnProperty( 'give_date' ) ) {
+				data.give_date = params['give_date'];
+			}
+		break;
+		
 		case 'fine-member':
 			data.fine_member = true;
 			data.dash_action = 'return-item';
@@ -76,6 +83,15 @@ function wp_lib_do_action( dashAction, params ) {
 	data.wp_lib_ajax_nonce = params[WP_LIB_NONCE];
 	
 	wp_lib_send_ajax( data, false, function( serverResponse ) {
+		switch ( serverResponse[0] ) {
+			// Server response indicating success
+			case 4:
+				// Loads Dashboard home
+				wp_lib_load_page();
+			break;
+			
+			/* Will be adding handling for errors that doesn't clash with any server side errors */
+		}
 		if ( serverResponse[0] === 4 ) {
 			// If server responded indicating action was successful, return to Dashboard home
 			wp_lib_load_page();

@@ -740,7 +740,7 @@ function wp_lib_prep_loans_table( $item_id ) {
 				'loan'		=> wp_lib_manage_loan_dash_hyperlink( $loan_id ),
 				'member'	=> wp_lib_manage_member_dash_hyperlink( $meta['wp_lib_member'][0] ),
 				'status'	=> $loan_status,
-				'loaned'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_start_date'][0] ),
+				'loaned'	=> wp_lib_format_unix_timestamp( ( isset( $meta['wp_lib_loaned_date'] ) ? $meta['wp_lib_loaned_date'][0] : $meta['wp_lib_start_date'][0] ) ), // Uses loaned date if loan has one, otherwise uses expected start date
 				'expected'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_end_date'][0] ),
 				'returned'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_returned_date'][0] )
 			);
