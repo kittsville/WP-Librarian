@@ -82,7 +82,8 @@ function wp_lib_do_action( dashAction, params ) {
 	// Adds nonce to params to be sent
 	data.wp_lib_ajax_nonce = params[WP_LIB_NONCE];
 	
-	wp_lib_send_ajax( data, false, function( serverResponse ) {
+	// Sends dash action to server. Returns to Dashboard home on success and displays errors on failure
+	wp_lib_send_ajax( data, true, function( serverResponse ) {
 		switch ( serverResponse[0] ) {
 			// Server response indicating success
 			case 4:
@@ -90,15 +91,17 @@ function wp_lib_do_action( dashAction, params ) {
 				wp_lib_load_page();
 			break;
 			
-			/* Will be adding handling for errors that doesn't clash with any server side errors */
-		}
-		if ( serverResponse[0] === 4 ) {
-			// If server responded indicating action was successful, return to Dashboard home
-			wp_lib_load_page();
+			// Server response indicating failure (by WP-Librarian, not AJAX failure or WordPress error)
+			case 3:
+				// Checks for any reported errors (notifications). If none were reported uses default error message
+				wp_lib_display_notifications( function( notifications ) {
+					if ( notifications.length === 0 ) {
+						wp_lib_local_error( 'The action could not be completed and the server did not explain why' );
+					}
+				});
+			break;
 		}
 	});
-	
-	
 }
 
 // Fetches page, using given parameters

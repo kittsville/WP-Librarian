@@ -38,7 +38,7 @@ function wp_lib_add_notification( array ) {
 }
 
 // Fetches and displays any notifications waiting in the local or server buffer
-function wp_lib_display_notifications() {
+function wp_lib_display_notifications( ajaxCallback ) {
 	// Initialises notifications array by fetching any client-side notifications
 	var notifications = wp_lib_fetch_local_notifications();
 	
@@ -54,6 +54,11 @@ function wp_lib_display_notifications() {
 		
 		// Renders all collected local and server notifications
 		wp_lib_render_notifications( notifications );
+		
+		// If notifications callback was given, passes notifications to callback
+		if ( typeof ajaxCallback === 'function' ) {
+			ajaxCallback( notifications );
+		}
 	});
 }
 
