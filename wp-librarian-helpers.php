@@ -253,7 +253,7 @@ function wp_lib_get_object_type( $post_id ) {
 // Adds plugin url to front of string (e.g. authors -> library/authors)
 function wp_lib_prefix_url( $option, $slug ) {
 	// Gets main public slug ('wp-librarian' by default, usually something like 'library')
-	$main_slug = get_option( 'wp_lib_slug', 'wp-librarian' );
+	$main_slug = get_option( 'wp_lib_main_slug', 'wp-librarian' );
 	
 	// Fetches specific slug e.g. 'authors'
 	$sub_slug = get_option( $option, $slug );

@@ -72,7 +72,7 @@ function wp_lib_register_post_and_tax() {
 			'taxonomies'			=> array( '' ),
 			'menu_icon'				=> 'dashicons-book-alt',
 			'has_archive'			=> true,
-			'rewrite'				=> array('slug' => get_option( 'wp_lib_main_slug', 'wp-librarian' ) ),
+			'rewrite'				=> array('slug' => wp_lib_prefix_url( 'wp_lib_single_slug', 'item' )),
 			'register_meta_box_cb'	=> 'wp_lib_setup_item_meta_box'
 		)
 	);
@@ -185,7 +185,11 @@ function wp_lib_register_post_and_tax() {
 			'show_admin_column'		=> true,
 			'update_count_callback'	=> '_update_post_term_count',
 			'query_var'				=> true,
-			'rewrite'				=> array('slug' => wp_lib_prefix_url( 'wp_lib_authors_slug', 'authors' ) ),
+			'rewrite'				=> array(
+				'slug'			=> wp_lib_prefix_url( 'wp_lib_authors_slug', 'authors' ),
+				'with_front'	=> false,
+				'hierarchical'	=> true
+			),
 			'labels'				=> array(
 				'name'						=> 'Authors',
 				'singular_name'				=> 'Author',
@@ -220,7 +224,11 @@ function wp_lib_register_post_and_tax() {
 			'show_ui'			=> true,
 			'show_admin_column'	=> true,
 			'query_var'			=> true,
-			'rewrite'			=> array('slug' => wp_lib_prefix_url( 'wp_lib_media_type_slug', 'type' ) ),
+			'rewrite'			=> array(
+				'slug'			=> wp_lib_prefix_url( 'wp_lib_media_type_slug', 'type' ),
+				'with_front'	=> false,
+				'hierarchical'	=> true
+			),
 			'labels'			=> array(
 				'name'				=> 'Media Types',
 				'singular_name'		=> 'Media Type',
@@ -265,6 +273,19 @@ function wp_lib_register_post_and_tax() {
 		}
 	}
 }
+
+	/* -- Rewrite Rules -- */
+	/* Modifies permalink rules to allow pretty URLs for Library archives and single items */
+
+add_filter( 'generate_rewrite_rules', function( $wp_rewrite ) {
+	$new_rules = array();
+	
+	$new_rules['library/(.+)'] = 'index.php?post_type=' . 'wp_lib_items';
+	
+	$wp_rewrite->rules = $wp_rewrite->rules + $new_rules;
+	
+	return $wp_rewrite;
+});
 
 	/* -- Custom Post Table Columns -- */
 	/* Adds/removes columns from item/loan/fine post tables then populates said columns */
@@ -1205,7 +1226,7 @@ function wp_lib_add_profile_page_fields( $user ) {
 
 // Checks for appropriate templates in the current theme and loads the plugin's default templates if that fails
 add_filter( 'template_include', function( $template ) {
-	if ( get_post_type() == 'wp_lib_items' ) {
+	if ( get_post_type() === 'wp_lib_items' ) {
 		// If page is archive of multiple items
 		if ( is_archive() ) {
 			// Looks for template in current theme

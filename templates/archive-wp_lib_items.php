@@ -9,16 +9,12 @@ get_header();
 <div id="primary">
 	<div id="content" role="main">
 		<?php
-		// Fetches items, referred to as posts (because they are)
-		$loop = new WP_Query( array('post_type'=>'wp_lib_items') );
-		
-		// Loops posts
-		while ( $loop->have_posts() ) : $loop->the_post();
-		
-		// If item is set not to be publicly displayed, skip displaying item
-		if ( get_post_meta( get_the_ID(), 'wp_lib_item_delist', true ) )
-			continue;
-		
+			// Loops posts
+			if (have_posts()) : while (have_posts()) : the_post();
+			
+			// If item is set not to be publicly displayed, skips displaying item
+			if ( get_post_meta( get_the_ID(), 'wp_lib_item_delist', true ) )
+				continue;
 		?>
 		<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 			<div class="wp-lib-item">
@@ -42,9 +38,9 @@ get_header();
 			</div>
 		</article>
 		
+		<?php if ( $wp_query->current_post + 1 !== $wp_query->post_count ): ?>
 		<hr />
-		
-		<?php endwhile; ?>
+		<?php endif; endwhile; else: endif; ?>
 	</div>
 </div>
 <?php get_footer(); ?>

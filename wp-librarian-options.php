@@ -26,6 +26,11 @@ $options = array(
 		'default'	=> 'wp-librarian'
 	),
 	array(
+		// The sub-slug for single items e.g. library/item/moby-dick
+		'key'		=> 'wp_lib_single_slug',
+		'default'	=> 'item'
+	),
+	array(
 		// The slug for viewing authors
 		'key' 		=> 'wp_lib_authors_slug',
 		'default'	=> 'authors'
