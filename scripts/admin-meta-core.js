@@ -36,91 +36,97 @@ jQuery( document ).ready(function($) {
 		})
 		.appendTo( metaWrapper );
 		
-		// Iterates over each meta section's fields, rendering to the section wrapper
-		metaSection.fields.forEach( function( metaField ) {
-			// Fetches previous meta value from meta array
-			var currentMeta = meta[metaField.name];
+		// If metaSection has meta fields
+		if ( metaSection.fields instanceof Array ) {
+			// Iterates over each meta section's fields, rendering to the section wrapper
+			metaSection.fields.forEach( function( metaField ) {
+				// Fetches previous meta value from meta array
+				var currentMeta = meta[metaField.name];
+				
+				// Creates field input wrapper
+				var metaInputWrapper = $('<td/>', {
+					'class'	: 'meta-input-wrapper'
+				});
 			
-			// Creates field input wrapper
-			var metaInputWrapper = $('<td/>', {
-				'class'	: 'meta-input-wrapper'
-			});
-		
-			// Creates row that will contain field and adds field title to row
-			metaFieldsTable.append( $('<tr/>', {
-				'class'	: 'meta-field-row',
-				'html'	: [
-					$('<td/>', {
-						'text'	: metaField.title,
-						'class'	: 'meta-field-title'
-					}),
-					metaInputWrapper
-				]
-			}));
-			
-			// If field is a dropdown menu (select), renders with options
-			if ( metaField.type === 'select' ) {
-				// Initialises select element's properties
-				var selectArgs = {
-					'class'	: 'meta-select',
-					'name'	: metaField.name
-				};
+				// Creates row that will contain field and adds field title to row
+				metaFieldsTable.append( $('<tr/>', {
+					'class'	: 'meta-field-row',
+					'html'	: [
+						$('<td/>', {
+							'text'	: metaField.title,
+							'class'	: 'meta-field-title'
+						}),
+						metaInputWrapper
+					]
+				}));
 				
-				// If field has an ID, enter it
-				if ( metaField.hasOwnProperty('id') ) {
-					selectArgs.id = metaField.id;
-				}
-				
-				// Creates select element
-				var metaSelect = $('<select/>', selectArgs )
-				// Adds default blank option
-				.append(
-					$('<option/>', {
-						'html'	: 'Select'
-					})
-				)
-				.appendTo( metaInputWrapper );
-				
-				// Iterates through select field's options, adding them to select element
-				metaField.options.forEach( function( option ) {
-					// Initialises option's properties
-					var optionObject = {
-						'value'	: option.value,
-						'html'	: option.html
+				// If field is a dropdown menu (select), renders with options
+				if ( metaField.type === 'select' ) {
+					// Initialises select element's properties
+					var selectArgs = {
+						'class'	: 'meta-select',
+						'name'	: metaField.name
 					};
 					
-					// If option is the current value, pre-select as that option
-					if ( option.value == currentMeta ) {
-						optionObject.selected = 'selected';
+					// If field has an ID, enter it
+					if ( metaField.hasOwnProperty('id') ) {
+						selectArgs.id = metaField.id;
 					}
 					
-					// Creates option and adds to to select field's options
-					metaSelect.append( $('<option/>', optionObject) );
-				});
-			} else {
-				// Initialises field input object
-				var inputArgs = wp_lib_init_object( metaField );
-				inputArgs.type = metaField.type;
-				
-				// Switch to build field's input element
-				switch ( metaField.type ) {
-					case 'checkbox':
-						if ( currentMeta ) {
-							inputArgs.checked = 'checked';
-						}
-						
-						inputArgs.value = 'true';
-					break;
+					// Creates select element
+					var metaSelect = $('<select/>', selectArgs )
+					// Adds default blank option
+					.append(
+						$('<option/>', {
+							'html'	: 'Select'
+						})
+					)
+					.appendTo( metaInputWrapper );
 					
-					default:
-						inputArgs.value = currentMeta;
-					break;
+					// If meta select has options (possible there will be none if no members have been added)
+					if ( metaField.options instanceof Array ) {
+						// Iterates through select field's options, adding them to select element
+						metaField.options.forEach( function( option ) {
+							// Initialises option's properties
+							var optionObject = {
+								'value'	: option.value,
+								'html'	: option.html
+							};
+							
+							// If option is the current value, pre-select as that option
+							if ( option.value == currentMeta ) {
+								optionObject.selected = 'selected';
+							}
+							
+							// Creates option and adds to to select field's options
+							metaSelect.append( $('<option/>', optionObject) );
+						});
+					}
+				} else {
+					// Initialises field input object
+					var inputArgs = wp_lib_init_object( metaField );
+					inputArgs.type = metaField.type;
+					
+					// Switch to build field's input element
+					switch ( metaField.type ) {
+						case 'checkbox':
+							if ( currentMeta ) {
+								inputArgs.checked = 'checked';
+							}
+							
+							inputArgs.value = 'true';
+						break;
+						
+						default:
+							inputArgs.value = currentMeta;
+						break;
+					}
+					
+					// Adds input element to meta field
+					metaInputWrapper.append( $('<input/>', inputArgs) );
 				}
-				
-				// Adds input element to meta field
-				metaInputWrapper.append( $('<input/>', inputArgs) );
-			}
-		});
+			});
+		}
 	});
 	
 	// Checks for post type specific code to run after the meta-box has been rendered
