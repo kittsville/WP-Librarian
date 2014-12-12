@@ -74,8 +74,16 @@ table.lib-metabox td {
 
 /* Dynatable Styling */
 
+span.dynatable-search > input {
+	border-radius: 2px;
+}
+
 div.dynatable-wrap {
 	margin-top: 15px;
+}
+
+table.dynatable-table {
+	border-radius: 4px;
 }
 
 a.dynatable-sort-header, a.dynatable-sort-header:hover {
