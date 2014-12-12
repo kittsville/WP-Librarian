@@ -1046,62 +1046,96 @@ function wp_lib_prep_item_status( $item_id, $no_url = false, $short = false ) {
 	return $status;
 }
 
-// Prepares taxonomy and metabox information for theme use
-function wp_lib_fetch_meta( $item_id ) {
-	// Metabox data is fetched and relevant functions are called to format the data
-	$meta_array = array(
-		'media type'	=> wp_lib_prep_meta( get_the_terms( $item_id, 'wp_lib_media_type' ), 'Media Type' ),
-		'authors'		=> wp_lib_prep_meta( get_the_terms( $item_id, 'wp_lib_author' ), 'Author' ),
-		'donor'			=> wp_lib_prep_meta( get_post_meta( $item_id, 'wp_lib_donor', true ), 'Donor' ),
-		'isbn'			=> wp_lib_prep_meta( get_post_meta( $item_id, 'wp_lib_item_isbn', true ), 'ISBN' ),
-		'available'		=> wp_lib_prep_meta( wp_lib_prep_item_status( $item_id ), 'Status' ),
+// Renders item's tax terms and public meta to the page
+function wp_lib_display_item_meta( $item_id, $item_permalink = true ) {
+	// Fetches default taxonomy spacer
+	$spacer = get_option( 'wp_lib_taxonomy_spacer', ', ' );
+	
+	// If user is librarian, or higher, fetches item donor
+	// If user isn't a librarian, or there is no listed donor, returns false
+	$donor_id = ( wp_lib_is_librarian() ? get_post_meta( $item_id, 'wp_lib_item_donor', true ) : false );
+	
+	// If donor ID belongs to a valid donor, fetch donor's name
+	$donor = ( is_numeric( $donor_id ) ? get_the_title( $donor_id ) : false );
+	
+	// Creates array of raw item meta
+	$raw_meta = array(
+		array( 'Title',		get_the_title( $item_id )),
+		array( 'Media Type',get_the_terms( $item_id, 'wp_lib_media_type' )),
+		array( 'Author',	get_the_terms( $item_id, 'wp_lib_author' )),
+		array( 'Donor',		$donor ),
+		array( 'ISBN',		get_post_meta( $item_id, 'wp_lib_item_isbn', true )),
+		array( 'Status',	wp_lib_prep_item_status( $item_id ))
 	);
-	$all_meta = '';
-	// Runs through each meta value and, if the meta exists, adds it to the end of the $all_meta string
-	foreach ( $meta_array as $value ) {
-		if ( $value != false )
-			$all_meta .= $value . '<br />';
+	
+	// If item title should be a link to manage the item
+	if ( $item_permalink )
+		$raw_meta[0][2] = get_permalink( $item_id );
+	
+	// Initialises formatted meta output
+	$meta_output = array();
+	
+	// Iterates over raw taxonomy 
+	foreach ( $raw_meta as $key => $meta ) {
+		// If meta value is a tax term
+		if ( is_array( $meta[1] ) ) {
+			// Initilises output for tax terms
+			$tax_terms_output = array();
+			
+			// Iterates through tax terms
+			foreach ( $meta[1] as $tax_key => $tax_term ) {
+				// Gets tax term's URL
+				$tax_url = get_term_link( $tax_term );
+				
+				// Deletes term if error occurred
+				if ( is_wp_error( $tax_url ) )
+					continue;
+				
+				// Formats tax item as link
+				$tax_terms_output[] = '<a href="' . esc_url( $tax_url ) . '">' . $tax_term->name . '</a>';
+			}
+			
+			// Overwrites tax term objects with formatted tax terms
+			$meta[1] = $tax_terms_output;
+			
+			// Counts number of valid tax terms
+			$count = count( $meta[1] );
+			
+			// If all tax terms were invalid, remove meta value
+			if ( $count === 0 ) {
+				unset( $tax_array[$key] );
+				continue;
+			// If there is one than one of a taxonomy item it makes the term plural (Author -> Authors)
+			} elseif ( $count > 1 ) {
+				$meta[0] .= 's';
+			}
+			
+			// Implodes array into string separated by users preferred spacer
+			$meta[1] = implode( $spacer, $meta[1] );
+		}
+		
+		// If output is a string with a URL, create hyperlink
+		if ( isset( $meta[2] ) )
+			$meta[1] = '<a href="' . $meta[2] . '">' . $meta[1] . '</a>';
+		
+		// If meta output is valid, add to output
+		if ( $meta[1] !== false && $meta[1] !== '' )
+			$meta_output[] = $meta;
 	}
 	
-	return $all_meta;
-}
-
-// Formats author/media type/donor arrays and formats them as a comma separated list with hyperlinks
-function wp_lib_prep_meta( $tax_array, $bold_name ) {
-	// If tax array doesn't exist, return empty string
-	if ( $tax_array == false )
-		return '';
-	
-	// If there is one than one of a taxonomy item it makes the term plural (Author -> Authors)
-	if ( count( $tax_array ) > 1 )
-		$bold_name .= 's';
-	
-	// Formats meta name
-	$item_string = '<strong>' . $bold_name . ': </strong>';
-	
-	// If $tax_array is not an array, return formatted string before foreach loop
-	if ( !is_array( $tax_array ) )
-		return $item_string . $tax_array;
-	
-	// Iterates through tax items 
-	foreach ( $tax_array as $tax_item ) {
-		// Gets tax term's URL
-		$tax_url = get_term_link( $tax_item );
+	// If there are any remaining valid meta fields
+	if ( count( $meta_output ) > 0 ) {
+		// Renders description list
+		echo '<table class="item-metabox"><tbody>';
 		
-		// Skips term if error occurred
-		if ( is_wp_error( $tax_url ) )
-			continue;
+		// Iterates over meta fields, rendering them to details list
+		foreach ( $meta_output as $meta_field ) {
+			echo '<tr class="meta-row"><th>' . $meta_field[0] . ':</th><td>' . $meta_field[1] . '</td></tr>';
+		}
 		
-		// Formats tax item as link
-		$formatted_values[] = '<a href="' . esc_url( $tax_url ) . '">' . $tax_item->name . '</a>';
+		// Ends Description list
+		echo '</tbody></table>';
 	}
-	
-	// If there are no formatted values, return empty string
-	if ( !isset( $formatted_values ) )
-		return '';
-	
-	// Implodes array into string separated by users preferred spacer
-	return $item_string . implode( get_option( 'wp_lib_taxonomy_spacer', ', ' ), $formatted_values );
 }
 
 // Renders notification to page, to send notification to cl

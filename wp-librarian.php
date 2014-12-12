@@ -1259,4 +1259,24 @@ add_filter( 'template_include', function( $template ) {
 	// If post is not a Library item
 	return $template;
 }, 10, 1 );
+
+// Adds query parameters to exclude de-listed items from the Library archive
+// Note that items are still public and can be accessed by their direct URL, that's what setting an item as private exists for!
+add_action( 'pre_get_posts', function( $query ) {
+	if ( $query->is_post_type_archive('wp_lib_items') && $query->is_main_query() ) {
+		$query->set( 'meta_query', array(
+		'relation'		=> 'OR',
+        array(
+            'key'		=> 'wp_lib_item_delist',
+            'value'		=> '1',
+            'compare'	=> '!=',
+        ),
+		array(
+            'key'		=> 'wp_lib_item_delist',
+			'value'		=> 'bug #23268', // Allows WP-Librarian to run on pre-3.9 WP installs (bug was fixed for 3.9, text is arbitrary)
+            'compare'	=> 'NOT EXISTS',
+        )
+    ));
+	}
+}, 10, 1 );
 ?>

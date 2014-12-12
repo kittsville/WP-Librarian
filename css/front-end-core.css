@@ -5,17 +5,49 @@
  * Version:		0.1
  */
 
-.wp-lib-item-left {
+.wp-lib-item-description {
 	float: left;
-	width: 700px;
-	
+	text-align: left;
+	display: flex;
 }
 
-.wp-lib-item-right {
+.wp-lib-item-title, .item-meta-wrap, .wp-lib-item-description {
+	min-width: 250px;
+}
+
+.wp-lib-item-cover {
 	float: right;
-	display:inline;
+	vertical-align: top;
+	padding: 0px 0px 5px 5px;
+	display: block;
 }
 
-.wp_lib_items:last-of-type {
-	border-bottom: none;
+article.wp-lib-items {
+	display: block;
+}
+
+div.item-meta-wrap * {
+	padding: 0px;
+	margin: 0px;
+	border: none;
+	background: transparent;
+}
+
+div.item-meta-wrap {
+	display: inline-block;
+}
+
+.meta-row {
+	overflow: auto;
+}
+
+table.item-metabox th {
+	white-space: nowrap;
+	font-weight: bold;
+	vertical-align: text-top;
+	text-align: left;
+}
+
+table.item-metabox td {
+	padding-left: 5px;
 }
