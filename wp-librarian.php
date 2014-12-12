@@ -12,7 +12,11 @@
 
 	/* -- Constants -- */
 
+// Defines whether or not 'Debugging Mode' is enabled. A mode which displays additional information during library operation
 define( 'WP_LIB_DEBUG_MODE', true );
+
+// Defines whether to ensure a Library object can't be deleted without deleting its connected objects. Turning this off is a great way to break your Library!
+define( 'WP_LIB_MAINTAIN_INTEGRITY', true );
 
 
 	/* -- Current Plugin Version -- */
@@ -1119,8 +1123,8 @@ function wp_lib_flush_permalinks() {
 
 // Performs necessary checks before an item, loan or fine is deleted
 function wp_lib_check_post_pre_trash( $post_id ) {
-	// If object doesn't belong to the Library it is ignored
-	if ( !in_array( $GLOBALS['post_type'], ['wp_lib_items', 'wp_lib_members', 'wp_lib_loans', 'wp_lib_fines'] ) || wp_is_post_autosave( $post_id ) )
+	// If object doesn't belong to the Library, is an autosave or integrity checking is turned off, pre-deletion checking is skipped
+	if ( !in_array( $GLOBALS['post_type'], ['wp_lib_items', 'wp_lib_members', 'wp_lib_loans', 'wp_lib_fines'] ) || wp_is_post_autosave( $post_id ) || !WP_LIB_MAINTAIN_INTEGRITY )
 		return;
 	
 	// If object is being deleted via an AJAX request
