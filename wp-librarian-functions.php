@@ -603,7 +603,7 @@ function wp_lib_error( $error_id, $die = false, $param = 'NULL' ) {
 	}
 	
 	// Array of all error codes and their explanations
-	//   0 - Reserved, see wp_lib_add_notification()
+	// 0xx - Reserved, see wp_lib_add_notification()
 	// 1xx - Core functionality failure
 	// 2xx - General loan/return systems error
 	// 3xx - Invalid loan/return parameters
