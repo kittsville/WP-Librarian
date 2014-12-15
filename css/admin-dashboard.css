@@ -130,6 +130,7 @@ div.dynatable-wrap {
 
 table.dynatable-table {
 	border-radius: 4px;
+	border: none;
 }
 
 a.dynatable-sort-header, a.dynatable-sort-header:hover {
