@@ -894,16 +894,12 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 		break;
 	}
 	
-	// If parent to append element to was not supplied
-	if ( typeof theParent === 'undefined' ) {
-		// Returns created DOM element
-		return theElement;
-	} else {
-		// Appends new DOM element to given parent element
-		return theElement.appendTo( theParent );
+	// If parent was given, appends element to parent
+	if ( typeof theParent !== 'undefined' ) {
+		theElement.appendTo( theParent );
 	}
 	
-	
+	return theElement;
 }
 
 function wp_lib_format_tab_title( title ) {
