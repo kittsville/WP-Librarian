@@ -1,6 +1,8 @@
 jQuery( document ).ready(function($) {
-	// Fetches existing item meta and meta fields
+	// Item meta - The current values of the item's meta fields, stored as key/value pairs
 	var meta = JSON.parse( document.getElementById( 'meta-raw' ).innerHTML );
+	
+	// Meta format - Instructions on how to display the meta fields and labels for the fields
 	var metaFormat = JSON.parse( document.getElementById( 'meta-formatting' ).innerHTML );
 	
 	// Selects meta box to be filled with meta sections and fields
@@ -43,12 +45,66 @@ jQuery( document ).ready(function($) {
 				// Fetches previous meta value from meta array
 				var currentMeta = meta[metaField.name];
 				
-				// Creates field input wrapper
-				var metaInputWrapper = $('<td/>', {
-					'class'	: 'meta-input-wrapper'
-				});
-			
-				// Creates row that will contain field and adds field title to row
+				// Initialises element's properties
+				var elementObject = wp_lib_init_object( metaField );
+				
+				// Performs actions based on the meta field's specific element type
+				switch( metaField.type ) {
+					// For select elements (drop down menus)
+					case 'select':
+						// Creates select element, adds default classes then adds default select option
+						var theElement = $('<select/>',elementObject)
+						.addClass('meta-select')
+						.append(
+							$('<option/>', {
+								'html'	: 'Select'
+							})
+						);
+						
+						// If meta select has options (possible there will be none if no members have been added)
+						if ( metaField.options instanceof Array ) {
+							// Iterates through select field's options, adding them to select element
+							metaField.options.forEach( function( option ) {
+								// Initialises option's properties
+								var optionObject = {
+									'value'	: option.value,
+									'html'	: option.html
+								};
+								
+								// If option is the current value, pre-select as that option
+								if ( option.value == currentMeta ) {
+									optionObject.selected = 'selected';
+								}
+								
+								// Creates option and adds to to select field's options
+								theElement.append( $('<option/>', optionObject) );
+							});
+						}
+					break;
+					
+					// For all other element types
+					default:
+						// Creates input element
+						var theElement = $('<input/>',elementObject).attr('type',metaField.type);
+						
+						// Switch to build field's input element
+						switch ( metaField.type ) {
+							case 'checkbox':
+								if ( currentMeta === '1' ) {
+									theElement.attr('checked','checked');
+								}
+								
+								theElement.attr('value','true');
+							break;
+							
+							default:
+								theElement.attr('value',currentMeta);
+							break;
+						}
+					break;
+				}
+				
+				// Creates meta row with title and meta value (theElement)
 				metaFieldsTable.append( $('<tr/>', {
 					'class'	: 'meta-field-row',
 					'html'	: [
@@ -56,75 +112,12 @@ jQuery( document ).ready(function($) {
 							'text'	: metaField.title,
 							'class'	: 'meta-field-title'
 						}),
-						metaInputWrapper
+						$('<td/>', {
+							'class'	: 'meta-input-wrapper',
+							'html'	: theElement
+						})
 					]
 				}));
-				
-				// If field is a dropdown menu (select), renders with options
-				if ( metaField.type === 'select' ) {
-					// Initialises select element's properties
-					var selectArgs = {
-						'class'	: 'meta-select',
-						'name'	: metaField.name
-					};
-					
-					// If field has an ID, enter it
-					if ( metaField.hasOwnProperty('id') ) {
-						selectArgs.id = metaField.id;
-					}
-					
-					// Creates select element
-					var metaSelect = $('<select/>', selectArgs )
-					// Adds default blank option
-					.append(
-						$('<option/>', {
-							'html'	: 'Select'
-						})
-					)
-					.appendTo( metaInputWrapper );
-					
-					// If meta select has options (possible there will be none if no members have been added)
-					if ( metaField.options instanceof Array ) {
-						// Iterates through select field's options, adding them to select element
-						metaField.options.forEach( function( option ) {
-							// Initialises option's properties
-							var optionObject = {
-								'value'	: option.value,
-								'html'	: option.html
-							};
-							
-							// If option is the current value, pre-select as that option
-							if ( option.value == currentMeta ) {
-								optionObject.selected = 'selected';
-							}
-							
-							// Creates option and adds to to select field's options
-							metaSelect.append( $('<option/>', optionObject) );
-						});
-					}
-				} else {
-					// Initialises field input object
-					var inputArgs = wp_lib_init_object( metaField );
-					inputArgs.type = metaField.type;
-					
-					// Switch to build field's input element
-					switch ( metaField.type ) {
-						case 'checkbox':
-							if ( currentMeta ) {
-								inputArgs.checked = 'checked';
-							}
-							
-							inputArgs.value = 'true';
-						break;
-						
-						default:
-							inputArgs.value = currentMeta;
-						break;
-					}
-					
-					// Adds input element to meta field
-					metaInputWrapper.append( $('<input/>', inputArgs) );
-				}
 			});
 		}
 	});
