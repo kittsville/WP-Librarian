@@ -132,6 +132,13 @@ h4.dash-button-text {
 	color: #F9F9F9;
 }
 
+/* Datepickers */
+
+div.ui-widget-content {
+	border: none;
+	background: #9C9C9C;
+}
+
 /* Dynatable */
 
 span.dynatable-search > input {
