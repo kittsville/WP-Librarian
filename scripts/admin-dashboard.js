@@ -247,29 +247,31 @@ function wp_lib_render_page( pageArray ) {
 			html	: libPage
 		}).appendTo(libWorkspace);
 		
+		// Initialises array containing all form buttons
+		var formDashPageButtons = [];
+		
+		// Initialises pseudo-URL
+		var urlBase = wp_lib_vars.dashUrl;
+		
 		// Iterates through form elements, rendering them to the form
 		$( pageArray.content.form ).each( function( i, e ) {
-			wp_lib_render_page_element( e, libPage );
-		});
-		
-		// Searches form elements for dash page buttons
-		var pageButtons = $.grep( pageArray.content.form, function(e){ return (e.type === 'button' && e.link === 'page' )});
-		
-		// If any dash_page buttons were included in the form
-		if ( pageButtons.length !== 0 ) {
-			// Initialises pseudo-URL
-			var urlBase = wp_lib_vars.dashUrl;
+			var anElement = wp_lib_render_page_element( e, libPage );
 			
-			// Collects form parameters
-			$( pageArray.content.form ).each( function( i, e ) {
-				if ( e.hasOwnProperty('type') && e.type === 'hidden' ) {
+			// If element has a type
+			if ( e.hasOwnProperty('type') ) {
+				// If element is a dash page button, add to array
+				if ( e.type === 'button' && e.link === 'page' ) {
+					formDashPageButtons.push( anElement );
+				
+				// If element is a form parameter, add parameter to URL
+				} else if ( e.type === 'hidden' ) {
 					urlBase += '&' + e.name + '=' + e.value;
 				}
-			});
-		}
+			}
+		});
 		
 		// Iterates over dash page buttons, adding pseudo-URLs
-		$( 'a[name="dash_page"]' ).each( function( i, e) {
+		formDashPageButtons.forEach( function( e, i) {
 			var dashPageButton = $(e);
 			dashPageButton.attr('href',urlBase + '&dash_page=' + dashPageButton.attr('value') );
 		});
