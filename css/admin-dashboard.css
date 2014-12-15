@@ -6,43 +6,10 @@
  * Version:		0.1
  */
 
+/* General Dashboard Styles */
+
 div.manage-item {
 	margin: 15px 0px;
-}
-
-.dashboard-button {
-	background-color: #2EA2CC;
-	border-color: #0074A2;
-	box-shadow: 0px 1px 0px rgba(120, 200, 230, 0.5) inset, 0px 1px 0px rgba(0, 0, 0, 0.15);
-	color: #FFF;
-	text-decoration: none;
-	height: 128px;
-	width: 128px;
-	line-height: 28px;
-	border-radius: 5px;
-	margin: 10px;
-	font-weight: bold;
-	overflow: hidden;
-	font-size: 12px;
-}
-
-.dashboard-icon {
-	width: 70px;
-	height: 70px;
-}
-
-div.lib-metabox * {
-	padding: 0;
-	margin: 0;
-}
-
-div.lib-metabox {
-	width: 350px;
-	background-color: #FFF;
-	border-radius: 5px;
-	padding: 5px 10px;
-	margin: 10px 10px 10px 0px;
-	float: left;
 }
 
 #wp-lib-header, #wp-lib-form, #wp-lib-tables {
@@ -51,6 +18,28 @@ div.lib-metabox {
 
 #wp-lib-header {
 	overflow: auto;
+}
+
+#lib-form > select {
+	margin: 2px;
+}
+
+/* Meta boxes */
+
+div.lib-metabox * {
+	padding: 0;
+	margin: 0;
+}
+
+div.lib-metabox {
+	width: 50%;
+	max-width: 320px;
+	min-width: 230px;
+	background-color: #FFF;
+	border-radius: 4px;
+	padding: 5px 10px;
+	margin: 10px 10px 10px 0px;
+	float: left;
 }
 
 .meta-row {
@@ -68,11 +57,68 @@ table.lib-metabox td {
 	padding-left: 5px;
 }
 
-#library-form button {
-	margin-left: 2px;
+/* Dash Buttons */
+
+.dash-button {
+	display: inline-block;
+	background: #1E8CBE;
+	overflow: hidden;
 }
 
-/* Dynatable Styling */
+.dash-button:link, .dash-button:visited, .dash-button:hover, .dash-button:active {
+    text-decoration: none;
+}
+
+.dash-button:hover {
+	cursor: pointer;
+}
+
+.dash-button-large {
+	margin: 5px;
+	height: 120px;
+	width: 120px;
+	border-radius: 4px;
+}
+
+.dash-button-medium {
+	line-height: 28px;
+	padding: 0px 12px 2px;
+	color: #F9F9F9;
+	border-radius: 2px;
+	vertical-align: top;
+	margin: 1px;
+}
+
+/* Dash Home Buttons */
+
+div.dash-button-wrapper {
+	width: 90%;
+	height: 90%;
+	position: relative;
+	top: 50%;
+	margin: -55px auto auto auto;
+}
+
+div.dashboard-icon {
+	color: #F9F9F9;
+	vertical-align: top;
+	font-size: 80px;
+	height: 80px;
+	width: 80px;
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+h4.dash-button-text {
+	font-size: 12px;
+	text-align: center;
+	margin: 5px 0px;
+	display: block;
+	color: #F9F9F9;
+}
+
+/* Dynatable */
 
 span.dynatable-search > input {
 	border-radius: 2px;
@@ -94,11 +140,11 @@ a.dynatable-sort-header, a.dynatable-sort-header:hover {
 	background-color: #F9F9F9;
 }
 
-/* Item List Styling */
+/* Item List A.K.A. 'View Items' */
 
 li.single-item {
 	background-color: #FFF;
-	border-radius: 5px;
+	border-radius: 4px;
 	list-style-type: none;
 	margin-right: 20px;
 	padding: 10px;
@@ -109,7 +155,11 @@ li.single-item {
 }
 
 li.single-item.late-item {
-	background-color: #EA958C
+	background-color: #C65D5D;
+}
+
+li.single-item.late-item > div.item-meta {
+	color: #EDEDED; /* Changes text colour to work with late item's different background colour */
 }
 
 ul.item-list {
@@ -154,7 +204,7 @@ div.item-thumbnail-centrefix img {
 	margin: 0 auto;
 }
 
-li.single-item button {
+li.single-item a {
 	position: absolute;
 	top: 320px;
 }
@@ -164,11 +214,11 @@ div.item-meta {
 	top: 245px;
 }
 
-button.item-manage {
+a.item-manage {
 	left: 10px;
 }
 
-button.item-view {
+a.item-view {
 	right: 10px;
 }
 
@@ -179,26 +229,3 @@ p.item-authors {
 .item-title, .item-authors, .item-status {
 	margin: 0px;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

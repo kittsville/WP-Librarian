@@ -1229,18 +1229,4 @@ function wp_lib_prep_nonce( $action ) {
 		'value'	=> $nonce
 	);
 }
-
-// Verifies a Dashboard nonce
-function wp_lib_verify_nonce( $action, $call_error = true ) {
-	// Checks if nonce is valid and is less than 12 hours old
-	if ( wp_verify_nonce( $_POST['wp_lib_ajax_nonce'], $action ) === 1 ) {
-		return true;
-	} else {
-		if ( $call_error ) {
-			wp_lib_error( 503 );
-		}
-		
-		return false;
-	}
-}
 ?>

@@ -15,6 +15,11 @@ function wp_lib_do_action( dashAction, params ) {
 		dash_action	: dashAction
 	};
 	
+	// Adds referrer to AJAX request, this is needed for certain actions
+	if ( wp_lib_vars.hasOwnProperty( 'dash_page' ) ) {
+		data.ref = wp_lib_vars.dash_page;
+	}
+	
 	// AJAX action switch, decides what action should be taken
 	switch ( dashAction ) {
 		case 'run-test-loan':
@@ -232,7 +237,7 @@ function wp_lib_render_page( pageArray ) {
 	if ( pageArray.content.hasOwnProperty('form') ) {
 		// Creates form element for all form elements
 		var libPage = $( '<form/>', {
-			id		: 'library-form',
+			id		: 'lib-form',
 			onsubmit: 'return false;' // Prevents default form submission
 		} );
 		
@@ -245,6 +250,28 @@ function wp_lib_render_page( pageArray ) {
 		// Iterates through form elements, rendering them to the form
 		$( pageArray.content.form ).each( function( i, e ) {
 			wp_lib_render_page_element( e, libPage );
+		});
+		
+		// Searches form elements for dash page buttons
+		var pageButtons = $.grep( pageArray.content.form, function(e){ return (e.type === 'button' && e.link === 'page' )});
+		
+		// If any dash_page buttons were included in the form
+		if ( pageButtons.length !== 0 ) {
+			// Initialises pseudo-URL
+			var urlBase = wp_lib_vars.dashUrl;
+			
+			// Collects form parameters
+			$( pageArray.content.form ).each( function( i, e ) {
+				if ( e.hasOwnProperty('type') && e.type === 'hidden' ) {
+					urlBase += '&' + e.name + '=' + e.value; // GGG check if finished
+				}
+			});
+		}
+		
+		// Iterates over dash page buttons, adding pseudo-URLs
+		$( 'a[name="dash_page"]' ).each( function( i, e) {
+			var dashPageButton = $(e);
+			dashPageButton.attr('href',urlBase + '&dash_page=' + dashPageButton.attr('value') );
 		});
 	}
 	
@@ -320,9 +347,9 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 		// Buttons used to load Dash pages or perform Dash actions
 		case 'button':
 			// Creates DOM element and adds classes to use native WordPress styles
-			var theElement = $('<button/>', elementObject ).addClass( 'button button-primary button-large' );
+			var theElement = $('<a/>', elementObject ).addClass( 'dash-button dash-button-medium' );
 			
-			// Sets button type to button to stop default behaviour (form submission)
+			// Sets anchor type to button for appropriate styling/behaviour
 			theElement.attr('type','button');
 			
 			// Sets up button properties based on the button type
@@ -405,7 +432,10 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 		// Dash buttons are the large buttons on the Dashboard homepage
 		case 'dash-button':
 			// Creates element and adds default dash button class
-			theElement = $('<button/>',elementObject).addClass('dashboard-button');
+			theElement = $('<a/>',elementObject).addClass('dash-button dash-button-large');
+			
+			// Sets anchor type to button for appropriate styling/behaviour
+			theElement.attr('type','button');
 			
 			// Sets button's click behaviour based on its link type
 			switch ( pageItem.link ) {
@@ -435,30 +465,29 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 				break;
 			}
 			
+			// If dash icon is not valid, sets default
+			if ( !pageItem.hasOwnProperty( 'icon' ) ) {
+				pageItem.icon = 'no';
+			}
+			
 			// Adds button innards: icon and button name
-			theElement.html([
-				// Icon Wrapper
+			theElement.html(
+				// Wrapper
 				$('<div/>', {
-					'class'	: 'dash-button-top',
-					html	:
-						// Icon
-						$('<img/>', {
-							'class'	: 'dashboard-icon',
-							src		: wp_lib_vars.pluginsUrl + '/images/dash-icons/' + pageItem.icon + '.png',
-							alt		: pageItem.title + ' Icon'
-						})
-				}),
-				// Button text wrapper
-				$('<div/>', {
-					'class'	: 'dash-button-bottom',
-					html	:
-						// Button text
-						$('<span/>',{
-							'class'	: 'dash-button-text',
-							html	: pageItem.title
-						})
-				})
-			]);
+				'class'	: 'dash-button-wrapper',
+				html	: [
+					// Icon
+					$('<div/>', {
+						'class'	: 'dashboard-icon dashicons dashicons-' + pageItem.icon,
+						'alt'	: pageItem.title + ' Icon'
+					}),
+					// Button text
+					$('<h4/>',{
+						'class'	: 'dash-button-text',
+						html	: pageItem.title
+					})
+				]})
+			);
 		break;
 		
 		// Paras groups of at least one paragraph, wrapped in a div
@@ -507,7 +536,7 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 			theElement.keydown(function(event){
 				
 			if(event.keyCode == 13) {
-				theElement.siblings('button.button').click();
+				theElement.siblings('a[type="button"]').click();
 			}
 			});
 		break;
@@ -914,7 +943,7 @@ jQuery(function($){
 	}
 	
 	// Adds listener for action performing buttons
-	jQuery('#wp-lib-workspace').on('click', '[name="dash_action"]', function ( e ){
+	jQuery('#wp-lib-workspace').on('click', 'a[name="dash_action"]', function ( e ){
 		// Fetches action to be performed
 		var action = e.currentTarget.value;
 		
@@ -923,25 +952,29 @@ jQuery(function($){
 		
 		// Performs action
 		wp_lib_do_action( action, params );
+		
+		return false;
 	});
 	
 	// Adds listener for page loading buttons
-	jQuery('#wp-lib-workspace').on('click', '[name="dash_page"]', function ( e ){
+	jQuery('#wp-lib-workspace').on('click', 'a[name="dash_page"]', function ( e ){
 		// Fetches form parameters that have been set
 		var params = wp_lib_collect_form_params(e.target);
 		
 		// Fetches page to be loaded
-		params.dash_page = e.currentTarget.value;
+		params.dash_page = $(e.currentTarget).attr('value');
 		
 		// Deletes nonce as it is only needed for dash actions
 		delete params.wp_lib_ajax_nonce;
 
 		// Loads page
 		wp_lib_load_page( params );
+		
+		return false;
 	});
 	
 	// Adds listener for Dash URL being clicked
-	jQuery('#wp-lib-workspace').on('click', '.dash-url', function ( e ){
+	jQuery('#wp-lib-workspace').on('click', 'a.dash-url', function ( e ){
 		// Loads dash page using parameters collected from hyperlink's parent form
 		wp_lib_load_page( wp_lib_collect_form_params(e.target) );
 		

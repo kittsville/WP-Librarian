@@ -3,7 +3,7 @@ jQuery( document ).ready(function($) {
 	$('[autofocus]:not(:focus)').eq(0).focus();
 	
 	// Triggers barcode lookup on 'Scan' item button being clicked
-	$('button#barcode-submit').click(function(e){
+	$('a#barcode-submit').click(function(e){
 		// Sets up API call params
 		var params = {
 			'api_request'	: 'scan-barcode',

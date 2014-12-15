@@ -100,9 +100,8 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 			if ( !wp_lib_valid_item_id( $item_id ) || !wp_lib_valid_member_id( $member_id ) )
 				wp_lib_stop_ajax( false );
 			
-			// If nonce fails to validate, return false (errors are handled by the validation functions)
-			if ( !wp_lib_verify_nonce( 'Managing Item: ' . $item_id ) )
-				wp_lib_stop_ajax( false );
+			// Validates Nonce
+			wp_lib_check_nonce( 'Managing Item: ' . $item_id );
 			
 			// Attempts to loan item
 			$success = wp_lib_loan_item( $item_id, $member_id, $loan_length );
@@ -122,10 +121,9 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 			if ( !wp_lib_valid_item_id( $item_id ) || !wp_lib_valid_member_id( $member_id ) ) {
 				wp_lib_stop_ajax( false );
 			}
-
-			// Checks if nonce is valid
-			if ( !wp_lib_verify_nonce( 'Scheduling Item: ' . $item_id ) )
-				wp_lib_stop_ajax( false );
+			
+			// Validates Nonce
+			wp_lib_check_nonce( 'Scheduling Item: ' . $item_id );
 			
 			// Attempts to convert given dates to Unix timestamps
 			wp_lib_convert_date( $start_date );
@@ -163,9 +161,8 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 			
 			// Attempts to validate the relevant nonce depending on wether the item is being returned at a past date, late or on time/early
 			if ( $end_date ) {				
-				// Checks if nonce is valid
-				if ( !wp_lib_verify_nonce( 'Past returning: ' . $item_id ) )
-					wp_lib_stop_ajax( false );
+				// Validates Nonce
+				wp_lib_check_nonce( 'Past returning: ' . $item_id );
 				
 				// Attempts to converts formatted date to Unix timestamp e.g. 12/08/2013 -> 1386460800
 				wp_lib_convert_date( $end_date );
@@ -177,9 +174,8 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 				// Attempts to return item at a past date
 				wp_lib_stop_ajax( wp_lib_return_item( $item_id, $end_date ) );
 			} elseif ( isset( $_POST['fine_member'] ) ) {
-				// Checks if nonce is valid
-				if ( !wp_lib_verify_nonce( 'Resolution of item ' . $item_id . ' for loan '. wp_lib_fetch_loan_id( $item_id ) ) )
-					wp_lib_stop_ajax( false );
+				// Validates Nonce
+				wp_lib_check_nonce( 'Resolution of item ' . $item_id . ' for loan '. wp_lib_fetch_loan_id( $item_id ) );
 				
 				// If member is to be fined for late return, fine member before returning item, otherwise return item suppressing fine
 				if ( $_POST['fine_member'] === 'true' ) {
@@ -188,9 +184,8 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 					wp_lib_stop_ajax( wp_lib_return_item( $item_id, false, false ) );
 				}
 			} else {
-				// Checks if nonce is valid
-				if ( !wp_lib_verify_nonce( 'Managing Item: ' . $item_id ) )
-					wp_lib_stop_ajax( false );
+				// Validates Nonce
+				wp_lib_check_nonce( 'Managing Item: ' . $item_id );
 				
 				// Attempts to return item
 				wp_lib_stop_ajax( wp_lib_return_item( $item_id ) );
@@ -207,9 +202,31 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 			if ( !wp_lib_valid_loan_id( $loan_id ) )
 				wp_lib_stop_ajax( false );
 			
+			// Validates nonce based on source page, as action can come from an Item or Loan management page
+			if ( isset( $_POST['ref'] ) ) {
+				switch ( $_POST['ref'] ) {
+					case 'manage-loan':
+						$nonce_input = 'Managing Loan: ' . $loan_id;
+					break;
+					
+					case 'give-item-past':
+						$nonce_input = 'Give item past. loan ID: ' . $loan_id;
+					break;
+					
+					default:
+						wp_lib_stop_ajax( false, 503 );
+					break;
+				}
+				
+				// Validates Nonce
+				wp_lib_check_nonce( $nonce_input );
+			} else {
+				wp_lib_stop_ajax( false, 503 );
+			}
+			
 			// Checks end date validity
 			if ( $give_date !== false ) {
-				// Attempts to convert date to unix timestamp
+				// Attempts to convert date to Unix timestamp
 				wp_lib_convert_date( $give_date );
 				
 				// Calls error on failure
@@ -243,21 +260,24 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 			if ( !wp_lib_valid_item_id( $item_id ) || WP_LIB_DEBUGGING_MODE !== true )
 				wp_lib_stop_ajax( false );
 			
+			// Validates Nonce
+			wp_lib_check_nonce( 'Managing Item: ' . $item_id );
+			
 			$start_date = current_time( 'timestamp' ) - ( 10 * 24 * 60 * 60 );
 			$end_date = current_time( 'timestamp' ) - ( 3 * 24 * 60 * 60 );
 			
-			// If possible creates loan of item starting 10 days ago, due 3 days ago
+			// If possible creates loan of item starting 10 days ago, due 3 days ago (to test fining capabilities)
 			$loan_id = wp_lib_schedule_loan( $item_id, '127', $start_date, $end_date );
 			
 			if ( !is_numeric( $loan_id ) )
-				wp_lib_stop_ajax( false );
+				wp_lib_stop_ajax( false, 600 );
 			
+			// Fulfils scheduled loan, giving item 900 seconds after the loan was scheduled to start
 			if ( wp_lib_give_item( $item_id, $loan_id, '127', current_time( 'timestamp' ) - ( 10 * 24 * 60 * 60 ) + 900 ) ) {
 				wp_lib_add_notification( "Debugging loan created!" );
 				wp_lib_stop_ajax( true );
 			} else {
-				wp_lib_add_notification( "Failure" );
-				wp_lib_stop_ajax( false );
+				wp_lib_stop_ajax( false, 601 );
 			}
 		break;
 		
@@ -269,9 +289,8 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 			if ( !wp_lib_valid_fine_id( $fine_id ) )
 				wp_lib_stop_ajax( false );
 			
-			// Checks if nonce is valid
-			if ( !wp_lib_verify_nonce( 'Managing Fine: ' . $fine_id ) )
-				wp_lib_stop_ajax( false );
+			// Validates Nonce
+			wp_lib_check_nonce( 'Managing Fine: ' . $fine_id );
 			
 			// Attempts to cancel fine, returning success/failure as boolean
 			wp_lib_stop_ajax( wp_lib_cancel_fine( $fine_id ) );
@@ -285,6 +304,9 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 			// If member fails to validate, calls error
 			if ( !wp_lib_valid_member_id( $member_id ) )
 				wp_lib_stop_ajax( false );
+			
+			// Validates Nonce
+			wp_lib_check_nonce( 'Managing Fine: ' . $fine_id );
 			
 			// Fetches member's current amount owed
 			$owed = wp_lib_fetch_member_owed( $member_id );
@@ -326,9 +348,8 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 			if ( !$object_type )
 				wp_lib_stop_ajax( false );
 			
-			// Checks if nonce is valid
-			if ( !wp_lib_verify_nonce( 'Deleting object: ' . $post_id ) )
-				wp_lib_stop_ajax( false );
+			// Validates Nonce
+			wp_lib_check_nonce( 'Deleting object: ' . $post_id );
 			
 			// Fetches all objects connected to current object
 			$connected_objects = wp_lib_fetch_dependant_objects( $post_id );
@@ -596,52 +617,59 @@ function wp_lib_send_page( $page_title, $tab_title, $header = false, $form = fal
 	wp_lib_stop_ajax( $buffer );
 }
 
+// Checks if nonce is valid, calls error and stops AJAX request on failure
+function wp_lib_check_nonce( $action ) {
+	if ( wp_verify_nonce( $_POST['wp_lib_ajax_nonce'], $action ) !== 1 )
+		wp_lib_stop_ajax( false, 503 );
+}
+
 	/* -- AJAX Pages -- */
 	/* Renders then returns Dashboard pages */
 
 // Displays Library Dashboard
 function wp_lib_page_dashboard() {
+	
 	// Dashboard icons
 	$buttons = array(
 		array(
-			'title'	=> 'Scan Item',
-			'icon'	=> 'default',
+			'title'	=> 'Scan Barcode',
+			'icon'	=> 'search',
 			'link'	=> 'dash-page',
 			'value'	=> 'scan-item'
 		),
 		array(
 			'title'	=> 'Manage Items',
-			'icon'	=> 'default',
+			'icon'	=> 'book-alt',
 			'link'	=> 'dash-page',
 			'value'	=> 'view-items'
 		),
 		array(
 			'title'	=> 'Manage Members',
-			'icon'	=> 'default',
+			'icon'	=> 'admin-users',
 			'link'	=> 'post-type',
 			'pType'	=> 'wp_lib_members'
 		),
 		array(
 			'title'	=> 'Manage Loans',
-			'icon'	=> 'default',
+			'icon'	=> 'upload',
 			'link'	=> 'post-type',
 			'pType'	=> 'wp_lib_loans'
 		),
 		array(
 			'title'	=> 'Manage Fines',
-			'icon'	=> 'default',
+			'icon'	=> 'carrot', // Placeholder carrot
 			'link'	=> 'post-type',
 			'pType'	=> 'wp_lib_fines'
 		),
 		array(
 			'title'	=> 'Settings',
-			'icon'	=> 'default',
+			'icon'	=> 'admin-generic',
 			'link'	=> 'admin-url',
 			'url'	=> 'edit.php?post_type=wp_lib_items&page=wp-lib-settings'
 		),
 		array(
 			'title'	=> 'Help',
-			'icon'	=> 'default',
+			'icon'	=> 'editor-help',
 			'link'	=> 'url',
 			'url'	=> 'https://github.com/kittsville/WP-Librarian/wiki'
 		)
@@ -695,7 +723,7 @@ function wp_lib_page_view_items() {
 	if ( $query->have_posts() ){
 		$header[] = array(
 			'type'		=> 'paras',
-			'content'	=> array('Select an item to manage it.')
+			'content'	=> array('Select an item to manage it. Late items are highlighted in red.')
 		);
 		
 		// Iterates through items
@@ -1066,6 +1094,10 @@ function wp_lib_page_manage_loan() {
 	if ( $status === '5' && $meta['wp_lib_start_date'][0] <= $time ) {
 		// If loan's end date has not passed yet
 		if ( $time <= $meta['wp_lib_end_date'][0] ) {
+			// Adds nonce so dash action will work
+			$form[] = wp_lib_prep_nonce( 'Managing Loan: ' . $loan_id );
+			
+			// Button to give item to member
 			$form[] = array(
 				'type'	=> 'button',
 				'link'	=> 'action',
@@ -1187,6 +1219,7 @@ function wp_lib_page_give_item_past() {
 	
 	// Initialises form
 	$form = array(
+		wp_lib_prep_nonce( 'Give item past. loan ID: ' . $loan_id ),
 		array(
 			'type'	=> 'hidden',
 			'name'	=> 'loan_id',

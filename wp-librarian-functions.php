@@ -607,6 +607,7 @@ function wp_lib_error( $error_id, $die = false, $param = 'NULL' ) {
 	// 3xx - Invalid loan/return parameters
 	// 4xx - Error loaning/returning item or fining user
 	// 5xx - AJAX systems error
+	// 6xx - Debugging Errors
 	// 8xx - JavaScript Errors, stored client-side
 	// 9xx - Error processing error
 	$all_errors = array(
@@ -660,6 +661,8 @@ function wp_lib_error( $error_id, $die = false, $param = 'NULL' ) {
 		503	=> 'Nonce failed to verify, try reloading the page',
 		504	=> 'Unknown API request',
 		504	=> 'Object not authorised for deletion',
+		600	=> 'Unable to schedule debugging loan',
+		601	=> 'Unable to fulfil successfully scheduled debugging loan',
 		901 => 'Error encountered while processing error (error code not a number)',
 		902 => 'Error encountered while processing error (error does not exist)'
 	);
