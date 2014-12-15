@@ -45,14 +45,14 @@ $meta_formatting = array(
 				'title'		=> 'Available',
 				'name'		=> 'wp_lib_item_loanable',
 				'type'		=> 'checkbox',
-				'alt-text'	=> 'Check if item can be loaned',
+				'altText'	=> 'Check if item can be loaned',
 				'default'	=> 'checked'
 			),
 			array(
 				'title'		=> 'Hide from listing',
 				'name'		=> 'wp_lib_item_delist',
 				'type'		=> 'checkbox',
-				'alt-text'	=> 'Check to hide from public list of items'
+				'altText'	=> 'Check to hide from public list of items'
 			),
 			array(
 				'title'		=> 'Condition',
@@ -80,14 +80,14 @@ $meta_formatting = array(
 			array(
 				'title'		=> 'Donor',
 				'id'		=> 'meta-donor-selector',
-				'alt-text'	=> 'Select member that donated the item',
+				'altText'	=> 'Select member that donated the item',
 				'name'		=> 'wp_lib_item_donor',
 				'type'		=> 'select',
 				'options'	=> $donors
 			),
 			array(
 				'title'		=> 'Display Donor Publicly',
-				'alt-text'	=> 'Whether or not to display the donor\'s name publicly',
+				'altText'	=> 'Whether or not to display the donor\'s name publicly',
 				'name'		=> 'wp_lib_display_donor',
 				'type'		=> 'checkbox'
 			),

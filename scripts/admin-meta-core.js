@@ -48,6 +48,11 @@ jQuery( document ).ready(function($) {
 				// Initialises element's properties
 				var elementObject = wp_lib_init_object( metaField );
 				
+				// If element has hover over text, add to element
+				if ( metaField.hasOwnProperty('altText')) {
+					elementObject.title = metaField.altText;
+				}
+				
 				// Performs actions based on the meta field's specific element type
 				switch( metaField.type ) {
 					// For select elements (drop down menus)
