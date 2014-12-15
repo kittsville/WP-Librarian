@@ -104,10 +104,20 @@ function wp_lib_render_notification( notificationText ) {
 	// Selects the notification using its ID
 	var notification = jQuery( '.' + result[0] );
 	
+	// Calculates how long to display the notification, based on its length
+	var displayTime = notificationText[1].length * 150;
+	
+	// Ensures error message display doesn't display for too little or too long
+	if ( displayTime < 3500 ) {
+		displayTime = 3500;
+	} else if ( displayTime > 7000 ) {
+		displayTime = 9000;
+	}
+	
 	// Sets notification to fade away after 5 seconds then get deleted
 	setTimeout(function(){
 		wp_lib_hide_notification( notification );
-	}, 7000 );
+	}, displayTime );
 }
 
 // Renders client-side notification straight to the browser, no buffering
