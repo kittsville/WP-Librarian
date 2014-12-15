@@ -87,6 +87,7 @@ table.lib-metabox td {
 	border-radius: 2px;
 	vertical-align: top;
 	margin: 1px;
+	height: 28px;
 }
 
 /* Dash Home Buttons */
@@ -99,15 +100,28 @@ div.dash-button-wrapper {
 	margin: -55px auto auto auto;
 }
 
-div.dashboard-icon {
+div.dash-icon {
 	color: #F9F9F9;
-	vertical-align: top;
-	font-size: 80px;
-	height: 80px;
-	width: 80px;
 	display: block;
 	margin-left: auto;
 	margin-right: auto;
+}
+
+.dash-icon-large {
+	font-size: 80px;
+	height: 80px;
+	width: 80px;
+}
+
+.dash-icon-medium {
+	margin: 2px;
+	font-size: 25px;
+	height: 25px;
+	width: 25px;
+}
+
+.dash-icon-medium-parent {
+	padding: 1px 8px;
 }
 
 h4.dash-button-text {

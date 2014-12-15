@@ -263,7 +263,7 @@ function wp_lib_render_page( pageArray ) {
 			// Collects form parameters
 			$( pageArray.content.form ).each( function( i, e ) {
 				if ( e.hasOwnProperty('type') && e.type === 'hidden' ) {
-					urlBase += '&' + e.name + '=' + e.value; // GGG check if finished
+					urlBase += '&' + e.name + '=' + e.value;
 				}
 			});
 		}
@@ -400,6 +400,14 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 					return;
 				break;
 			}
+			
+			// If button has an icon overwrite button contents with icon
+			if ( pageItem.hasOwnProperty( 'icon' ) ) {
+				theElement.html($('<div/>',{
+					'class'	: 'dash-icon dash-icon-medium dashicons dashicons-' + pageItem.icon,
+				}))
+				.addClass('dash-icon-medium-parent'); // Adds class to icon parent (button) as CSS3 selectors don't support selecting an element based on its children
+			}
 		break;
 		
 		// Dash urls give the appearance of regular URLs, but are loaded dynamically when clicked
@@ -465,7 +473,7 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 				break;
 			}
 			
-			// If dash icon is not valid, sets default
+			// If dash icon is not valid, sets to default (a cross)
 			if ( !pageItem.hasOwnProperty( 'icon' ) ) {
 				pageItem.icon = 'no';
 			}
@@ -478,7 +486,7 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 				html	: [
 					// Icon
 					$('<div/>', {
-						'class'	: 'dashboard-icon dashicons dashicons-' + pageItem.icon,
+						'class'	: 'dash-icon dash-icon-large dashicons dashicons-' + pageItem.icon,
 						'alt'	: pageItem.title + ' Icon'
 					}),
 					// Button text

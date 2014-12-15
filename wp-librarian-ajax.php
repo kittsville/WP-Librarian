@@ -910,7 +910,7 @@ function wp_lib_page_manage_item() {
 	$form[] = array(
 		'type'	=> 'button',
 		'link'	=> 'edit',
-		'html'	=> 'Edit',
+		'icon'	=> 'edit'
 	);
 	
 	// Only show item deletion button if item isn't on loan
@@ -919,7 +919,7 @@ function wp_lib_page_manage_item() {
 			'type'	=> 'button',
 			'link'	=> 'page',
 			'value'	=> 'object-deletion',
-			'html'	=> 'Delete'
+			'icon'	=> 'trash'
 		);
 	}
 	
