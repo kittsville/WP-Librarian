@@ -598,7 +598,7 @@ function wp_lib_cancel_fine( $fine_id ) {
 function wp_lib_error( $error_id, $die = false, $param = 'NULL' ) {
 	// Checks if error code is valid and error exists, if not returns error
 	if ( !is_numeric( $error_id ) )
-		wp_lib_error( 901, $die );
+		wp_lib_error( 901, true );
 	
 	// Array of all error codes and their explanations
 	//   0 - Reserved, see wp_lib_add_notification()
