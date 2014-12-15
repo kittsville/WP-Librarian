@@ -1051,9 +1051,9 @@ function wp_lib_display_item_meta( $item_id, $item_permalink = true ) {
 	// Fetches default taxonomy spacer
 	$spacer = get_option( 'wp_lib_taxonomy_spacer', ', ' );
 	
-	// If user is librarian, or higher, fetches item donor
+	// If user is librarian (or higher), or if the donor is set to be displayed, fetches item donor
 	// If user isn't a librarian, or there is no listed donor, returns false
-	$donor_id = ( wp_lib_is_librarian() ? get_post_meta( $item_id, 'wp_lib_item_donor', true ) : false );
+	$donor_id = ( wp_lib_is_librarian() || get_post_meta( $item_id, 'wp_lib_display_donor', true ) ? get_post_meta( $item_id, 'wp_lib_item_donor', true ) : false );
 	
 	// If donor ID belongs to a valid donor, fetch donor's name
 	$donor = ( is_numeric( $donor_id ) ? get_the_title( $donor_id ) : false );

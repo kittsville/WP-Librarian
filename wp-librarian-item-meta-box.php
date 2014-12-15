@@ -86,6 +86,12 @@ $meta_formatting = array(
 				'options'	=> $donors
 			),
 			array(
+				'title'		=> 'Display Donor Publicly',
+				'alt-text'	=> 'Whether or not to display the donor\'s name publicly',
+				'name'		=> 'wp_lib_display_donor',
+				'type'		=> 'checkbox'
+			),
+			array(
 				'title'		=> 'Barcode',
 				'name'		=> 'wp_lib_item_barcode',
 				'type'		=> 'text'

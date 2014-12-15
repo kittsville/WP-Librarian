@@ -655,6 +655,10 @@ add_action( 'save_post', function ( $post_id, $post ) {
 					'sanitize'	=> 'wp_lib_sanitize_checkbox'
 				),
 				array(
+					'key'		=> 'wp_lib_display_donor',
+					'sanitize'	=> 'wp_lib_sanitize_checkbox'
+				),
+				array(
 					'key'		=> 'wp_lib_item_condition',
 					'sanitize'	=> 'wp_lib_sanitize_number'
 				),
