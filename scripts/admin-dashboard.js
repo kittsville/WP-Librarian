@@ -101,7 +101,7 @@ function wp_lib_do_action( dashAction, params ) {
 				// Checks for any reported errors (notifications). If none were reported uses default error message
 				wp_lib_display_notifications( function( notifications ) {
 					if ( notifications.length === 0 ) {
-						wp_lib_local_error( 'The action could not be completed and the server did not explain why' );
+						wp_lib_local_error( 'The action could not be completed but the server did not explain why' );
 					}
 				});
 			break;
@@ -135,12 +135,17 @@ function wp_lib_load_page( ajaxData, stateLoad ) {
 	}
 	
 	// Requests page from server, with function handling any failures
-	wp_lib_send_ajax( ajaxData, false, function( serverResponse ) {
+	wp_lib_send_ajax( ajaxData, true, function( serverResponse ) {
 		// Performs actions based on how server responded
 		switch( serverResponse[0] ) {
 			// If server responded to indicate WP-Librarian failure
 			case 3:
-				wp_lib_local_error( 'Server encounted error while loading page' );
+				// Checks for any reported errors (notifications). If none were reported uses default error message
+				wp_lib_display_notifications( function( notifications ) {
+					if ( notifications.length === 0 ) {
+						wp_lib_local_error( 'Server encounted error while loading page but didn\'t specify why' );
+					}
+				});
 			break;
 			
 			// If server responded to indicate success
