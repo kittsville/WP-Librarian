@@ -222,7 +222,7 @@ function wp_lib_send_ajax( ajaxData, noNotificationFetch, postCallFunction ) {
 	jQuery.post( ajaxurl, ajaxData )
 	.done( function( response ) {
 		// Checks if WP_AJAX hook does not exist
-		if ( response == '0' ) {
+		if ( response === '0' ) {
 			wp_lib_local_error( "WordPress AJAX action invalid, most likely a permissions issue." );
 			
 			// Sets output status
@@ -236,9 +236,6 @@ function wp_lib_send_ajax( ajaxData, noNotificationFetch, postCallFunction ) {
 			switch( ajaxResult ) {
 				// If server response could not be parsed as JSON
 				case 0:
-					// Fetches and renders any new notifications, as one have been generated in the process of the server failing to return a valid response
-					wp_lib_display_notifications();
-					
 					// Sets output status
 					outputBuffer[0] = 2;
 				break;
