@@ -487,12 +487,11 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 					// Icon
 					$('<div/>', {
 						'class'	: 'dash-icon dash-icon-large dashicons dashicons-' + pageItem.icon,
-						'alt'	: pageItem.title + ' Icon'
 					}),
 					// Button text
 					$('<h4/>',{
 						'class'	: 'dash-button-text',
-						html	: pageItem.title
+						html	: pageItem.bName
 					})
 				]})
 			);

@@ -632,46 +632,53 @@ function wp_lib_page_dashboard() {
 	// Dashboard icons
 	$buttons = array(
 		array(
-			'title'	=> 'Scan Barcode',
+			'bName'	=> 'Scan Barcode',
 			'icon'	=> 'search',
 			'link'	=> 'dash-page',
-			'value'	=> 'scan-item'
+			'value'	=> 'scan-item',
+			'title'	=> 'Enter item barcode or ISBN'
 		),
 		array(
-			'title'	=> 'Manage Items',
+			'bName'	=> 'Manage Items',
 			'icon'	=> 'book-alt',
 			'link'	=> 'dash-page',
-			'value'	=> 'view-items'
+			'value'	=> 'view-items',
+			'title'	=> 'View list of all items'
 		),
 		array(
-			'title'	=> 'Manage Members',
+			'bName'	=> 'Manage Members',
 			'icon'	=> 'admin-users',
 			'link'	=> 'post-type',
-			'pType'	=> 'wp_lib_members'
+			'pType'	=> 'wp_lib_members',
+			'title'	=> 'View list of all members'
 		),
 		array(
-			'title'	=> 'Manage Loans',
+			'bName'	=> 'Manage Loans',
 			'icon'	=> 'upload',
 			'link'	=> 'post-type',
-			'pType'	=> 'wp_lib_loans'
+			'pType'	=> 'wp_lib_loans',
+			'title'	=> 'View list of all loans'
 		),
 		array(
-			'title'	=> 'Manage Fines',
+			'bName'	=> 'Manage Fines',
 			'icon'	=> 'carrot', // Placeholder carrot
 			'link'	=> 'post-type',
-			'pType'	=> 'wp_lib_fines'
+			'pType'	=> 'wp_lib_fines',
+			'title'	=> 'View list of all fines'
 		),
 		array(
-			'title'	=> 'Settings',
+			'bName'	=> 'Settings',
 			'icon'	=> 'admin-generic',
 			'link'	=> 'admin-url',
-			'url'	=> 'edit.php?post_type=wp_lib_items&page=wp-lib-settings'
+			'url'	=> 'edit.php?post_type=wp_lib_items&page=wp-lib-settings',
+			'title'	=> 'Change WP-Librarian\'s settings'
 		),
 		array(
-			'title'	=> 'Help',
+			'bName'	=> 'Help',
 			'icon'	=> 'editor-help',
 			'link'	=> 'url',
-			'url'	=> 'https://github.com/kittsville/WP-Librarian/wiki'
+			'url'	=> 'https://github.com/kittsville/WP-Librarian/wiki',
+			'title'	=> 'Read plugin documentation'
 		)
 	);
 
@@ -814,7 +821,8 @@ function wp_lib_page_manage_item() {
 			'type'	=> 'button',
 			'link'	=> 'action',
 			'value'	=> 'run-test-loan',
-			'html'	=> 'Create Debug Entry'
+			'html'	=> 'Create Debug Entry',
+			'title'	=> 'Create loan that is automatically late to test site functionality'
 		);
 	}
 	
@@ -910,7 +918,8 @@ function wp_lib_page_manage_item() {
 	$form[] = array(
 		'type'	=> 'button',
 		'link'	=> 'edit',
-		'icon'	=> 'edit'
+		'icon'	=> 'edit',
+		'title'	=> 'Edit Item'
 	);
 	
 	// Only show item deletion button if item isn't on loan
@@ -919,7 +928,8 @@ function wp_lib_page_manage_item() {
 			'type'	=> 'button',
 			'link'	=> 'page',
 			'value'	=> 'object-deletion',
-			'icon'	=> 'trash'
+			'icon'	=> 'trash',
+			'title'	=> 'Delete Item'
 		);
 	}
 	

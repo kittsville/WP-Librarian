@@ -281,7 +281,7 @@ function wp_lib_init_object( pageItem ) {
 	elementObject = {};
 	
 	// Iterates over basic properties, adding them to the object if they exist
-	jQuery( [ 'id', 'name', 'value', 'html' ] ).each( function( i, e ) {
+	jQuery( [ 'id', 'name', 'value', 'html', 'title' ] ).each( function( i, e ) {
 		if ( e in pageItem ) {
 			elementObject[e] = pageItem[e];
 		}
