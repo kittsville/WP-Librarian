@@ -837,8 +837,9 @@ function wp_lib_page_manage_item() {
 		$form[] = array(
 			'type'	=> 'button',
 			'link'	=> 'page',
-			'html'	=> 'Return at a past date',
-			'value'	=> 'return-past'
+			'html'	=> 'Return Past',
+			'value'	=> 'return-past',
+			'title'	=> 'Return item at a past date'
 		);
 		
 		// If item is late
@@ -848,7 +849,8 @@ function wp_lib_page_manage_item() {
 				'type'	=> 'button',
 				'link'	=> 'page',
 				'html'	=> 'Resolve',
-				'value'	=> 'resolve-loan'
+				'value'	=> 'resolve-loan',
+				'title'	=> 'Choose whether or not to fine the user for the late return'
 			);
 		
 		} else {
@@ -857,7 +859,8 @@ function wp_lib_page_manage_item() {
 				'type'	=> 'button',
 				'link'	=> 'action',
 				'html'	=> 'Return',
-				'value'	=> 'return-item'
+				'value'	=> 'return-item',
+				'title'	=> 'Return item to the library'
 			);
 		}
 	}
@@ -909,7 +912,8 @@ function wp_lib_page_manage_item() {
 			'type'	=> 'button',
 			'link'	=> 'page',
 			'html'	=> 'Schedule Loan',
-			'value'	=> 'scheduling-page'
+			'value'	=> 'scheduling-page',
+			'title'	=> 'Schedule a loan to be fulfilled later'
 		);
 
 	}
@@ -973,7 +977,8 @@ function wp_lib_page_manage_member() {
 			'type'	=> 'button',
 			'link'	=> 'page',
 			'value'	=> 'pay-fines',
-			'html'	=> 'Pay Fines'
+			'html'	=> 'Pay Fines',
+			'title'	=> 'Subtract money from amount owed by member'
 		);
 	}
 	
@@ -981,7 +986,8 @@ function wp_lib_page_manage_member() {
 	$form[] = array(
 		'type'	=> 'button',
 		'link'	=> 'edit',
-		'html'	=> 'Edit',
+		'icon'	=> 'edit',
+		'title'	=> 'Edit member details'
 	);
 	
 	// Button to delete member
@@ -989,7 +995,8 @@ function wp_lib_page_manage_member() {
 		'type'	=> 'button',
 		'link'	=> 'page',
 		'value'	=> 'object-deletion',
-		'html'	=> 'Delete'
+		'icon'	=> 'trash',
+		'title'	=> 'Delete member and all their loans/fines'
 	);
 	
 	// Sets up loan history query arguments
@@ -1121,7 +1128,8 @@ function wp_lib_page_manage_loan() {
 			'type'	=> 'button',
 			'link'	=> 'page',
 			'value'	=> 'give-item-past',
-			'html'	=> 'Loan Item at a Past Date'
+			'html'	=> 'Loan at a Past Date',
+			'title'	=> 'Mark item as having been given to the member at a past date'
 		);
 	
 	// If item is currently on loan, provides button to return item
@@ -1138,7 +1146,8 @@ function wp_lib_page_manage_loan() {
 			'type'	=> 'button',
 			'link'	=> 'page',
 			'value'	=> 'manage-item',
-			'html'	=> 'Return Item'
+			'html'	=> 'Return Item',
+			'title'	=> 'Return item to the library'
 		);
 	}
 	
@@ -1148,7 +1157,8 @@ function wp_lib_page_manage_loan() {
 			'type'	=> 'button',
 			'link'	=> 'page',
 			'value'	=> 'object-deletion',
-			'html'	=> 'Delete'
+			'icon'	=> 'trash',
+			'title'	=> 'Delete loan and any connected fine'
 		);
 	}
 	
@@ -1189,7 +1199,8 @@ function wp_lib_page_manage_fine() {
 			'type'	=> 'button',
 			'link'	=> 'action',
 			'value'	=> 'cancel-fine',
-			'html'	=> 'Cancel Fine'
+			'html'	=> 'Cancel Fine',
+			'title'	=> 'Mark fine as cancelled. This stops the member owing the fine\'s charge'
 		);
 	}
 	
@@ -1198,7 +1209,8 @@ function wp_lib_page_manage_fine() {
 		'type'	=> 'button',
 		'link'	=> 'page',
 		'value'	=> 'object-deletion',
-		'html'	=> 'Delete'
+		'icon'	=> 'trash',
+		'title'	=> 'Delete fine. Does not cancel money owed by member'
 	);
 	
 	// Sends entire page to be encoded in JSON
@@ -1490,19 +1502,22 @@ function wp_lib_page_resolution_page() {
 			'type'	=> 'button',
 			'link'	=> 'action',
 			'value'	=> 'fine-member',
-			'html'	=> 'Fine'
+			'html'	=> 'Fine',
+			'title'	=> 'Charge member given fine amount and return item'
 		),
 		array(
 			'type'	=> 'button',
 			'link'	=> 'action',
 			'value'	=> 'return-item-no-fine',
-			'html'	=> 'Return with no Fine'
+			'html'	=> 'Return with no Fine',
+			'title'	=> 'Return item without fining user'
 		),
 		array(
 			'type'	=> 'button',
 			'link'	=> 'page',
 			'value'	=> 'manage-item',
-			'html'	=> 'Cancel'
+			'html'	=> 'Cancel',
+			'title'	=> 'Go back to item management page'
 		)
 	);
 	
@@ -1691,7 +1706,8 @@ function wp_lib_page_confirm_deletion() {
 			array(
 				'type'	=> 'button',
 				'link'	=> 'page',
-				'html'	=> 'Cancel'
+				'html'	=> 'Cancel',
+				'title'	=> 'Cancel deletion and return to Dashboard home'
 			)
 		)
 	);
