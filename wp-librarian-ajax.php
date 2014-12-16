@@ -433,6 +433,7 @@ add_action( 'wp_ajax_wp_lib_api', function() {
 	
 	// Performs action based on request
 	switch( $_POST['api_request'] ) {
+		// Loads member metabox, given member ID
 		case 'member-metabox':
 			// Fetches member ID from AJAX request
 			$member_id = $_POST['member_id'];
@@ -463,6 +464,12 @@ add_action( 'wp_ajax_wp_lib_api', function() {
 			));
 		break;
 		
+		// Fetches parameters for barcode scanning script from database
+		case 'barcode-setup':
+			wp_lib_stop_ajax( get_option( 'wp_lib_barcode_config', array( false )));
+		break;
+		
+		// Looks up item based on given ISBN or barcode
 		case 'scan-barcode':
 			// Fetches barcode
 			$barcode = $_POST['code'];
@@ -471,7 +478,7 @@ add_action( 'wp_ajax_wp_lib_api', function() {
 			$isbn = wp_lib_sanitize_isbn( $barcode );
 			
 			// If sanitization fails, assumes given value is a barcode
-			if ( $isbn == '' ) {
+			if ( $isbn === '' ) {
 				// If barcode is zero, invalid barcode was given
 				if ( !ctype_digit( $barcode ) )
 				wp_lib_stop_ajax( false, 318 );

@@ -63,6 +63,18 @@ $options = array(
 		'key' 		=> 'wp_lib_currency_position',
 		'default'	=> '2'
 	),
+	
+	/* -- Dashboard -- */
+	/* Settings relating to the Library Dashboard */
+	
+	array(
+		// Whether to automatically search for an item with the given barcode when the given length is reached
+		'key'		=> 'wp_lib_barcode_config',
+		'default'	=> array(
+			'autoFetch'	=> false,
+			'length'	=> 8
+		)
+	)
 );
 
 // Iterates over all options, adding they if they do not exist or are invalid
