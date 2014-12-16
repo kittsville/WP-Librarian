@@ -1,6 +1,6 @@
 jQuery(function($){
 	// Selects member select field
-	var memberSelect = $( 'form#library-form select.member-select' );
+	var memberSelect = $( 'form#lib-form select.member-select' );
 	
 	// Fetches select field's current value
 	var currentMember = memberSelect.val();
