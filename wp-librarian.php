@@ -842,8 +842,8 @@ add_action( 'admin_init', function () {
 		'wp_lib_library_group-options'
 	);
 	
-	// All Library options settings parameters
-	$library_settings = array(
+	// Iterates over general Library settings, adding each setting field
+	foreach( [
 		array(
 			'name'		=> 'wp_lib_loan_length',
 			'title'		=> 'Default Loan Length',
@@ -905,9 +905,7 @@ add_action( 'admin_init', function () {
 					return 2;
 			}
 		)
-	);
-	
-	foreach ( $library_settings as $setting ) {
+	] as $setting ) {
 		add_settings_field( $setting['name'], $setting['title'], 'wp_lib_render_field_lib_options', 'wp_lib_library_group-options', 'wp_lib_library_group', $setting );
 		register_setting( 'wp_lib_library_group-options', $setting['name'], $setting['callback'] );
 	}
@@ -924,8 +922,14 @@ add_action( 'admin_init', function () {
 		'wp_lib_slug_group-options'
 	);
 	
-	// All slugs settings parameters
-	$slugs_settings = array(
+	// Fetches site URL
+	$site_url = site_url();
+	
+	// Fetches main slug
+	$main_slug = get_option( 'wp_lib_main_slug', 'null' );
+	
+	// Creates settings field for each slug
+	foreach ( [
 		array(
 			'name'	=> 'wp_lib_main_slug',
 			'title'	=> 'Main',
@@ -943,16 +947,7 @@ add_action( 'admin_init', function () {
 			'alt'	=> 'This forms the url for browsing items by media type',
 			'end'	=> 'comic-books'
 		)
-	);
-	
-	// Fetches site URL
-	$site_url = site_url();
-	
-	// Fetches main slug
-	$main_slug = get_option( 'wp_lib_main_slug', 'null' );
-	
-	// Creates settings field for each slug
-	foreach ( $slugs_settings as $setting ) {
+	] as $setting ) {
 		$setting['url'] = $site_url;
 		$setting['main'] = $main_slug;
 		add_settings_field( $setting['name'], $setting['title'], 'wp_lib_render_field_slug', 'wp_lib_slug_group-options', 'wp_lib_slug_group', $setting );
