@@ -2,7 +2,7 @@ jQuery( document ).ready(function($) {
 	// Workaround for IE9 and older (God I hate IE so much...)
 	$('[autofocus]:not(:focus)').eq(0).focus();
 	
-	var barcodeSubmit = $('a#barcode-submit');
+	var barcodeSubmit = $('form#lib-form a#barcode-submit');
 	
 	// Fetches barcode length and auto-fetch parameters
 	wp_lib_api_call( {'api_request':'barcode-setup'}, function( serverResult ) {
