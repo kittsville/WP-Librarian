@@ -27,6 +27,7 @@ jQuery( document ).ready(function($) {
 			'api_request'	: 'scan-barcode',
 			'code'			: $(e.target).siblings('input#barcode-input').val()
 		};
+		
 		wp_lib_api_call( params, function( serverResult ) {
 			// If server successfully found an item with that barcode
 			if ( serverResult[0] === 4 ) {
