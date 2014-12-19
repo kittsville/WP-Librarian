@@ -316,7 +316,7 @@ function wp_lib_format_dash_url( $params = false ) {
 	$url = admin_url( 'edit.php?post_type=wp_lib_items&page=dashboard' );
 	
 	// Adds all, if any, parameters to the URL
-	if ( $params ) {
+	if ( is_array( $params ) ) {
 		foreach ( $params as $key => $value ) {
 			$url .= '&' . $key . '=' . $value;		
 		}
