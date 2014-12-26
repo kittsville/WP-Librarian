@@ -337,7 +337,7 @@ function wp_lib_script_url( $name ) {
 
 // Formats CSS file's URL using its name. Presumes default css dir is used
 function wp_lib_style_url( $name ) {
-	return plugins_url( '/css/'. $name . '.css', __FILE__ );
+	return plugins_url( '/styles/'. $name . '.css', __FILE__ );
 }
 
 // Returns item's title formatted as a hyperlink to manage that item
