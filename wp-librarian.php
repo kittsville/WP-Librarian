@@ -47,6 +47,8 @@ require_once (plugin_dir_path(__FILE__) . '/wp-librarian-ajax.php');
 // Creates custom post types to store library items and loans
 add_action( 'init', 'wp_lib_register_post_and_tax' );
 function wp_lib_register_post_and_tax() {
+	// Fetches slugs
+	$slugs = get_option( 'wp_lib_slugs', array('wp-librarian','item','authors','type'));
 
 	/* Registers Items as custom post type */
 	/* Items represent physical item in the Library, such as a single copy of a book */
@@ -76,7 +78,7 @@ function wp_lib_register_post_and_tax() {
 			'taxonomies'			=> array( '' ),
 			'menu_icon'				=> 'dashicons-book-alt',
 			'has_archive'			=> true,
-			'rewrite'				=> array('slug' => wp_lib_prefix_url( 'wp_lib_single_slug', 'item' )),
+			'rewrite'				=> array('slug' => $slugs[0].'/'.$slugs[1]),
 			'register_meta_box_cb'	=> 'wp_lib_setup_item_meta_box'
 		)
 	);
@@ -190,7 +192,7 @@ function wp_lib_register_post_and_tax() {
 			'update_count_callback'	=> '_update_post_term_count',
 			'query_var'				=> true,
 			'rewrite'				=> array(
-				'slug'			=> wp_lib_prefix_url( 'wp_lib_authors_slug', 'authors' ),
+				'slug'			=> $slugs[0].'/'.$slugs[2],
 				'with_front'	=> false,
 				'hierarchical'	=> true
 			),
@@ -229,7 +231,7 @@ function wp_lib_register_post_and_tax() {
 			'show_admin_column'	=> true,
 			'query_var'			=> true,
 			'rewrite'			=> array(
-				'slug'			=> wp_lib_prefix_url( 'wp_lib_media_type_slug', 'type' ),
+				'slug'			=> $slugs[0].'/'.$slugs[3],
 				'with_front'	=> false,
 				'hierarchical'	=> true
 			),
@@ -250,7 +252,7 @@ function wp_lib_register_post_and_tax() {
 	);
 	
 	// Creates Default Media Type entries if they don't already exist, unless configured otherwise
-	if ( get_option( 'wp_lib_default_media_types', true ) ) {
+	if ( wp_lib_prep_boolean_option( get_option( 'wp_lib_default_media_types', '3' )[0] ) ) {
 		$default_media_types = array(
 			array(
 				'name' => 'Book',
@@ -831,188 +833,213 @@ add_action( 'admin_menu', function() {
 
 // Sets up plugin settings
 add_action( 'admin_init', function () {
+	// Loads helper to manage settings sections
+	wp_lib_add_helper( 'settings' );
 
 	/* -- General Library Settings -- */
-
-	// Registers settings groups and their sanitization callbacks for the slugs used on the front-end of the plugin
-	add_settings_section(
-		'wp_lib_library_group',
-		'General Settings',
-		false,
-		'wp_lib_library_group-options'
-	);
 	
-	// Iterates over general Library settings, adding each setting field
-	foreach( [
-		array(
-			'name'		=> 'wp_lib_loan_length',
-			'title'		=> 'Default Loan Length',
-			'alt'		=> 'The default number of days to loan an item.',
-			'callback'	=>
-				function( $raw ) {
-					$raw = (int)trim($raw);
-					
-					if ( is_numeric($raw) && $raw > 0 ) {
-						return $raw;
-					} else {
-						return '';
-					}
-				}
-		),
-		array(
-			'name'		=> 'wp_lib_fine_daily',
-			'title'		=> 'Late Fine',
-			'alt'		=> 'Amount to charge a member, per day, for a late item.',
-			'filter'	=> function( &$input ) { $input['value'] = number_format( $input['value'], 2 ); },
-			'callback'	=>
-				function( $raw ) {
-					$raw = (float)trim($raw);
-					
-					if ( is_numeric($raw) && $raw >= 0 ) {
-						return $raw;
-					} else {
-						return '';
-					}
-				}
-		),
-		array(
-			'name'		=> 'wp_lib_currency_symbol',
-			'title'		=> 'Currency Symbol',
-			'alt'		=> 'Set the symbol to be used before or after money is displayed',
-			'callback'	=>
-			function( $raw ) {
-				return htmlentities( substr( iconv('UTF-8', 'ISO-8859-15', trim( $raw )), 0, 4 ), ENT_QUOTES, 'ISO-8859-15' );
-			}
-		),
-		array(
-			'name'		=> 'wp_lib_currency_position',
-			'title'		=> 'Currency Position',
-			'alt'		=> 'Check box to display currency symbol after value e.g. 0.40EUR',
-			'filter'	=>
-			function( &$input ) {
-				if ( $input['value'] == 3 )
-					$input['checked'] = 'checked';
-				$input['value'] = '3';
-				$input['type'] = 'checkbox';
-			},
-			'callback'	=>
-			function ( $raw ) {
-				// If checkbox is checked, set currency symbol as after value (3)
-				if ( $raw == 3 )
-					return 3;
-				// Else set symbol as before value (2)
-				else
-					return 2;
-			}
+	// Registers general settings section, settings and fields with sanitization callbacks
+	new WP_LIB_SETTINGS(array(
+		'name'		=> 'wp_lib_library_group',
+		'title'		=> 'General Settings',
+		'page'		=> 'wp_lib_library_group-options',
+		'settings'	=> array(
+			array(
+				'name'			=> 'wp_lib_loan_length',
+				'sanitize'		=>
+					function( $raw ) {
+						// Removes unnecessary whitespace and attempts to convert input to an int
+						$raw[0] = (int)trim($raw[0]);
+						
+						// If input is valid, allow setting to update, otherwise return nothing
+						if ( is_int($raw[0]) && $raw[0] > 0 )
+							return $raw;
+						else
+							return;
+					},
+				'fields'		=> array(
+					array(
+						'name'			=> 'Default Loan Length',
+						'field_type'	=> 'textInput',
+						'args'			=> array(
+							'alt'		=> 'The default number of days to loan an item'
+						)
+					)
+				)
+			),
+			array(
+				'name'		=> 'wp_lib_fine_daily',
+				'sanitize'	=>
+					function( $raw ) {
+						$raw[0] = (float)trim($raw[0]);
+						
+						if ( is_numeric($raw[0]) && $raw[0] >= 0 ) {
+							return $raw;
+						} else {
+							return;
+						}
+					},
+				'fields'	=> array(
+					array(
+						'name'			=> 'Late Fine',
+						'field_type'	=> 'textInput',
+						'args'			=> array(
+							'alt'		=> 'Amount to charge a member, per day, for a late item',
+							'filter'	=> function( $input ) { return number_format( $input, 2 ); }
+						)
+					)
+				)
+			),
+			array(
+				'name'		=> 'wp_lib_currency',
+				'sanitize'	=>
+					function( $raw ) {
+						return array(
+							htmlentities( substr( iconv('UTF-8', 'ISO-8859-15', trim( $raw[0] )), 0, 4 ), ENT_QUOTES, 'ISO-8859-15' ),
+							wp_lib_sanitize_option_checkbox( $raw[1] )
+						);
+					},
+				'fields'	=> array(
+					array(
+						'name'		=> 'Currency Symbol',
+						'field_type'=> 'textInput',
+						'args'		=> array(
+							'alt'	=> 'Set the symbol to be used before or after money is displayed'
+						)
+					),
+					array(
+						'name'		=> 'Currency Position',
+						'field_type'=> 'checkboxInput',
+						'args'		=> array(
+							'alt'	=> 'Check box to display currency symbol after value e.g. 0.40EUR'
+						)
+					)
+				)
+			)
 		)
-	] as $setting ) {
-		add_settings_field( $setting['name'], $setting['title'], 'wp_lib_render_field_lib_options', 'wp_lib_library_group-options', 'wp_lib_library_group', $setting );
-		register_setting( 'wp_lib_library_group-options', $setting['name'], $setting['callback'] );
-	}
+	));
 
 	/* -- Slug Settings -- */
 
 	// Registers settings groups and their sanitization callbacks for the slugs used on the front-end of the plugin
-	add_settings_section(
-		'wp_lib_slug_group',
-		'Slugs',
-		function(){
-			echo '<p>These form the URLs of the front end of your website</p>';
+	new WP_LIB_SETTINGS(array(
+		'name'		=> 'wp_lib_slug_group',
+		'title'		=> 'Front-end Slugs',
+		'callback'	=> function(){
+			echo '<p>These form the URLs of the front-end pages of your library</p>';
 		},
-		'wp_lib_slug_group-options'
-	);
-	
-	// Fetches site URL
-	$site_url = site_url();
-	
-	// Fetches main slug
-	$main_slug = get_option( 'wp_lib_main_slug', 'null' );
-	
-	// Creates settings field for each slug
-	foreach ( [
-		array(
-			'name'	=> 'wp_lib_main_slug',
-			'title'	=> 'Main',
-			'alt'	=> 'This forms the base of all public Library pages'
-		),
-		array(
-			'name'	=> 'wp_lib_authors_slug',
-			'title'	=> 'Authors',
-			'alt'	=> 'This forms the url for browsing items by author',
-			'end'	=> 'terry-pratchett'
-		),
-		array(
-			'name'	=> 'wp_lib_media_type_slug',
-			'title'	=> 'Media Type',
-			'alt'	=> 'This forms the url for browsing items by media type',
-			'end'	=> 'comic-books'
+		'page'		=> 'wp_lib_slug_group-options',
+		'settings'	=> array(
+			array(
+				'name'			=> 'wp_lib_slugs',
+				'classes'		=> array('slug-input'),
+				'field_type'	=> 'textInput',
+				'sanitize'		=>
+					function( $raw ) {
+						foreach( range( 0, 3 ) as $position ) {
+							$output[$position] = sanitize_title(trim($raw[$position]));
+							
+							// If there were no valid characters left in the slug, cancels saving
+							if ( $output[$position] === '' )
+								return;
+						}
+						
+						// If author and media type slugs are identical, cancels saving
+						if ( $output[2] === $output[3] )
+							return;
+						
+						return $output;
+					},
+				'html_filter'	=>
+					function( $output, $args ) {
+						// Initialises url output preview
+						$url = '<span>' . site_url() . '</span>/<span name="main-slug-text"></span>/';
+						
+						// If slug is not the main slug, add to preview
+						if ( isset( $args['end'] ) )
+							$url .= '<span class="slug-preview"></span>/' . $args['end'] . '/';
+						
+						// Inserts preview of slug between input and description
+						array_splice( $output, 1, 0, '<label class="slug-label" for="'.$args['setting_name'].'['.$args['position'].']'.'">' . $url . '</label>' );
+						
+						return $output;
+					},
+				'fields'	=> array(
+					array(
+						'name'	=> 'Main',
+						'args'	=> array(
+							'alt'	=> 'This forms the base of all public Library pages'
+						)
+					),
+					array(
+						'name'	=> 'Single Item',
+						'args'	=> array(
+							'alt'	=> 'This indicates the user is viewing a single item',
+							'end'	=> 'war-and-peace'
+						)
+					),
+					array(
+						'name'	=> 'Authors',
+						'args'	=> array(
+							'alt'	=> 'This forms the url for browsing items by author',
+							'end'	=> 'terry-pratchett'
+						)
+					),
+					array(
+						'name'	=> 'Media Type',
+						'args'	=> array(
+							'alt'	=> 'This forms the url for browsing items by media type',
+							'end'	=> 'comic-books'
+						)
+					)
+				)
+			)
 		)
-	] as $setting ) {
-		$setting['url'] = $site_url;
-		$setting['main'] = $main_slug;
-		add_settings_field( $setting['name'], $setting['title'], 'wp_lib_render_field_slug', 'wp_lib_slug_group-options', 'wp_lib_slug_group', $setting );
-		register_setting( 'wp_lib_slug_group-options', $setting['name'], 'sanitize_title' );
-	}
+	));
+
+	/* -- Dashboard Settings -- */
+	
+	// Registers Dashboard Settings section with all relevant settings/fields
+	new WP_LIB_SETTINGS(array(
+		'name'		=> 'wp_lib_dash_group',
+		'title'		=> 'Dashboard',
+		'callback'	=>
+			function(){
+				echo '<p>These settings modify how the ' . wp_lib_hyperlink( wp_lib_format_dash_url(), 'Dashboard' ) . ' behaves</a></p>';
+			},
+		'page'		=> 'wp_lib_dash_group-options',
+		'settings'	=> array(
+			array(
+				'name'			=> 'wp_lib_barcode_config',
+				'sanitize'		=> function($raw){
+					// Sanitizes triggering barcode length
+					$raw[1] = wp_lib_sanitize_number( $raw[1] );
+					
+					return array(
+						wp_lib_sanitize_option_checkbox( $raw[0] ),
+						( ( $raw[1] > 30 ) ? 30 : ( $raw[1] < 1 ) ? 1 : $raw[1] ) // Rounds barcode length to between 1 and 30
+					);
+				},
+				'fields'		=> array(
+					array(
+						'name'			=> 'Barcode Auto-fetch',
+						'field_type'	=> 'checkboxInput',
+						'args'			=> array(
+							'alt'		=> 'If to automatically lookup an item when the barcode reaches a given length'
+						)
+					),
+					array(
+						'name'			=> 'Auto-fetch Length',
+						'field_type'	=> 'textInput',
+						'args'			=> array(
+							'alt'		=> 'Length at which to automatically look up an item\'s barcode'
+						)
+					),
+				)
+			)
+		)
+	));
 });
-
-// Renders a single setting field for general library options
-function wp_lib_render_field_lib_options( $args ) {
-	// Sets up input field's default properties
-	$input = array(
-		'type'	=> 'text',
-		'id'	=> $args['name'],
-		'name'	=> $args['name'],
-		'class'	=> 'lib-option-input',
-		'value'	=> get_option( $args['name'], '' )
-	);
-	
-	// If one exists, runs input properties through setting field's filtering function
-	if ( isset($args['filter']) )
-		$args['filter']( $input );
-	
-	// Initialises input element's properties
-	$input_properties = '';
-	
-	// Iterates over input element's properties, turning them into a single string e.g. $key='$value'
-	foreach ( $input as $key => $value ) {
-		$input_properties .= $key . '=\'' . $value . '\' ';
-	}
-	
-	// Renders input form and text explaining what the setting is for
-	echo '<input ' . $input_properties .  '/>';
-	
-	if ( isset( $args['alt'] ) ) {
-		echo '<p class="tooltip description">' . $args['alt'] . '</p>';
-	}
-}
-
-// Renders a single settings option for editing a slug
-function wp_lib_render_field_slug( $args ) {
-	// If the current slug is not the main slug, the slug's current value must be fetched
-	if ( $args['name'] != 'wp_lib_main_slug' ) {
-		$current_slug = get_option( $args['name'], 'null' );
-	// Otherwise current slug is main slug, so the option has already been fetched
-	} else {
-		$current_slug = $args['main'];
-		$is_main = true;
-	}
-	
-	// Fetches site URL
-	$site_url = site_url();
-	
-	// Renders input form and preview of slug, note classes are used by JavaScript on the page to provide a live preview
-	echo "<input type=\"text\" id=\"{$args['name']}\" name=\"{$args['name']}\" class=\"slug-input\" value=\"{$current_slug}\" />";
-	echo "<label for=\"{$args['name']}\" class=\"slug-label\">";
-	if ( $is_main )
-		echo "{$args['url']}/<span class=\"wp_lib_main_slug-text\">{$args['main']}</span>/";
-	else
-		echo "{$args['url']}/<span class=\"wp_lib_main_slug-text\">{$args['main']}</span>/<span class=\"{$args['name']}-text\">{$current_slug}</span>/{$args['end']}/";
-	echo '</label>';
-	
-	if ( isset( $args['alt'] ) ) {
-		echo '<p class="tooltip description">' . $args['alt'] . '</p>';
-	}
-}
 
 // Renders plugin settings page
 function wp_lib_render_settings() {
@@ -1038,7 +1065,7 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
 
 	// Sets up array of variables to be passed to JavaScript
 	$vars = array(
-			'siteUrl' 		=> get_option( 'siteurl' ),
+			'siteUrl' 		=> site_url(),
 			'adminUrl'		=> admin_url(),
 			'pluginsUrl'	=> plugins_url( '', __FILE__ ),
 			'dashUrl'		=> wp_lib_format_dash_url(),

@@ -239,7 +239,7 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 			$member_id = get_post_meta( $loan_id, 'wp_lib_member', true );
 			
 			// If item is successfully loaned
-			if ( wp_lib_give_item( $item_id, $loan_id, $member_id, $give_date ) ) {
+			if ( wp_lib_give_item( $loan_id, $give_date ) ) {
 				// Inform user of success via notification
 				wp_lib_add_notification( get_the_title( $item_id ) . ' has been loaned to ' . get_the_title( $member_id ) );
 				
@@ -256,8 +256,11 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 			// Fetches params from AJAX request
 			$item_id = $_POST['item_id'];
 			
+			// Member ID, currently manually set. Will use debugging user in future
+			$member_id = 6;
+			
 			// If item ID fails to validate or debugging mode isn't on, stop action
-			if ( !wp_lib_valid_item_id( $item_id ) || WP_LIB_DEBUGGING_MODE !== true )
+			if ( !wp_lib_valid_item_id( $item_id ) || WP_LIB_DEBUG_MODE !== true )
 				wp_lib_stop_ajax( false );
 			
 			// Validates Nonce
@@ -267,13 +270,13 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 			$end_date = current_time( 'timestamp' ) - ( 3 * 24 * 60 * 60 );
 			
 			// If possible creates loan of item starting 10 days ago, due 3 days ago (to test fining capabilities)
-			$loan_id = wp_lib_schedule_loan( $item_id, '127', $start_date, $end_date );
+			$loan_id = wp_lib_schedule_loan( $item_id, $member_id, $start_date, $end_date );
 			
 			if ( !is_numeric( $loan_id ) )
 				wp_lib_stop_ajax( false, 600 );
 			
 			// Fulfils scheduled loan, giving item 900 seconds after the loan was scheduled to start
-			if ( wp_lib_give_item( $item_id, $loan_id, '127', current_time( 'timestamp' ) - ( 10 * 24 * 60 * 60 ) + 900 ) ) {
+			if ( wp_lib_give_item( $loan_id, current_time( 'timestamp' ) - ( 10 * 24 * 60 * 60 ) + 900 ) ) {
 				wp_lib_add_notification( "Debugging loan created!" );
 				wp_lib_stop_ajax( true );
 			} else {
@@ -1484,7 +1487,7 @@ function wp_lib_page_resolution_page() {
 	// Item's title
 	$title = get_the_title( $item_id );
 	// Librarian set charge for each day an item is late
-	$fine_per_day = get_option( 'wp_lib_fine_daily' );
+	$fine_per_day = get_option( 'wp_lib_fine_daily', array(0) )[0];
 	// Days item is late
 	$late = -wp_lib_cherry_pie( $loan_id, $date );
 	// Total fine member member is facing, if charged

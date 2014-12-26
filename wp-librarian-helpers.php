@@ -4,6 +4,13 @@
  * These are a collection of various useful functions used by WP-Librarian to operate
  */
 
+	/* -- File Management -- */
+
+// Loads file containing requested helper classes. Will handle failure less extremely after greater use of classes
+function wp_lib_add_helper( $file_name ) {
+	require_once( plugin_dir_path(__FILE__) . '/helpers/' . $file_name . '.php' );
+}
+
 	/* -- Sanitising Functions -- */
 
 // Sanitizes phone number
@@ -27,12 +34,22 @@ function wp_lib_sanitize_item_cover( $raw ) {
 		return '';
 }
 
-// Santizes HTML POST data from a checkbox
+// Sanitizes HTML POST data from a checkbox
 function wp_lib_sanitize_checkbox( $raw ) {
 	if ( $raw == 'true' )
 		return true;
 	else
 		return false;
+}
+
+// Sanitizes HTML POST data from checkbox from options page
+function wp_lib_sanitize_option_checkbox( $raw ) {
+	return ( $raw === '3' ? 3 : 2 );
+}
+
+// Converts database checkbox value to boolean
+function wp_lib_prep_boolean_option( $option ) {
+	return ( $option === '3' ? true : false );
 }
 
 // Sanitizes string then checks if it is a valid ISBN, returns sanitized ISBN on success or empty string on failure.
@@ -132,7 +149,7 @@ function wp_lib_valid_item_id( $item_id ) {
 		wp_lib_error( 305, false, $item_id );
 		return false;
 	}
-
+	
 	return true;
 }
 
@@ -249,18 +266,6 @@ function wp_lib_get_object_type( $post_id ) {
 }
 
 	/* -- URLs and Slugs -- */
- 
-// Adds plugin url to front of string (e.g. authors -> library/authors)
-function wp_lib_prefix_url( $option, $slug ) {
-	// Gets main public slug ('wp-librarian' by default, usually something like 'library')
-	$main_slug = get_option( 'wp_lib_main_slug', 'wp-librarian' );
-	
-	// Fetches specific slug e.g. 'authors'
-	$sub_slug = get_option( $option, $slug );
-	
-	// Constructs and returns concatenation of the two slugs
-	return $main_slug . '/' . $sub_slug;
-}
 
 function wp_lib_prep_manage_item_params( $item_id ) {
 	return array(
@@ -449,29 +454,26 @@ function wp_lib_plural( $value, $string, $plural = 's' ) {
 
 // Formats money according to user's preferences
 function wp_lib_format_money( $value, $html_ent = true ) {
-	// Fetches user's preferred currency symbol
-	$symbol = get_option( 'wp_lib_currency_symbol' );
+	// Fetches user's preferred currency symbol and currency position (symbol before or after number)
+	$settings = get_option( 'wp_lib_currency', array('&pound;',2) );
+	
+	// Sets friendly variable names
+	$symbol = $settings[0];
+	$position = wp_lib_prep_boolean_option( $settings[1] );
 	
 	// If output doesn't need to use html entities (e.g. &pound; ), converts to actual characters (e.g. £ )
 	if ( !$html_ent ) {
 		$symbol = html_entity_decode( $symbol );
 	}
 	
-	// Fetches user's preferred currency position (before or after the value)
-	$position = (int)get_option( 'wp_lib_currency_position' );
-	
 	// Ensures number has correct number of decimal places
 	$value = number_format( $value, 2 );
 	
 	// Formats $value with currency symbol at preferred position
-	if ( $position === 2 )
-		$value = $symbol . $value;
-	elseif ( $position === 3 )
-		$value = $value . $symbol;
+	if ( $position )
+		return $value . $symbol; // 0.40EUR
 	else
-		wp_lib_error( 111, true );
-		
-	return $value;
+		return $symbol . $value; // £0.40
 }
 
 	/* -- AJAX -- */
@@ -1049,7 +1051,7 @@ function wp_lib_prep_item_status( $item_id, $no_url = false, $short = false ) {
 // Renders item's tax terms and public meta to the page
 function wp_lib_display_item_meta( $item_id, $item_permalink = true ) {
 	// Fetches default taxonomy spacer
-	$spacer = get_option( 'wp_lib_taxonomy_spacer', ', ' );
+	$spacer = get_option( 'wp_lib_taxonomy_spacer', array(', ') )[0];
 	
 	// If user is librarian (or higher), or if the donor is set to be displayed, fetches item donor
 	// If user isn't a librarian, or there is no listed donor, returns false

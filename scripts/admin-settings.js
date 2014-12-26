@@ -1,19 +1,31 @@
-jQuery( document ).ready(function($) {
+jQuery(function($){
 	// Renders any buffered notifications
 	wp_lib_display_notifications();
 	
-	/* 
-	 * Updates example slug as text input is updated, providing live preview of what the slug would look like
-	 * var text is the input box where the user types the slug
-	 * var textPreview is an html span that updates to show whatever var text currently is
-	 */
-	$('.slug-input').each(function(index,element){
-		var text = $(element);
-		text.on( 'input', function(e) {
-			var textID = $(element).attr("id");
-			textPreview = $( '.' + textID + '-text' );
-			textPreview.text( string_to_slug( text.val() ) );
-			
+	// Updates slug previews based on changed input field
+	function wp_lib_update_slug_previews( slugInput ) {
+		// Fetches and sanitizes current slug input
+		var inputValue = string_to_slug(slugInput.val());
+		
+		// If slug input is main slug, update all previews that use the main slug
+		// Otherwise updates only preview for that input
+		if ( slugInput.attr('name') === 'wp_lib_slugs[0]' ) {
+			$('span[name="main-slug-text"]').each(function(i,element){
+				$(element).text(inputValue);
+			});
+		} else {
+			slugInput.next().find('span.slug-preview').text(inputValue);
+		}
+	}
+	
+	// Iterates over slug input fields, setting up previews and hooking preview updating to input change
+	$('input.slug-input').each(function(index,element){
+		var slugInput = $(element);
+		
+		wp_lib_update_slug_previews( slugInput );
+		
+		slugInput.on( 'input', function(e) {
+			wp_lib_update_slug_previews( slugInput );
 		});
 	});
 });

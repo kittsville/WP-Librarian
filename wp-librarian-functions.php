@@ -310,7 +310,7 @@ function wp_lib_loan_item( $item_id, $member_id, $loan_length = false ) {
 	
 	// If loan length wasn't given, use default loan length
 	if ( !$loan_length )
-		$loan_length = get_option( 'wp_lib_loan_length', 12 );
+		$loan_length = get_option( 'wp_lib_loan_length', array(12) )[0];
 	// If loan length is not a positive integer, call error
 	elseif ( !ctype_digit( $loan_length ) ) {
 		wp_lib_error( 311 );
@@ -327,7 +327,7 @@ function wp_lib_loan_item( $item_id, $member_id, $loan_length = false ) {
 		return $loan_id;
 	
 	// Passes item to member then checks for success
-	if ( !wp_lib_give_item( $item_id, $loan_id, $member_id ) ) {
+	if ( !wp_lib_give_item( $loan_id ) ) {
 		wp_lib_error( 411 );
 		return false;
 	}
@@ -384,9 +384,13 @@ function wp_lib_schedule_loan( $item_id, $member_id, $start_date, $end_date ) {
 }
 
 // Represents the physical passing of the item from Library to Member. Item is registered as outside the library and relevant meta is updated
-function wp_lib_give_item( $item_id, $loan_id, $member_id, $date = false ) {
+function wp_lib_give_item( $loan_id, $date = false ) {
 	// Sets date to current time if not set
 	wp_lib_prep_date( $date );
+	
+	// Fetches item and member IDs from loan meta
+	$item_id = get_post_meta( $loan_id, 'wp_lib_item', true );
+	$member_id = get_post_meta( $loan_id, 'wp_lib_member', true );
 	
 	/* Updates other meta */
 	
@@ -509,7 +513,7 @@ function wp_lib_create_fine( $item_id, $date = false, $return = true ) {
 	$days_late = -$due_in;
 	
 	// Fetches daily charge for a late item
-	$daily_fine = get_option( 'wp_lib_fine_daily' );
+	$daily_fine = get_option( 'wp_lib_fine_daily', array(0) )[0];
 	
 	// Calculates fine based off days late * charge per day
 	$fine = $days_late * $daily_fine;
@@ -522,7 +526,7 @@ function wp_lib_create_fine( $item_id, $date = false, $return = true ) {
 	
 	// Fetches member object from item tax
 	$member_id = get_post_meta( $item_id, 'wp_lib_member', true );
-
+	
 	// Saves information relating to fine to its post meta
 	wp_lib_update_meta( $fine_id,
 		array(
@@ -614,9 +618,10 @@ function wp_lib_error( $error_id, $die = false, $param = 'NULL' ) {
 	// 9xx - Error processing error
 	$all_errors = array(
 		110 => 'DateTime neither positive or negative',
-		111 => 'Unexpected currency position',
 		112 => 'Insufficient permissions',
 		113 => "Can not delete {$param} as it is currently on loan. Please return the item first.",
+		114	=> 'Option does not exist',
+		115	=> 'Field value not found in option',
 		200 => 'Item action not recognised',
 		201 => "No {$param} status known for given value",
 		203 => 'Loan not found in item\'s loan index',

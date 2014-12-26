@@ -6,6 +6,10 @@
  * Version:		0.1
  */
 
-.slug-label {
-	margin-left: 6px;
+label.slug-label {
+	margin-left: 5px;
+	padding: 3px;
+	border-radius: 3px;
+    overflow: hidden;
+}
 }
