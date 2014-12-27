@@ -8,12 +8,22 @@ jQuery(function($){
 	// Initialises cache of fetched members
 	var metaBoxCache = [];
 	
-	memberSelect.change(function(){
-		// Fetches member select's updated value
-		var memberID = memberSelect.val();
-		
-		// Updates current member meta box displaying based on new member selected
-		currentMember = update_displayed_member( memberID, currentMember );
+	// Updates currently displayed member meta box when selected member is changed
+	// Thanks to Adeneo's (http://stackoverflow.com/users/965051) answer (http://stackoverflow.com/questions/11993751)
+	memberSelect.on({
+		keyup: function(e){
+			// Uses flags to avoid triggering a change event twice
+			flag = false;
+			if ([33, 34, 35, 36, 37, 38, 39, 40].indexOf(e.which) !=-1) $(this).trigger('change');
+			setTimeout(function() {flag=true}, 200);
+		},
+		change: function(e){
+			// Fetches member select's updated value
+			var memberID = memberSelect.val();
+			
+			// Updates current member meta box displaying based on new member selected
+			currentMember = update_displayed_member( memberID, currentMember );
+		}
 	});
 	
 	// Updates current member meta box (if any) being displayed
