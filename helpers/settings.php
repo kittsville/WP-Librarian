@@ -1,28 +1,4 @@
 <?php
-$section = array(
-	'name'		=> 'wp_lib_library_group',
-	'title'		=> 'General Settings',
-	'callback'	=> false,
-	'page'		=> 'wp_lib_library_group-options',
-	'settings'	=> array(
-		array(
-			'name'			=> 'wp_lib_slugs',
-			'sanitize'		=> function($raw){/*Function that sanitizes settings' fields */},
-			'field_type'	=> 'textField', // Field callback can be defined at setting or field level
-			'fields'		=> array(
-				array(
-					'name'			=> 'Main Slug',
-					'args'			=> array(
-						'filter'	=> function( $raw ) {}, // Filters input before field is rendered
-						'position'	=> 0, // Position of field value in options array
-						'alt'		=> 'This forms the base of all public Library pages',
-						'class'		=> 'main-slug'
-					)
-				)
-			)
-		),
-	)
-);
 class WP_LIB_SETTINGS {
 	function __construct( $section ) {
 		// If header to render section description is not provided, passes dummy callback
@@ -196,11 +172,4 @@ class WP_LIB_SETTINGS {
 		}
 	}
 }
-
-
-
-
-
-
-
 ?>
