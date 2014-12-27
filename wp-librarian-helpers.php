@@ -49,7 +49,7 @@ function wp_lib_sanitize_option_checkbox( $raw ) {
 
 // Converts database checkbox value to boolean
 function wp_lib_prep_boolean_option( $option ) {
-	return ( $option === '3' ? true : false );
+	return ( $option === 3 ? true : false );
 }
 
 // Sanitizes string then checks if it is a valid ISBN, returns sanitized ISBN on success or empty string on failure.
