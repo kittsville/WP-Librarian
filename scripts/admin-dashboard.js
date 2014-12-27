@@ -744,6 +744,9 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 				},
 				params: {
 					records: pageItem.labels.records
+				},
+				inputs: {
+					processingText: '<div class="dtable-process-wrap"><div class="dtable-process-icon dashicons dashicons-book-alt"></div></div>'
 				}
 			});
 			
@@ -897,6 +900,9 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 				},
 				params: {
 					records: 'items'
+				},
+				inputs: {
+					processingText: '<div class="dtable-process-wrap"><div class="dtable-process-icon dashicons dashicons-book-alt"></div></div>'
 				}
 			});
 			

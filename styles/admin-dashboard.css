@@ -162,6 +162,43 @@ a.dynatable-sort-header, a.dynatable-sort-header:hover {
 	background-color: #F9F9F9;
 }
 
+div.dtable-process-wrap {
+	width: 100px;
+	height: 100px;
+	background-color: rgba(0, 0, 0, 0.1);
+	border-radius: 6px;
+	animation: pulse 1s ease infinite;
+	/* transition: transform 0.2s; */
+}
+
+div.dtable-process-icon {
+	font-size: 80px;
+	margin: 10px;
+	color: rgba(255, 255, 255, 0.76);
+	width: 80px;
+	height: 80px;
+	animation: pulse 1s ease infinite;
+	/* transition: transform 0.2s; */
+}
+
+/*
+ * Animates Dynatable processing icon
+ * Thanks to Nick Salloum's guide (http://callmenick.com/2014/05/08/simple-css3-transitions-transforms-animations-compilation/)
+ */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
 /* Item List A.K.A. 'View Items' */
 
 li.single-item {
