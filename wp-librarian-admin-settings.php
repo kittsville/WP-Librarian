@@ -12,23 +12,6 @@ if ( !current_user_can( 'manage_options' ) ) {
 // Loads settings CSS
 wp_enqueue_style( 'wp_lib_admin_settings' );
 
-// If settings have been updated (or failed to do so)
-if ( isset( $_GET['settings-updated'] ) ) {
-	$updated = $_GET['settings-updated'];
-	
-	// If settings were successfully updated, notifies user
-	if ( $updated == 'true' ) {
-		// Flushes permalink rules so new slugs work
-		wp_lib_flush_permalinks();
-		
-		// Notifies user settings have been updated
-		wp_lib_add_notification_on_load( 'Settings updated successfully' );
-	} elseif ( $updated == 'false' ) {
-		// Calls error to inform user that settings update failed
-		wp_lib_add_notification_on_load( 'Settings failed to update' );
-	}
-}
-
 // Sets settings tab to display based on GET param
 switch ( $_GET['tab'] ) {
 	case 'slugs':

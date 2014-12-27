@@ -818,9 +818,35 @@ add_filter( 'enter_title_here', function() {
 
 // Registers Settings page and Management Dashboard
 add_action( 'admin_menu', function() {
-	if ( wp_lib_is_library_admin() )
+	if ( wp_lib_is_library_admin() ) {
 		// Adds settings page to Library submenu of wp-admin menu
-		add_submenu_page('edit.php?post_type=wp_lib_items', 'WP Librarian Settings', 'Settings', 'wp_lib_change_settings', 'wp-lib-settings', 'wp_lib_render_settings');
+		$hook = add_submenu_page('edit.php?post_type=wp_lib_items', 'WP Librarian Settings', 'Settings', 'wp_lib_change_settings', 'wp-lib-settings', 'wp_lib_render_settings');
+		
+		// Registers hook to flush permalinks on successful settings update
+		add_action('load-' . $hook, function() {
+			// If settings have been updated (or failed to do so)
+			if ( isset( $_GET['settings-updated'] ) ) {
+				// Loads helper to manage settings sections
+				wp_lib_add_helper( 'settings' );
+				
+				// Checks that all plugin settings are valid, resets any settings that aren't
+				$settings = new WP_LIB_SETTINGS;
+				$settings->checkPluginSettingsIntegrity();
+				
+				// If settings were successfully updated, notifies user
+				if ( $_GET['settings-updated'] === 'true' ) {
+					// Flushes permalink rules so new slugs work
+					wp_lib_flush_permalinks();
+					
+					// Notifies user settings have been updated
+					wp_lib_add_notification_on_load( 'Settings updated successfully' );
+				} elseif ( $_GET['settings-updated'] === 'false' ) {
+					// Calls error to inform user that settings update failed
+					wp_lib_add_notification_on_load( 'Settings failed to update' );
+				}
+			}
+		});
+	}
 
 	// Registers Library Dashboard and saves handle to variable
 	if ( wp_lib_is_librarian() ) {
@@ -839,7 +865,7 @@ add_action( 'admin_init', function () {
 	/* -- General Library Settings -- */
 	
 	// Registers general settings section, settings and fields with sanitization callbacks
-	new WP_LIB_SETTINGS(array(
+	new WP_LIB_SETTINGS_SECTION(array(
 		'name'		=> 'wp_lib_library_group',
 		'title'		=> 'General Settings',
 		'page'		=> 'wp_lib_library_group-options',
@@ -922,7 +948,7 @@ add_action( 'admin_init', function () {
 	/* -- Slug Settings -- */
 
 	// Registers settings groups and their sanitization callbacks for the slugs used on the front-end of the plugin
-	new WP_LIB_SETTINGS(array(
+	new WP_LIB_SETTINGS_SECTION(array(
 		'name'		=> 'wp_lib_slug_group',
 		'title'		=> 'Front-end Slugs',
 		'callback'	=> function(){
@@ -1000,7 +1026,7 @@ add_action( 'admin_init', function () {
 	/* -- Dashboard Settings -- */
 	
 	// Registers Dashboard Settings section with all relevant settings/fields
-	new WP_LIB_SETTINGS(array(
+	new WP_LIB_SETTINGS_SECTION(array(
 		'name'		=> 'wp_lib_dash_group',
 		'title'		=> 'Dashboard',
 		'callback'	=>
@@ -1137,9 +1163,6 @@ function wp_lib_modify_image_box() {
 
 // Flushes permalink rules to avoid 404s, used after plugin activation and any Settings change
 function wp_lib_flush_permalinks() {
-	// Creates various options used by WP-Librarian
-	require_once (plugin_dir_path(__FILE__) . '/wp-librarian-options.php');
-	
 	// Registers custom post type
 	wp_lib_register_post_and_tax();
 	

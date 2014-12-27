@@ -1,8 +1,117 @@
 <?php
 /*
- * A helper class for registering settings, generating settings sections and rendering settings fields
+ * Holds basic properties/functions relating the plugin's settings
  */
 class WP_LIB_SETTINGS {
+	// All settings WP-Librarian is responsible for
+	private $plugin_settings = array(
+		/* -- Library Options -- */
+		/* Settings relating to loaning/returning systems */
+		
+		// Loan length in days
+		array(
+			'key'		=> 'wp_lib_loan_length',
+			'default'	=> array(12)
+		),
+		
+		// Fine length (per day)
+		array(
+			'key'		=> 'wp_lib_fine_daily',
+			'default'	=> array(0.20)
+		),
+		/* -- Slugs -- */
+		/* Sections of site urls used when accessing plugin pages e.g. my-site.com/wp-librarian */
+		
+		array(
+			'key' 		=> 'wp_lib_slugs',
+			'default'	=> array(
+				'wp-librarian',	// The slug for library items
+				'item', 		// The sub-slug for single items e.g. library/item/moby-dick
+				'author',		// The slug for viewing authors
+				'type'			// The slug for viewing media types
+			)
+		),
+		
+		/* -- Formatting -- */
+		/* Settings relating to plugin presentation */
+		
+		// Whether to create the default media types (Books, DVDs etc. )
+		array(
+			'key' 		=> 'wp_lib_default_media_types',
+			'default'	=> array(3)
+		),
+		
+		// The separator for item taxonomies (the comma between authors)
+		array(
+			'key' 		=> 'wp_lib_taxonomy_spacer',
+			'default'	=> array(', ')
+		),
+		
+		// Currency Symbol and position relative to the numerical value (1 - Before: £20, 0 - After: 20£)
+		array(
+			'key' 		=> 'wp_lib_currency',
+			'default'	=> array('&pound;',2)
+		),
+		
+		/* -- Dashboard -- */
+		/* Settings relating to the Library Dashboard */
+		
+		// Whether to automatically search for an item with the given barcode when the given length is reached
+		array(
+			'key'		=> 'wp_lib_barcode_config',
+			'default'	=> array(
+				false,
+				8
+			)
+		)
+	);
+	
+	// Iterates over array of settings controlled by WP-Librarian and adds them to the settings database
+	public function addPluginSettings() {
+		foreach ( $this->plugin_settings as $setting ) {
+			add_option( $setting['key'], $setting['default'] );
+		}
+	}
+	
+	// Iterates over array of settings controlled by WP-Librarian and deletes them
+	// Calling this outside of a situation where the plugin is subsequently deactivated would be unwise
+	public function purgePluginSettings() {
+		foreach ( $this->plugin_settings as $setting ) {
+			delete_option( $setting['key'], $setting['default'] );
+		}
+	}
+	
+	// Iterates over array of settings controlled by WP-Librarian and ensures they exist and are valid
+	// Used after settings have been updated
+	public function checkPluginSettingsIntegrity() {
+		foreach ( $this->plugin_settings as $setting ) {
+			$setting_value = get_option( $setting['key'], false );
+			
+			// If setting doesn't exist or is invalid, resets to default value
+			if ( !is_array( $setting_value ) ) {
+				update_option( $setting['key'], $setting['default'] );
+			}
+		}
+	}
+	
+	/* 
+	 * Checks if given key is a valid WP-Librarian settings key
+	 * @param string $settings_key WordPress settings key
+	 */
+	public function isValidSettingKey( $settings_key ) {
+		foreach ( $this->plugin_settings as $setting ) {
+			if ( $settings_key === $setting['key'] ) {
+				return true;
+			}
+		}
+		return false;
+	}
+}
+
+/*
+ * A helper class for registering settings, generating settings sections and rendering settings fields
+ */
+class WP_LIB_SETTINGS_SECTION extends WP_LIB_SETTINGS {
 	// Registers settings section, all settings belonging to that section and all fields belonging to those sections
 	function __construct( $section ) {
 		// If header to render section description is not provided, passes dummy callback
@@ -14,6 +123,10 @@ class WP_LIB_SETTINGS {
 		
 		// Iterates over settings, generating fields for each settings' fields 
 		foreach( $section['settings'] as $setting ) {
+			// Skips registering any settings that are listed as a WP-Librarian setting
+			if ( !$this->isValidSettingKey( $setting['name'] ) )
+				break;
+			
 			// Registers setting section's page
 			// Uses sanitization callback specific to current setting, if one exists, defaults to section's sanitization callback
 			register_setting( $section['name'], $setting['name'], ( isset( $setting['sanitize'] ) ? $setting['sanitize'] : $section['sanitize'] ) );
