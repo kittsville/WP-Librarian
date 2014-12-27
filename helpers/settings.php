@@ -1,5 +1,9 @@
 <?php
+/*
+ * A helper class for registering settings, generating settings sections and rendering settings fields
+ */
 class WP_LIB_SETTINGS {
+	// Registers settings section, all settings belonging to that section and all fields belonging to those sections
 	function __construct( $section ) {
 		// If header to render section description is not provided, passes dummy callback
 		if ( !isset( $section['callback'] ) )
@@ -60,6 +64,8 @@ class WP_LIB_SETTINGS {
 		}
 	}
 	
+	// Adds field description to settings field's output
+	// e.g. Set symbol used to denote currency
 	private function addDescription( &$output, $args ) {
 		if ( isset( $args['alt'] ) )
 			$output[] = '<p class="tooltip description">' . $args['alt'] . '</p>';
@@ -118,6 +124,8 @@ class WP_LIB_SETTINGS {
 		return $properties;
 	}
 	
+	// A type of settings field
+	// Renders an HTML text input (a single line text field)
 	public function textInput( $args ) {
 		$properties = array(
 			'type' => 'text',
@@ -140,7 +148,8 @@ class WP_LIB_SETTINGS {
 		$this->outputLines( $output );
 	}
 	
-	
+	// A type of settings field
+	// Renders an HTML checkbox
 	public function checkboxInput( $args ) {
 		$properties = array(
 			'type'	=> 'checkbox',
@@ -166,6 +175,8 @@ class WP_LIB_SETTINGS {
 		$this->outputLines( $output );
 	}
 	
+	// Renders field's HTML
+	// @param array $lines Strings of HTML to be echoed
 	private function outputLines( $lines ) {
 		foreach ( $lines as $line ) {
 			echo $line;
