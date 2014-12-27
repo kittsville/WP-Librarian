@@ -47,7 +47,7 @@ class WP_LIB_SETTINGS {
 			'default'	=> array(', ')
 		),
 		
-		// Currency Symbol and position relative to the numerical value (1 - Before: £20, 0 - After: 20£)
+		// Currency Symbol and position relative to the numerical value (2 - Before: £20, 3 - After: 20£)
 		array(
 			'key' 		=> 'wp_lib_currency',
 			'default'	=> array('&pound;',2)
