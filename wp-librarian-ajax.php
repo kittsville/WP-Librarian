@@ -1331,7 +1331,7 @@ function wp_lib_page_scheduling_page() {
 	$start_date = Date( 'Y-m-d', current_time( 'timestamp' ) );
 	
 	// Formats placeholder loan end date (current date + default loan length)
-	$end_date = Date( 'Y-m-d', current_time( 'timestamp' ) + ( get_option( 'wp_lib_loan_length', 12 ) * 24 * 60 * 60) );
+	$end_date = Date( 'Y-m-d', current_time( 'timestamp' ) + ( get_option( 'wp_lib_loan_length', array(12) )[0] * 24 * 60 * 60) );
 	
 	$form = array(
 		wp_lib_prep_nonce( 'Scheduling Item: ' . $item_id ),
