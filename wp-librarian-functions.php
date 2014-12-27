@@ -8,17 +8,12 @@
 
 // Checks if user has sufficient permissions to perform librarian actions
 function wp_lib_is_librarian() {
-	if ( get_user_meta( get_current_user_id(), 'wp_lib_role', true ) >= 5 )
-		return true;
-	else
-		return false;
+	return ( get_user_meta( get_current_user_id(), 'wp_lib_role', true ) >= 5 ) ? true : false;
 }
 
+// Checks if user has sufficient permissions to perform administrative librarian actions
 function wp_lib_is_library_admin() {
-	if ( get_user_meta( get_current_user_id(), 'wp_lib_role', true ) >= 10 )
-		return true;
-	else
-		return false;
+	return ( get_user_meta( get_current_user_id(), 'wp_lib_role', true ) >= 10 ) ? true : false;
 }
 
 // Checks if item will be on loan between given dates. Given no dates, checks if item is currently on loan
