@@ -763,10 +763,16 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 			// Function to render a single item (row)
 			function render_item_row( rowIndex, record, columns, cellWriter ) {
 				// Initialises item's list entry elements
-				var listItemElements = [];
+				var listItemElements = [
+					$('<input/>',{
+						type	: 'hidden',
+						name	: 'item_id',
+						value	: record.item_id
+					})
+				];
 				
 				// If item has a cover image, use. Otherwise use placeholder div that will be filled with book icon
-				if ( record.cover != false ) {
+				if ( record.cover !== false ) {
 					listItemElements.push($('<div/>', {
 							'class'	: 'item-thumbnail',
 							'html'	:
@@ -774,7 +780,8 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 									'class'	: 'item-thumbnail-centrefix',
 									'html'	:
 										$('<img/>',{
-											'src'	: record.cover[0]
+											'src'	: record.cover[0],
+											'class'	: 'item-thumbnail'
 										})
 								})
 						})
@@ -786,6 +793,7 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 				}
 				
 				// Reduces item's title length if it is too long
+				// This method will be improved in future
 				if ( record.title.length > 50 ) {
 					record.title = record.title.substring(0,48) + '...';
 				}
@@ -831,14 +839,17 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 				);
 				
 				// Creates list element
-				var localParent = $('<li/>', {
-					'class'	: 'single-item',
-					'html'	: listItemElements
+				var singleItem = $('<li/>', {
+					'class'	: 'single-item'
 				});
+				
+				var localParent = $('<form/>', {
+					'html'	: listItemElements
+				}).appendTo(singleItem);
 				
 				// Adds class to colour item red if it is currently late
 				if ( record.late == true ) {
-					localParent.addClass( 'late-item' );
+					singleItem.addClass( 'late-item' );
 				}
 				
 				// Renders manage item button to invisible form containing item's ID
@@ -849,14 +860,7 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 						html	: 'Manage',
 						classes	: 'item-manage'
 					},
-					$('<form/>',{
-						html	:
-							$('<input/>',{
-								type	: 'hidden',
-								name	: 'item_id',
-								value	: record.item_id
-							})
-					}).appendTo( localParent )
+					localParent
 				);
 				
 				// Creates 'View' button to view items public listing
@@ -869,7 +873,7 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 				}, localParent );
 				
 				// Converts to html string, as Dynatable doesn't accept DOM objects
-				return localParent.prop('outerHTML');
+				return singleItem.prop('outerHTML');
 			}
 			
 			// Wraps table in div
@@ -989,6 +993,20 @@ jQuery(function($){
 		wp_lib_load_page( wp_lib_collect_form_params(e.target) );
 		
 		// Prevents normal behaviour
+		return false;
+	});
+	
+	// Adds listener for Item thumbnail being clicked
+	jQuery('#wp-lib-workspace').on('click', 'img.item-thumbnail', function ( e ){
+		// Fetches form parameters that have been set
+		var params = wp_lib_collect_form_params(e.target);
+		
+		// Sets page to load
+		params.dash_page = 'manage-item';
+		
+		// Loads page
+		wp_lib_load_page( params );
+		
 		return false;
 	});
 });

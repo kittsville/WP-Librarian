@@ -224,6 +224,7 @@ div.item-no-thumbnail:before {
 div.item-thumbnail-centrefix img {
 	display: block;
 	margin: 0 auto;
+	cursor: pointer;
 }
 
 li.single-item a {
