@@ -980,11 +980,18 @@ jQuery(function($){
 		
 		// Deletes nonce as it is only needed for dash actions
 		delete params.wp_lib_ajax_nonce;
-
-		// Loads page
-		wp_lib_load_page( params );
 		
-		return false;
+		// Loads page in current or new tab, depending on whether control was pressed
+		if ( e.ctrlKey ) {
+			// Allows default behaviour, resulting in pseudo-URL being opened in new tab
+			return true;
+		} else {
+			// Dynamically loads page
+			wp_lib_load_page( params );
+			
+			// Prevents default behaviour
+			return false;
+		}
 	});
 	
 	// Adds listener for Dash URL being clicked
