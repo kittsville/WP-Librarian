@@ -4,7 +4,7 @@
  */
 class WP_LIB_SETTINGS {
 	// All settings WP-Librarian is responsible for
-	private $plugin_settings = array(
+	private static $plugin_settings = array(
 		/* -- Library Options -- */
 		/* Settings relating to loaning/returning systems */
 		
@@ -68,7 +68,7 @@ class WP_LIB_SETTINGS {
 	
 	// Iterates over array of settings controlled by WP-Librarian and adds them to the settings database
 	public function addPluginSettings() {
-		foreach ( $this->plugin_settings as $setting ) {
+		foreach ( self::plugin_settings as $setting ) {
 			add_option( $setting['key'], $setting['default'] );
 		}
 	}
@@ -76,7 +76,7 @@ class WP_LIB_SETTINGS {
 	// Iterates over array of settings controlled by WP-Librarian and deletes them
 	// Calling this outside of a situation where the plugin is subsequently deactivated would be unwise
 	public function purgePluginSettings() {
-		foreach ( $this->plugin_settings as $setting ) {
+		foreach ( self::plugin_settings as $setting ) {
 			delete_option( $setting['key'], $setting['default'] );
 		}
 	}
@@ -84,7 +84,7 @@ class WP_LIB_SETTINGS {
 	// Iterates over array of settings controlled by WP-Librarian and ensures they exist and are valid
 	// Used after settings have been updated
 	public function checkPluginSettingsIntegrity() {
-		foreach ( $this->plugin_settings as $setting ) {
+		foreach ( self::plugin_settings as $setting ) {
 			$setting_value = get_option( $setting['key'], false );
 			
 			// If setting doesn't exist or is invalid, resets to default value
@@ -99,7 +99,7 @@ class WP_LIB_SETTINGS {
 	 * @param string $settings_key WordPress settings key
 	 */
 	public function isValidSettingKey( $settings_key ) {
-		foreach ( $this->plugin_settings as $setting ) {
+		foreach ( self::$plugin_settings as $setting ) {
 			if ( $settings_key === $setting['key'] ) {
 				return true;
 			}

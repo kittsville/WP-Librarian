@@ -830,8 +830,7 @@ add_action( 'admin_menu', function() {
 				wp_lib_add_helper( 'settings' );
 				
 				// Checks that all plugin settings are valid, resets any settings that aren't
-				$settings = new WP_LIB_SETTINGS;
-				$settings->checkPluginSettingsIntegrity();
+				WP_LIB_SETTINGS::checkPluginSettingsIntegrity();
 				
 				// If settings were successfully updated, notifies user
 				if ( $_GET['settings-updated'] === 'true' ) {
