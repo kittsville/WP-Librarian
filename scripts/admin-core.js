@@ -43,30 +43,9 @@ function wp_lib_add_notification( array ) {
 	window.wp_lib_notification_buffer.push( array );
 }
 
-// Fetches and displays any notifications waiting in the local or server buffer
+// Fetches and displays any notifications waiting in the local buffer
 function wp_lib_display_notifications( ajaxCallback ) {
-	return false; // GGGGG
-	// Initialises notifications array by fetching any client-side notifications
-	var notifications = wp_lib_fetch_local_notifications();
-	
-	// Requests any notifications currently in the server-side buffer
-	wp_lib_send_ajax( { 'action' : 'wp_lib_fetch_notifications' }, true, function( serverResponse ) {
-		// If server response is valid
-		if ( serverResponse[0] === 4 ) {
-			// If there are any server-side notifications, merge them into client-side notifications
-			if ( jQuery.isArray( serverResponse[1] ) ) {
-				notifications = notifications.concat( serverResponse[1] );
-			}
-		}
-		
-		// Renders all collected local and server notifications
-		wp_lib_render_notifications( notifications );
-		
-		// If notifications callback was given, passes notifications to callback
-		if ( typeof ajaxCallback === 'function' ) {
-			ajaxCallback( notifications );
-		}
-	});
+	wp_lib_render_notifications( wp_lib_fetch_local_notifications() );
 }
 
 // Fetches and returns all client-side buffered notifications
