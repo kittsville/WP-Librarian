@@ -12,15 +12,21 @@ div.manage-item {
 	margin: 15px 0px;
 }
 
-#wp-lib-header, #wp-lib-form, #wp-lib-tables {
+#wp-lib-header, form.lib-form, div.dynatable-wrap {
 	margin: 5px 0px;
+	display: block;
+	clear: both;
+}
+
+div.dash-paras {
+	clear: both;
 }
 
 #wp-lib-header {
 	overflow: auto;
 }
 
-#lib-form > select {
+.lib-form > select {
 	margin: 2px;
 }
 

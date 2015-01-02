@@ -45,6 +45,7 @@ function wp_lib_add_notification( array ) {
 
 // Fetches and displays any notifications waiting in the local or server buffer
 function wp_lib_display_notifications( ajaxCallback ) {
+	return false; // GGGGG
 	// Initialises notifications array by fetching any client-side notifications
 	var notifications = wp_lib_fetch_local_notifications();
 	
@@ -238,29 +239,29 @@ function wp_lib_send_ajax( ajaxData, noNotificationFetch, postCallFunction ) {
 			// Attempts to parse server response
 			var ajaxResult = wp_lib_parse_json( response );
 			
-			// Performs actions depending on result of parsed JSON
-			switch( ajaxResult ) {
-				// If server response could not be parsed as JSON
-				case 0:
-					// Sets output status
-					outputBuffer[0] = 2;
-				break;
-				
-				// If server response was the boolean false, call error
-				case false:
-					// Sets output status and includes server's actual response
-					outputBuffer = [ 3, ajaxResult ];
-				break;
-				
-				// Else server responded with parse-able JSON that did not indicate server failure
-				default:
+			// If server output could not be parsed as JSON
+			if ( ajaxResult === 0 || !( ajaxResult instanceof Array ) ) {
+				// Sets output status
+				outputBuffer[0] = 2;
+			} else {
+				if ( ajaxResult[0] === true ) {
 					// Sets output status and includes server's actual response
 					outputBuffer = [ 4, ajaxResult ];
-				break;
+				} else {
+					// Sets output status and includes server's actual response
+					outputBuffer = [ 3, ajaxResult ];
+				}
+				
+				// Displays any notifications returned by the server
+				// Initialises notifications array by fetching any client-side notifications
+				var notifications = wp_lib_fetch_local_notifications().concat( ajaxResult[1] );
+				
+				// Renders all collected local and server notifications
+				wp_lib_render_notifications( notifications );
 			}
 		}
 		
-		// If AJAX request didn't result in a success response and notification checking isn't suppressed (e.g. by the notification function, to avoid an inf loop), check notifications
+		// If AJAX request didn't result in a success response and notification checking isn't suppressed (e.g. by the notification function, to avoid an infinite loop), check notifications
 		if ( outputBuffer[0] !== 4 && noNotificationFetch === false ) {
 			wp_lib_display_notifications();
 		}

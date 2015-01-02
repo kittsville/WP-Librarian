@@ -1,15 +1,15 @@
 jQuery(function($){
 	// Selects member select field
-	var memberSelect = $( 'form#lib-form select.member-select' );
+	var memberSelect = $( 'form.lib-form select.member-select' );
 	
 	// Fetches select field's current value
-	var currentMember = memberSelect.val();
+	var currentMemberID = memberSelect.val();
 	
 	// Initialises cache of fetched members
-	var metaBoxCache = [];
+	var metaBoxCache = {};
 	
 	// Updates currently displayed member meta box when selected member is changed
-	// Thanks to Adeneo's (http://stackoverflow.com/users/965051) answer (http://stackoverflow.com/questions/11993751)
+	// Thanks to Adeneo's (http://stackoverflow.com/users/965051) answer about keyboard selection (http://stackoverflow.com/questions/11993751)
 	memberSelect.on({
 		keyup: function(e){
 			// Uses flags to avoid triggering a change event twice
@@ -19,66 +19,54 @@ jQuery(function($){
 		},
 		change: function(e){
 			// Fetches member select's updated value
-			var memberID = memberSelect.val();
+			var newMemberID = parseInt( memberSelect.val() );
 			
 			// Updates current member meta box displaying based on new member selected
-			currentMember = update_displayed_member( memberID, currentMember );
+			currentMemberID = update_displayed_member( newMemberID, currentMemberID );
 		}
 	});
 	
-	// Updates current member meta box (if any) being displayed
-	function update_displayed_member( newMember, currentMember ) {
+	/*
+	 * Updates currently displaying member meta box, based on new member selected
+	 * Caches fetched members, to re-use if the member is re-selected
+	 * @param int|NaN newMemberID		ID to new member selected, or NaN if default has been selected
+	 * @param int|NaN currentMemberID	ID of member last selected, or NaN if default was last selected
+	 */
+	function update_displayed_member( newMemberID, currentMemberID ) {
 		// If member selected hasn't changed, no action is necessary
-		if ( currentMember === newMember ) {
-			return currentMember;
+		if ( currentMemberID === newMemberID ) {
+			return currentMemberID;
 		}
 		
-		// Hides previous metabox
-		$( '.member-man.lib-metabox' ).hide();
-		
-		// If given value isn't a member ID (e.g. if 'Select' is chosen), no meta needs to be fetched
-		if ( isNaN(parseInt(newMember)) ) {
-			return '';
+		// Hides previous meta box, if one exists
+		if ( metaBoxCache.hasOwnProperty(currentMemberID)) {
+			metaBoxCache[currentMemberID].hide();
 		}
 		
-		// Sets default cache retrieval success
-		var cacheSuccess = false;
+		// If given newMemberID isn't a member ID (if 'Select' is chosen), no meta needs to be fetched
+		if ( isNaN(newMemberID) ) {
+			return NaN;
+		}
 		
-		// If member's meta box has already been fetched, stops meta box being hidden. Otherwise fetches from server
-		metaBoxCache.every( function( e ) {
-			if ( e == newMember ) {
-				// Displays cached member's meta box
-				$( '.member-man.lib-metabox.member-' + e ).fadeIn( 30 );
-				
-				// Sets cache retrival success
-				cacheSuccess = true;
-				
-				// Prevents loop continuing
-				return false;
-			}
-		});
-		
-		// If member meta box could not be fetched from the cache request meta box from server
-		if ( cacheSuccess === false ) {
-			// Sets up AJAX query params
-			var ajaxData = {
-			'api_request'	: 'member-metabox',
-			'member_id'		: newMember
-			};
-			
+		// If member's meta box exists in cache, fetch and use
+		// Otherwise fetch from server, then cache
+		if ( metaBoxCache.hasOwnProperty(newMemberID)) {
+			// Displays cached member's meta box
+			metaBoxCache[newMemberID].show();
+		} else {
 			// Queries server for member meta box
-			wp_lib_api_call( ajaxData, function( serverResponse ) {
+			wp_lib_api_call({
+				'api_request'	: 'member-metabox',
+				'member_id'		: newMemberID
+			},
+			function( serverResponse ) {
 				// If server responded successfully
 				if ( serverResponse[0] === 4 ) {
-					// Renders meta box to header, labels with member's ID then fades in
-					wp_lib_render_page_element(serverResponse[1][0], $('#wp-lib-header')).addClass('member-' + newMember).hide().fadeIn(30 );
-					
-					// Adds ID of fetched member meta box to cache
-					metaBoxCache.push( newMember );
+					// Renders meta box to header, labels with member's ID then fades in then caches meta box at a position in the array based on the member ID
+					metaBoxCache[newMemberID] = wp_lib_render_page_element(serverResponse[1][2]).insertAfter('div#wp-lib-workspace > div.item-man').addClass('member-man').hide().fadeIn(30);
 				}
 			});
 		}
-		
-		return newMember;
+	return newMemberID;
 	}
 });

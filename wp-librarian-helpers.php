@@ -106,38 +106,8 @@ function wp_lib_sanitize_donor( $member_id ) {
 
 	/* -- Data Validation Functions -- */
 
-// AJAX Wrapper for wp_lib_valid_item_id
-function wp_lib_check_item_id( $item_id ) {
-	if ( !wp_lib_valid_item_id( $item_id ) )
-		wp_lib_page_dashboard();
-}
-
-// AJAX Wrapper for wp_lib_valid_member_id
-function wp_lib_check_member_id( $member_id ) {
-	if ( !wp_lib_valid_member_id( $member_id ) )
-		wp_lib_page_dashboard();
-}
-
-// AJAX Wrapper for wp_lib_valid_fine_id
-function wp_lib_check_fine_id( $fine_id ) {
-	if ( !wp_lib_valid_fine_id( $fine_id ) )
-		wp_lib_page_dashboard();
-}
-
-// AJAX Wrapper for wp_lib_valid_loan_id
-function wp_lib_check_loan_id( $loan_id ) {
-	if ( !wp_lib_valid_loan_id( $loan_id ) )
-		wp_lib_page_dashboard();
-}
-
 // Checks if item ID is valid
 function wp_lib_valid_item_id( $item_id ) {
-	// Checks if item ID exists
-	if ( !$item_id ) {
-		wp_lib_error( 300, false, 'Item' );
-		return false;
-	}
-
 	// Checks if ID is a number
 	if ( !is_numeric( $item_id ) ) {
 		wp_lib_error( 301, false, 'Item' );
@@ -535,12 +505,10 @@ function wp_lib_prep_item_meta_box( $item_id ) {
 	
 	// Finalises and returns management header
 	return array(
-		array(
-			'type'		=> 'metabox',
-			'title'		=> 'Details',
-			'classes'	=> 'item-man',
-			'fields'	=> $meta_fields
-		)
+		'type'		=> 'metabox',
+		'title'		=> 'Details',
+		'classes'	=> 'item-man',
+		'fields'	=> $meta_fields
 	);
 }
 
@@ -568,12 +536,10 @@ function wp_lib_prep_loan_meta_box( $loan_id ) {
 	
 	// Finalises and returns management header
 	return array(
-		array(
-			'type'		=> 'metabox',
-			'title'		=> 'Details',
-			'classes'	=> 'loan-man',
-			'fields'	=> $meta_fields
-		)
+		'type'		=> 'metabox',
+		'title'		=> 'Details',
+		'classes'	=> 'loan-man',
+		'fields'	=> $meta_fields
 	);
 }
 
@@ -583,19 +549,17 @@ function wp_lib_prep_fine_meta_box( $fine_id ) {
 	
 	// Creates and returns fine management header
 	return array(
-		array(
-			'type'		=> 'metabox',
-			'title'		=> 'Details',
-			'classes'	=> 'fine-man',
-			'fields'	=> array(
-				array( 'Fine ID', $fine_id ),
-				array( 'Loan ID', wp_lib_prep_dash_hyperlink( $meta['wp_lib_loan'][0], wp_lib_prep_manage_loan_params( $meta['wp_lib_loan'][0] ) ) ),
-				array( 'Item', wp_lib_manage_item_dash_hyperlink( $meta['wp_lib_item'][0] ) ),
-				array( 'Member', wp_lib_manage_member_dash_hyperlink( $meta['wp_lib_member'][0] ) ),
-				array( 'Amount', wp_lib_format_money( $meta['wp_lib_fine'][0] ) ),
-				array( 'Status', wp_lib_format_fine_status( $meta['wp_lib_status'][0] ) ),
-				array( 'Created', get_the_date( '', $fine_id ) )
-			)
+		'type'		=> 'metabox',
+		'title'		=> 'Details',
+		'classes'	=> 'fine-man',
+		'fields'	=> array(
+			array( 'Fine ID', $fine_id ),
+			array( 'Loan ID', wp_lib_prep_dash_hyperlink( $meta['wp_lib_loan'][0], wp_lib_prep_manage_loan_params( $meta['wp_lib_loan'][0] ) ) ),
+			array( 'Item', wp_lib_manage_item_dash_hyperlink( $meta['wp_lib_item'][0] ) ),
+			array( 'Member', wp_lib_manage_member_dash_hyperlink( $meta['wp_lib_member'][0] ) ),
+			array( 'Amount', wp_lib_format_money( $meta['wp_lib_fine'][0] ) ),
+			array( 'Status', wp_lib_format_fine_status( $meta['wp_lib_status'][0] ) ),
+			array( 'Created', get_the_date( '', $fine_id ) )
 		)
 	);
 }
@@ -617,12 +581,10 @@ function wp_lib_prep_member_meta_box( $member_id ) {
 	
 	// Finalises and returns management header
 	return array(
-		array(
-			'type'		=> 'metabox',
-			'title'		=> 'Details',
-			'classes'	=> 'member-man',
-			'fields'	=> $meta_fields
-		)
+		'type'		=> 'metabox',
+		'title'		=> 'Details',
+		'classes'	=> 'member-man',
+		'fields'	=> $meta_fields
 	);
 }
 
@@ -749,7 +711,7 @@ function wp_lib_prep_loans_table( $item_id ) {
 		}
 		
 		// Adds loans (rows) to table
-		$table[] = array(
+		$table = array(
 			'type'		=> 'dtable',
 			'id'		=> 'member-loans',
 			'headers'	=> array(
@@ -766,7 +728,7 @@ function wp_lib_prep_loans_table( $item_id ) {
 			)
 		);
 	} else {
-		$table[] = array(
+		$table = array(
 			'type'		=> 'paras',
 			'content'	=> array( 'No loans to display' )
 		);

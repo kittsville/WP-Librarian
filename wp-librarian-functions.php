@@ -327,9 +327,6 @@ function wp_lib_loan_item( $item_id, $member_id, $loan_length = false ) {
 		return false;
 	}
 	
-	// Notifies user of successful loan
-	wp_lib_add_notification( 'Loan of ' . get_the_title( $item_id ) . ' to ' . get_the_title( $member_id ) . ' was successful!' );
-	
 	return true;
 }
 
@@ -461,15 +458,7 @@ function wp_lib_return_item( $item_id, $date = false, $fine = true ) {
 	// Note: The returned_date is when the item is returned, the end_date is when it is due back
 	add_post_meta( $loan_id, 'wp_lib_returned_date', $date );
 	
-	// Notifies user of item return
-	wp_lib_add_notification( get_the_title( $item_id ) . ' has been returned to the library' );
-	
 	return true;
-}
-
-// Allows users to view, manage or create loans from a central dashboard
-function wp_lib_dashboard() {
-	require_once( plugin_dir_path(__FILE__) . '/wp-librarian-dashboard.php' );
 }
 
 // Fines member for returning item late
@@ -542,14 +531,11 @@ function wp_lib_create_fine( $item_id, $date = false, $return = true ) {
 	// Saves new total to member meta
 	update_post_meta( $member_id, 'wp_lib_owed', $fine_total );
 	
-	// Notifies user of successful fine creation
-	wp_lib_add_notification( get_the_title( $member_id ) . ' has been charged ' . wp_lib_format_money( $fine ) . ' for the late return of ' . get_the_title( $item_id ) );
-	
 	// Return item unless otherwise specified
 	if ( $return )
 		return wp_lib_return_item( $item_id, $date );
 	else
-		return true;
+		return $fine_id;
 }
 
 // Cancels fine so that it is no longer is required to be paid
@@ -587,13 +573,16 @@ function wp_lib_cancel_fine( $fine_id ) {
 	// Changes fine status to Cancelled
 	update_post_meta( $fine_id, 'wp_lib_status', 2 );
 	
-	// Notifies user that fine has been cancelled
-	wp_lib_add_notification( "Fine #{$fine_id} has been cancelled" );
-	
 	return true;
 }
 
-// Returns explanation of error given error code
+/*
+ * Generates error based on given error code and, if not an AJAX request, kills thread
+ * @param int			$error_id	Error that has occured
+ * @param bool			$die		OPTIONAL Whether to kill thread (DEPRICATED)
+ * @param string|array	$param		OPTIONAL Relevant parameters to error to enhance error message (not optional for certain error messages)
+ * @todo Remove $die and mention of it from all relevant calling functions
+ */
 function wp_lib_error( $error_id, $die = false, $param = 'NULL' ) {
 	// Checks if error code is valid and error exists, if not returns error
 	if ( !is_numeric( $error_id ) ) {
@@ -617,6 +606,7 @@ function wp_lib_error( $error_id, $die = false, $param = 'NULL' ) {
 		113 => "Can not delete {$param} as it is currently on loan. Please return the item first.",
 		114	=> 'Option does not exist',
 		115	=> 'Field value not found in option',
+		116	=> 'AJAX classes can not be used outside of AJAX requests',
 		200 => 'Item action not recognised',
 		201 => "No {$param} status known for given value",
 		203 => 'Loan not found in item\'s loan index',
@@ -624,9 +614,10 @@ function wp_lib_error( $error_id, $die = false, $param = 'NULL' ) {
 		205	=> 'Deletion can not be completed while an item is on loan',
 		206	=> 'Member does not owe the Library money',
 		207	=> 'Unable to cancel fine as it would result in member owing less than nothing',
-		300 => "{$param} ID not given and required",
+		300 => "{$param} ID is required but not given",
 		301 => "{$param} ID given is not a number",
 		302 => 'No loans found for that item ID',
+		303	=> "No {$param} with given ID exists",
 		304 => 'No member found with that ID',
 		305 => "No valid item found with ID {$param}, check if item is a draft or in the trash",
 		306 => 'No valid loan found with that ID',
@@ -637,6 +628,7 @@ function wp_lib_error( $error_id, $die = false, $param = 'NULL' ) {
 		311 => 'Given loan length invalid (not a valid number)',
 		312 => 'Given date(s) failed to validate',
 		313 => 'Fine can not be cancelled if it is already cancelled',
+		314	=> "{$param} is required and not given",
 		315 => 'Library Object type not specified or recognised',
 		316	=> 'Given member has been archived and cannot be loaned items',
 		317 => 'Given ID does not belong to a valid Library object',
@@ -662,7 +654,8 @@ function wp_lib_error( $error_id, $die = false, $param = 'NULL' ) {
 		502 => 'Specified Dashboard page not found',
 		503	=> 'Nonce failed to verify, try reloading the page',
 		504	=> 'Unknown API request',
-		504	=> 'Object not authorised for deletion',
+		505	=> 'Object not authorised for deletion',
+		506 => 'Infinite loop detected, request terminated',
 		600	=> 'Unable to schedule debugging loan',
 		601	=> 'Unable to fulfil successfully scheduled debugging loan',
 		901 => 'Error encountered while processing error (error code not a number)',
@@ -678,14 +671,16 @@ function wp_lib_error( $error_id, $die = false, $param = 'NULL' ) {
 	// Fetches error explanation from array
 	$error_text = $all_errors[$error_id];
 	
-	// If function is set to die, renders error then kills function
-	if ( $die ){
+	// If error was called during an AJAX request, add to AJAX notification buffer
+	// Otherwise render to page and kill thread
+	if ( defined('DOING_AJAX') && DOING_AJAX && isset($GLOBALS['wp_lib_ajax']) ) {
+		global $wp_lib_ajax;
+		
+		$wp_lib_ajax->addNotification( $error_text, $error_id );
+	} else {
 		echo "<div class='wp-lib-error error'><p><strong style=\"color: red;\">WP-Librarian Error {$error_id}: {$error_text}</strong></p></div>";
 		die();
 	}
-	
-	// Otherwise adds error to notification buffer
-	wp_lib_add_notification( $error_text, $error_id );
 }
 
 // Modifies user's capabilities based on their new role

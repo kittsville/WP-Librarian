@@ -99,11 +99,9 @@ function wp_lib_do_action( dashAction, params ) {
 			// Server response indicating failure (by WP-Librarian, not AJAX failure or WordPress error)
 			case 3:
 				// Checks for any reported errors (notifications). If none were reported uses default error message
-				wp_lib_display_notifications( function( notifications ) {
-					if ( notifications.length === 0 ) {
-						wp_lib_local_error( 'The action could not be completed but the server did not explain why' );
-					}
-				});
+				if ( serverResponse[1][1].length === 0 ) {
+					wp_lib_local_error( 'The action could not be completed but the server did not explain why' );
+				}
 			break;
 		}
 	});
@@ -141,17 +139,15 @@ function wp_lib_load_page( ajaxData, stateLoad ) {
 			// If server responded to indicate WP-Librarian failure
 			case 3:
 				// Checks for any reported errors (notifications). If none were reported uses default error message
-				wp_lib_display_notifications( function( notifications ) {
-					if ( notifications.length === 0 ) {
-						wp_lib_local_error( 'Server encounted error while loading page but didn\'t specify why' );
-					}
-				});
+				if ( serverResponse[1][1].length === 0 ) {
+					wp_lib_local_error( 'Server encounted error while loading page but didn\'t specify why' );
+				}
 			break;
 			
 			// If server responded to indicate success
 			case 4:
 				// Renders page using AJAX returned data
-				wp_lib_render_page( serverResponse[1] );
+				wp_lib_render_page( serverResponse[1][2] );
 				
 				// Pushes current dash page to wp_lib_vars
 				wp_lib_vars.dash_page = ajaxData.dash_page;
@@ -194,9 +190,6 @@ function wp_lib_load_page( ajaxData, stateLoad ) {
 						return;
 					}
 				}
-				
-				// Fetches and renders any new notifications
-				wp_lib_display_notifications();
 			break;
 			
 			default:
@@ -207,7 +200,10 @@ function wp_lib_load_page( ajaxData, stateLoad ) {
 	});
 }
 
-// Renders form from an array
+/*
+ * Renders a Dashboard page
+ * @param array pageArray Array containing page title, tab title then an array of all page elements
+ */
 function wp_lib_render_page( pageArray ) {
 	
 	// jQuery setup
@@ -217,87 +213,26 @@ function wp_lib_render_page( pageArray ) {
 	wp_lib_vars.getParams = {};
 
 	// Changes page title
-	$( '#page-title' ).html( pageArray.pageTitle );
+	$( '#page-title' ).html( pageArray[0] );
 	
 	// Changes title of browser tab
-	document.title = wp_lib_format_tab_title( pageArray.title );
+	document.title = wp_lib_format_tab_title( pageArray[1] );
 	
 	// Clears and selects Library workspace in preparation of new page
 	var libWorkspace = $( '#wp-lib-workspace' ).empty();
 	
-	// If page has a header, renders
-	if ( pageArray.content.hasOwnProperty('header') ) {
-		// Creates wrapper for all header elements
-		var theParent = $('<div/>',{
-			id	: 'wp-lib-header'
-		}).appendTo(libWorkspace);
-		
-		// Iterates through header elements, rendering them to the header wrapper
-		$( pageArray.content.header ).each( function( i, e ) {
-			wp_lib_render_page_element( e, theParent );
-		});
-	}
+	// Initialises pseudo-URL base and array of buttons that need Pseudo-URLs
+	var urlBase = wp_lib_vars.dashUrl;
+	var formDashPageButtons = [];
 	
-	// If page has any form content, render each element inside a form element
-	if ( pageArray.content.hasOwnProperty('form') ) {
-		// Creates form element for all form elements
-		var libPage = $( '<form/>', {
-			id		: 'lib-form',
-			onsubmit: 'return false;' // Prevents default form submission
-		} );
-		
-		// Creates wrapper for all form elements
-		$('<div/>',{
-			id		: 'wp-lib-form',
-			html	: libPage
-		}).appendTo(libWorkspace);
-		
-		// Initialises array containing all form buttons
-		var formDashPageButtons = [];
-		
-		// Initialises pseudo-URL
-		var urlBase = wp_lib_vars.dashUrl;
-		
-		// Iterates through form elements, rendering them to the form
-		$( pageArray.content.form ).each( function( i, e ) {
-			var anElement = wp_lib_render_page_element( e, libPage );
-			
-			// If element has a type
-			if ( e.hasOwnProperty('type') ) {
-				// If element is a dash page button, add to array
-				if ( e.type === 'button' && e.link === 'page' ) {
-					formDashPageButtons.push( anElement );
-				
-				// If element is a form parameter, add parameter to URL
-				} else if ( e.type === 'hidden' ) {
-					urlBase += '&' + e.name + '=' + e.value;
-				}
-			}
-		});
-		
-		// Iterates over dash page buttons, adding pseudo-URLs
-		formDashPageButtons.forEach( function( e, i) {
-			var dashPageButton = $(e);
-			dashPageButton.attr('href',urlBase + '&dash_page=' + dashPageButton.attr('value') );
-		});
-	}
-	
-	// If page has a table, render table
-	if ( pageArray.content.hasOwnProperty('table') ) {
-		// Creates wrapper for all tables
-		var tableWrap = $('<div/>',{
-			'class'	: 'wp-lib-tables'
-		}).appendTo(libWorkspace);
-		
-		// Iterates over all given tables, rendering them inside the wrapper
-		$( pageArray.content.table ).each( function( i, e ) {
-			wp_lib_render_page_element( e, tableWrap );
-		});
-	}
+	// Iterates over page elements, turning them into HTML elements then appending them to the Dashboard
+	pageArray[2].forEach(function(e,i){
+		wp_lib_render_page_element( e, libWorkspace );
+	});
 	
 	// If any scripts are required by the page, loads them
-	if ( pageArray.hasOwnProperty('scripts') && pageArray.scripts instanceof Array ) {
-		$( pageArray.scripts ).each( function( i, scriptURL ) {
+	if ( pageArray[3] instanceof Array ) {
+		$( pageArray[3] ).each( function( i, scriptURL ) {
 			$.getScript( wp_lib_vars.pluginsUrl + '/scripts/' + scriptURL + '.js' )
 			.fail( function( jqxhr, settings, exception ) {
 				wp_lib_local_error( "Failed to load JavaScript needed for this page" );
@@ -670,6 +605,35 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 			
 			// Creates meta box wrapper
 			var theElement = $('<div/>',elementObject).addClass('lib-metabox');
+		break;
+		
+		case 'form':
+			var theElement = $('<form/>', elementObject );
+			
+			// Adds default attributes
+			theElement.addClass('lib-form');
+			theElement.attr('onsubmit', 'return false;');
+			
+			// If form's has child elements, render and give all buttons Pseudo-URLs
+			if ( pageItem.hasOwnProperty('content') && pageItem.content instanceof Array ) {
+				var urlBase = wp_lib_vars.dashUrl;
+				
+				// Builds Pseudo-URL from base url using hidden form elements
+				pageItem.content.forEach(function(e,i){
+					if ( e.hasOwnProperty('type') && e.type === 'hidden' ) {
+						urlBase += '&' + e.name + '=' + e.value;
+					}
+				});
+				
+				// Renders all form buttons then gives buttons Pseudo-URL
+				pageItem.content.forEach(function(e,i){
+					var formElement = wp_lib_render_page_element( e, theElement );
+					
+					if ( e.hasOwnProperty('type') && e.type === 'button' && e.link === 'page' ) {
+						formElement.attr('href',urlBase+'&dash_page='+e.value);
+					}
+				});
+			}
 		break;
 		
 		// Dynamic table managed by Dynatable

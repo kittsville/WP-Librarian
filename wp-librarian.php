@@ -849,7 +849,7 @@ add_action( 'admin_menu', function() {
 
 	// Registers Library Dashboard and saves handle to variable
 	if ( wp_lib_is_librarian() ) {
-		add_submenu_page('edit.php?post_type=wp_lib_items', 'Library Dashboard', 'Dashboard', 'edit_wp_lib_items_cap', 'dashboard', 'wp_lib_render_dashboard');
+		add_submenu_page('edit.php?post_type=wp_lib_items', 'Library Dashboard', 'Dashboard', 'edit_wp_lib_items_cap', 'dashboard', function(){require_once( plugin_dir_path(__FILE__) . '/wp-librarian-dashboard-template.php' );});
 	}
 });
 
@@ -1144,12 +1144,6 @@ add_action( 'wp_enqueue_scripts', function() {
 		wp_enqueue_style( 'wp_lib_frontend', wp_lib_style_url( 'front-end-core' ), array(), '0.1' );
 });
 
-// Render Loans/Returns Page
-function wp_lib_render_dashboard() {
-	require_once( plugin_dir_path(__FILE__) . '/wp-librarian-dashboard-template.php' );
-}
-
-
 // Modifies title of Featured Image box on item edit page
 add_action('admin_head-post-new.php', 'wp_lib_modify_image_box' );
 add_action('admin_head-post.php', 'wp_lib_modify_image_box' );
@@ -1176,21 +1170,19 @@ function wp_lib_check_post_pre_trash( $post_id ) {
 		return;
 	
 	// If object is being deleted via an AJAX request
-	if (defined('DOING_AJAX') && DOING_AJAX) {
-		wp_lib_start_session();
+	if (defined('DOING_AJAX') && DOING_AJAX && isset($GLOBALS['wp_lib_ajax'])) {
+		$ajax = $GLOBALS['wp_lib_ajax'];
 		
 		// If authorisation array doesn't exist, item can't be in it and can't have been authorised for deletion
-		if ( !isset( $_SESSION['deletion_allowed'] ) )
-			wp_lib_stop_ajax( false, 504 );
-		else
-			$authed_objects = $_SESSION['deletion_allowed'];
+		if ( !property_exists( $ajax, 'deletion_authed_objects' ) )
+			$ajax->stopAjax( 505 );
 		
 		// Iterates over all objects authorised for deletion
-		foreach( $authed_objects as $key => $object ) {
+		foreach( $ajax->deletion_authed_objects as $key => $object ) {
 			// If current object's ID in the loop matches the $post_id then the object has been authorised for deletion
-			if ( $object[0] == $post_id ) {
+			if ( $object[0] === $post_id ) {
 				// Removes object from authorisation array
-				unset( $authed_objects[$key] );
+				unset( $ajax->deletion_authed_objects[$key] );
 				
 				// Allow WordPress to delete object
 				return;
@@ -1198,7 +1190,7 @@ function wp_lib_check_post_pre_trash( $post_id ) {
 		}
 		
 		// If this point is reached, object was never authorised for deletion
-		wp_lib_stop_ajax( false, 504 );
+		$ajax->stopAjax( 505 );
 	} else {
 		// Redirects user to page to confirm object deletion properly (with connected objects being deleted as well)
 		wp_redirect( wp_lib_format_dash_url(
@@ -1316,19 +1308,21 @@ add_filter( 'template_include', function( $template ) {
 // Note that items are still public and can be accessed by their direct URL, that's what setting an item as private exists for!
 add_action( 'pre_get_posts', function( $query ) {
 	if ( $query->is_post_type_archive('wp_lib_items') && $query->is_main_query() ) {
-		$query->set( 'meta_query', array(
-		'relation'		=> 'OR',
-        array(
-            'key'		=> 'wp_lib_item_delist',
-            'value'		=> '1',
-            'compare'	=> '!=',
-        ),
-		array(
-            'key'		=> 'wp_lib_item_delist',
-			'value'		=> 'bug #23268', // Allows WP-Librarian to run on pre-3.9 WP installs (bug was fixed for 3.9, text is arbitrary)
-            'compare'	=> 'NOT EXISTS',
-        )
-    ));
+		$query->set( 'meta_query',
+			array(
+				'relation'		=> 'OR',
+				array(
+					'key'		=> 'wp_lib_item_delist',
+					'value'		=> '1',
+					'compare'	=> '!=',
+				),
+				array(
+					'key'		=> 'wp_lib_item_delist',
+					'value'		=> 'bug #23268', // Allows WP-Librarian to run on pre-3.9 WP installs (bug was fixed for 3.9, text is arbitrary)
+					'compare'	=> 'NOT EXISTS',
+				)
+			)
+		);
 	}
 }, 10, 1 );
 ?>
