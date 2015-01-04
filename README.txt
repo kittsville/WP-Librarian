@@ -1,12 +1,18 @@
-WP-Librarian
-============
+=== WP-Librarian ===
+Contributors: kittsville
+Tags: library, inventory, books, management, system, media, librarian
+Requires at least: 3.9
+Tested up to: 4.1
+Stable tag: 4.0
+License: GPL2
+License URI: http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
-WP-Librarian allows an organisation to manage and loan an extensive inventory of diverse items such as books, DVDs and comics. WP-Librarian holds information about the item such as its authors, condition, donor and ISBN number. Items can be loaned to registered members and are kept track of to ensure items are returned when they are due. Members who return items late can be charged a fine, although note that WP-Librarian has no built in payment system. Items can also be set to be loaned in the future, allowing for item’s to be reserved.
-Future functionality is planned that will allow for multiple libraries to be networked, so that books can be moved between libraries with ease, along with other useful additions.
+Manage an extensive Library of book and other media with WP-Librarian. Loan, return or schedule items, tracking them between Library members.
 
-WP-Librarian is currently under development with a planned alpha release soon.
+== Description ==
+WP-Librarian is an inventory management system for WordPress. You can use it to loan, return or schedule your Library of media to the members of your Library. WP-Librarian will keep track of which items have been lent to whom, and provide options for dealing with items returned late (fining or wavering said fine).
 
-============
+= Third Party Software =
 
 WP-Librarian uses the following 3rd Party Software, available under GNU licence:
 
@@ -18,6 +24,4 @@ Dynatable
 Copyright © 2013  Steve Schwartz
 http://www.dynatable.com/license/
 
-============
-
-Any 3rd party code snippets used should be credited in-line
+Any adapted code snippets should be credited in-line
