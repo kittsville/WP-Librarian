@@ -278,6 +278,11 @@ function wp_lib_manage_fine_dash_hyperlink( $fine_id ) {
 	);
 }
 
+// Creates URL for items archive
+function wp_lib_item_archive_url() {
+	return site_url( get_option( 'wp_lib_slugs', array('wp-librarian'))[0] );
+}
+
 	/* -- Dates and times -- */
 
 // Validates given date, checking if it meets any given requirements
