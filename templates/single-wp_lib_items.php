@@ -10,6 +10,7 @@ get_header();
 	<div id="content" role="main">
 	<?php
 	if (have_posts()) : while (have_posts()) : the_post(); ?>
+		<a href="<?php echo wp_lib_item_archive_url(); ?>" class="wp-lib-back-nav">« All Items</a>
 		<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 			<!-- Item cover image -->
 			<div class="wp-lib-item-cover">
