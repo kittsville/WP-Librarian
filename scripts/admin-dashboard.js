@@ -356,7 +356,7 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 		case 'dash-url':
 			// Sets up local parent that will hold URL's parameters
 			var theElement = $('<form/>',{
-				'class'	: 'dash-url-form'
+				'class' : 'dash-url-form'
 			});
 			
 			// Iterates over URL parameters, rendering them as hidden inputs
@@ -441,28 +441,24 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 		
 		// Paras groups of at least one paragraph, wrapped in a div
 		case 'paras':
-			// Initialises paragraph DOM element array
-			var paraOutput = [];
+			elementObject.html = [];
 			
-			// Iterates over paragraphs, creating DOM elements and adding them to the array
 			$( pageItem.content ).each( function ( i, e ) {
-				paraOutput.push($('<p/>', {
+				elementObject.html.push($('<p/>', {
 					html	: e
 				}));
 			});
 			
 			// Creates parent div that contains the paragraph elements
-			var theElement = $('<div/>',{
-				'class'	: 'dash-paras',
-				'html'	: paraOutput
-			});
+			var theElement = $('<div/>',elementObject)
+			.addClass('dash-paras');
 		break;
 		
 		// Date elements are inputs with jQuery datepickers
 		case 'date':
 			// Creates date input element, adds default datepicker styles then turns into a jQuery datepicker
 			var theElement = $('<input/>', elementObject )
-			.attr({ type	: pageItem.type })
+			.attr({ type : pageItem.type })
 			.addClass('dash-datepicker')
 			.datepicker();
 			
@@ -534,7 +530,7 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 		
 		// An item/member/etc. meta box containing information on the object concerned
 		case 'metabox':
-			// Initialises metabox
+			// Initialises meta box
 			var metaBox = $('<table/>',{
 				'class'	: 'lib-metabox',
 			});
