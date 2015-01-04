@@ -8,7 +8,7 @@
 
 // Loads file containing requested helper classes. Will handle failure less extremely after greater use of classes
 function wp_lib_add_helper( $file_name ) {
-	require_once( plugin_dir_path(__FILE__) . '/helpers/' . $file_name . '.php' );
+	require_once( dirname( __FILE__ ) . '/helpers/' . $file_name . '.php' );
 }
 
 	/* -- Sanitising Functions -- */

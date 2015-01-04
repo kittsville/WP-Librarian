@@ -36,9 +36,9 @@ register_activation_hook( __FILE__, function() {
 
 	/* -- External Files used -- */
 	
-require_once (plugin_dir_path(__FILE__) . '/wp-librarian-functions.php');
-require_once (plugin_dir_path(__FILE__) . '/wp-librarian-helpers.php');
-require_once (plugin_dir_path(__FILE__) . '/wp-librarian-ajax.php');
+require_once (dirname( __FILE__ ) . 'wp-librarian-functions.php');
+require_once (dirname( __FILE__ ) . 'wp-librarian-helpers.php');
+require_once (dirname( __FILE__ ) . 'wp-librarian-ajax.php');
 
 
 	/* -- Custom Post Types and Taxonomies -- */
@@ -616,7 +616,7 @@ function wp_lib_setup_item_meta_box() {
 	add_meta_box(
 		'library_items_meta_box',
 		'Item Details',
-		function(){require_once (plugin_dir_path(__FILE__) . '/wp-librarian-item-meta-box.php');},
+		function(){require_once (dirname( __FILE__ ) . '/wp-librarian-item-meta-box.php');},
 		'wp_lib_items',
 		'normal',
 		'high'
@@ -628,7 +628,7 @@ function wp_lib_setup_member_meta_box() {
 	add_meta_box(
 		'library_members_meta_box',
 		'Member Details',
-		function(){require_once (plugin_dir_path(__FILE__) . '/wp-librarian-member-meta-box.php');},
+		function(){require_once (dirname( __FILE__ ) . '/wp-librarian-member-meta-box.php');},
 		'wp_lib_members',
 		'normal',
 		'high'
@@ -855,7 +855,7 @@ add_action( 'admin_menu', function() {
 
 	// Registers Library Dashboard and saves handle to variable
 	if ( wp_lib_is_librarian() ) {
-		add_submenu_page('edit.php?post_type=wp_lib_items', 'Library Dashboard', 'Dashboard', 'edit_wp_lib_items_cap', 'dashboard', function(){require_once( plugin_dir_path(__FILE__) . '/wp-librarian-dashboard-template.php' );});
+		add_submenu_page('edit.php?post_type=wp_lib_items', 'Library Dashboard', 'Dashboard', 'edit_wp_lib_items_cap', 'dashboard', function(){require_once( dirname( __FILE__ ) . '/wp-librarian-dashboard-template.php' );});
 	}
 });
 
@@ -1074,7 +1074,7 @@ add_action( 'admin_init', function () {
 
 // Renders plugin settings page
 function wp_lib_render_settings() {
-	require_once( plugin_dir_path(__FILE__) . '/wp-librarian-admin-settings.php' );
+	require_once( dirname( __FILE__ ) . '/wp-librarian-admin-settings.php' );
 }
 
 	/* -- Scripts and Styles -- */
@@ -1288,7 +1288,7 @@ add_filter( 'template_include', function( $template ) {
 			}
 			// Otherwise uses plugin's default template for archives
 			else {
-				return plugin_dir_path(__FILE__) . '/templates/archive-wp_lib_items.php';
+				return dirname( __FILE__ ) . '/templates/archive-wp_lib_items.php';
 			}
 		}
 		// If page is a single item
@@ -1302,7 +1302,7 @@ add_filter( 'template_include', function( $template ) {
 			}
 			// Otherwise uses plugin's default template for single items
 			else {
-				return plugin_dir_path(__FILE__) . '/templates/single-wp_lib_items.php';
+				return dirname( __FILE__ ) . '/templates/single-wp_lib_items.php';
 			}
 		}
 	}
