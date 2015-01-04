@@ -284,11 +284,17 @@ function wp_lib_register_post_and_tax() {
 	/* Modifies permalink rules to allow pretty URLs for Library archives and single items */
 
 add_filter( 'generate_rewrite_rules', function( $wp_rewrite ) {
+	// Fetches single/archive slugs
+	$slugs = get_option( 'wp_lib_slugs', array('wp-librarian','item','authors','type'));
+	$archive = trailingslashit($slugs[0]);
+	$single = $archive . trailingslashit($slugs[1]);
+	
 	$new_rules = array();
 	
-	$new_rules['library/(.+)'] = 'index.php?post_type=' . 'wp_lib_items';
+	$new_rules[$archive.'?$']							= 'index.php?post_type=wp_lib_items';
+	$new_rules[$archive.'(feed|rdf|rss|rss2|atom)/?$']	= 'index.php?post_type=wp_lib_items&feed=' . $wp_rewrite->preg_index( 1 );
 	
-	$wp_rewrite->rules = $wp_rewrite->rules + $new_rules;
+	$wp_rewrite->rules = $new_rules + $wp_rewrite->rules;
 	
 	return $wp_rewrite;
 });
