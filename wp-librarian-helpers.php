@@ -200,15 +200,13 @@ function wp_lib_manage_fine_url( $fine_id ) {
 }
 
 // Formats and returns a Library Dashboard URL with any desired variables formatted as GET parameters
-function wp_lib_format_dash_url( $params = false ) {
+function wp_lib_format_dash_url( $params = array() ) {
 	// Constructs base Library Dashboard URL
 	$url = admin_url( 'edit.php?post_type=wp_lib_items&page=dashboard' );
 	
-	// Adds all, if any, parameters to the URL
-	if ( is_array( $params ) ) {
-		foreach ( $params as $key => $value ) {
-			$url .= '&' . $key . '=' . $value;		
-		}
+	// Adds any additional parameters to the base URL
+	foreach ( $params as $key => $value ) {
+		$url .= '&' . $key . '=' . $value;		
 	}
 
 	return $url;
