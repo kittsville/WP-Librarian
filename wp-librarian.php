@@ -610,7 +610,7 @@ function wp_lib_setup_item_meta_box() {
 	add_meta_box(
 		'library_items_meta_box',
 		'Item Details',
-		'wp_lib_render_item_meta_box',
+		function(){require_once (plugin_dir_path(__FILE__) . '/wp-librarian-item-meta-box.php');},
 		'wp_lib_items',
 		'normal',
 		'high'
@@ -622,7 +622,7 @@ function wp_lib_setup_member_meta_box() {
 	add_meta_box(
 		'library_members_meta_box',
 		'Member Details',
-		'wp_lib_render_member_meta_box',
+		function(){require_once (plugin_dir_path(__FILE__) . '/wp-librarian-member-meta-box.php');},
 		'wp_lib_members',
 		'normal',
 		'high'

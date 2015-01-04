@@ -754,14 +754,4 @@ function wp_lib_update_user_capabilities( $user_id, $role ) {
 	
 	return;
 }
-
-// Renders item meta box below item description on item creation/editing page
-function wp_lib_render_item_meta_box( $item ) {
-	require_once (plugin_dir_path(__FILE__) . '/wp-librarian-item-meta-box.php');
-}
-
-// Renders member meta box below member name on member creation/editing page
-function wp_lib_render_member_meta_box( $member ) {
-	require_once (plugin_dir_path(__FILE__) . '/wp-librarian-member-meta-box.php');
-}
 ?>
