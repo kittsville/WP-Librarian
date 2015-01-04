@@ -309,7 +309,6 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 				// Button that links to an external URL
 				case 'url':
 					theElement.attr({
-						href	: pageItem.href,
 						onclick	: wp_lib_vars.onClick
 					});
 				break;
@@ -821,7 +820,8 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 						link	: 'page',
 						value	: 'manage-item',
 						html	: 'Manage',
-						classes	: 'item-manage'
+						classes	: 'item-manage',
+						href	: wp_lib_vars.dashUrl+'&dash_page=manage-item&item_id='+record.item_id
 					},
 					localParent
 				);
