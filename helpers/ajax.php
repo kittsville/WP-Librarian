@@ -301,7 +301,7 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 	private function doReturnItem() {
 		// Fetches params from AJAX request
 		$item_id = $this->getItemId();
-		$this->stopAjax();
+		
 		// Verifies nonce based on where user came from
 		if ( isset( $_POST['ref'] ) ) {
 			switch ( $_POST['ref'] ) {
