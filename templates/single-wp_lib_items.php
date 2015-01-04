@@ -14,7 +14,7 @@ get_header();
 		<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 			<!-- Item cover image -->
 			<div class="wp-lib-item-cover">
-				<a href="<?php the_permalink(); ?>"><?php the_post_thumbnail( array( 200, 500 ) ); ?></a>
+				<?php the_post_thumbnail( array( 200, 500 ) ); ?>
 			</div>
 			<!-- Item title, taxonomy terms and meta -->
 			<div class="item-meta-wrap">
