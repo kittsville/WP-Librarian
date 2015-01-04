@@ -1,8 +1,7 @@
 <?php
 /**
  * Plugin Name: WP Librarian
- * Plugin URI: http://nerdverse.co.uk/wp-librarian
- * Description: Use WP-Librarian to manage a library of books/media and track who they're lent to and when they're due back.
+ * Description: Use WP-Librarian to manage a library of books/media. Loan, return and schedule with WP-Librarian.
  * Version: 0.0.1
  * Author: Kit Maywood
  * Text Domain: wp-librarian
@@ -36,9 +35,9 @@ register_activation_hook( __FILE__, function() {
 
 	/* -- External Files used -- */
 	
-require_once (dirname( __FILE__ ) . 'wp-librarian-functions.php');
-require_once (dirname( __FILE__ ) . 'wp-librarian-helpers.php');
-require_once (dirname( __FILE__ ) . 'wp-librarian-ajax.php');
+require_once (dirname( __FILE__ ) . '/wp-librarian-functions.php');
+require_once (dirname( __FILE__ ) . '/wp-librarian-helpers.php');
+require_once (dirname( __FILE__ ) . '/wp-librarian-ajax.php');
 
 
 	/* -- Custom Post Types and Taxonomies -- */
