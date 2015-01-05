@@ -4,7 +4,7 @@ function wp_lib_api_call( params, postCallFunction ) {
 	params.action = 'wp_lib_api';
 	
 	// Sends AJAX request
-	wp_lib_send_ajax( params, false, postCallFunction );
+	wp_lib_send_ajax( params, postCallFunction );
 }
 
 // Performs Dash action, modifying the Library e.g. Marking an item as returned
@@ -88,7 +88,7 @@ function wp_lib_do_action( dashAction, params ) {
 	data.wp_lib_ajax_nonce = params[WP_LIB_NONCE];
 	
 	// Sends dash action to server. Returns to Dashboard home on success and displays errors on failure
-	wp_lib_send_ajax( data, true, function( serverResponse ) {
+	wp_lib_send_ajax( data, function( serverResponse ) {
 		switch ( serverResponse[0] ) {
 			// Server response indicating success
 			case 4:
@@ -133,7 +133,7 @@ function wp_lib_load_page( ajaxData, stateLoad ) {
 	}
 	
 	// Requests page from server, with function handling any failures
-	wp_lib_send_ajax( ajaxData, true, function( serverResponse ) {
+	wp_lib_send_ajax( ajaxData, function( serverResponse ) {
 		// Performs actions based on how server responded
 		switch( serverResponse[0] ) {
 			// If server responded to indicate WP-Librarian failure

@@ -43,11 +43,6 @@ function wp_lib_add_notification( array ) {
 	window.wp_lib_notification_buffer.push( array );
 }
 
-// Fetches and displays any notifications waiting in the local buffer
-function wp_lib_display_notifications( ajaxCallback ) {
-	wp_lib_render_notifications( wp_lib_fetch_local_notifications() );
-}
-
 // Fetches and returns all client-side buffered notifications
 function wp_lib_fetch_local_notifications() {
 	// If any notifications are buffered, fetch them then clear the buffer
@@ -196,7 +191,7 @@ function wp_lib_parse_json( rawJSON ) {
  * Followed by server's raw response
  * Passes result to postCallFunction, if one was specified
  */
-function wp_lib_send_ajax( ajaxData, noNotificationFetch, postCallFunction ) {
+function wp_lib_send_ajax( ajaxData, postCallFunction ) {
 	// Sets notification default settings, if function parameter wasn't specified
 	if ( typeof noNotificationFetch === 'undefined' ) {
 		var noNotificationFetch = false;
@@ -230,32 +225,29 @@ function wp_lib_send_ajax( ajaxData, noNotificationFetch, postCallFunction ) {
 					// Sets output status and includes server's actual response
 					outputBuffer = [ 3, ajaxResult ];
 				}
-				
-				// Displays any notifications returned by the server
-				// Initialises notifications array by fetching any client-side notifications
-				var notifications = wp_lib_fetch_local_notifications().concat( ajaxResult[1] );
-				
-				// Renders all collected local and server notifications
-				wp_lib_render_notifications( notifications );
 			}
-		}
-		
-		// If AJAX request didn't result in a success response and notification checking isn't suppressed (e.g. by the notification function, to avoid an infinite loop), check notifications
-		if ( outputBuffer[0] !== 4 && noNotificationFetch === false ) {
-			wp_lib_display_notifications();
 		}
 	})
 	.fail( function() {
-		wp_lib_local_error( "Unable to contact website. It might be down or you may be having connection issues." );
+		wp_lib_local_error( 'Unable to contact ' + wp_lib_vars.siteName + '. The website may be down or you may be having connection issues.' );
 		
 		// Sets output status
 		outputBuffer[0] = 0;
 	})
-	.always( function() {
+	.always( function(thing) {
 		// Regardless of AJAX success/failure, passes output buffer to post AJAX function, if send_ajax was called with one defined
 		if ( typeof postCallFunction === 'function' ) {
 			postCallFunction( outputBuffer );
 		}
+		
+		// Merges locally buffered notifications with any existing server notifications then displays all notifications
+		var notifications = wp_lib_fetch_local_notifications();
+		
+		if ( outputBuffer[0] >= 3 ) {
+			notifications = notifications.concat( outputBuffer[1][1] );
+		}
+		
+		wp_lib_render_notifications( notifications );
 	});
 }
 
