@@ -270,6 +270,10 @@ div.item-thumbnail-centrefix img {
 	cursor: pointer;
 }
 
+div.item-no-thumbnail {
+	color: 5F5F5F;
+}
+
 li.single-item a {
 	position: absolute;
 	top: 320px;
