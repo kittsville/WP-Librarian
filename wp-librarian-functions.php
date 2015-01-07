@@ -32,7 +32,7 @@ function wp_lib_on_loan( $item_id, $start_date = false, $end_date = false ) {
 	
 	// Fetches all loans assigned to item
 	$loans = wp_lib_create_loan_index( $item_id );
-
+	
 	// If item has no loans, it'll be available regardless of date
 	if ( !$loans )
 		return false;
@@ -70,7 +70,7 @@ function wp_lib_recursive_scheduling_engine( $proposed_start, $proposed_end, $lo
 	$next = $current + 1;
 	
 	// Checks if a loan exists before current loan, if so then there is a gap to be checked for suitability
-	if ( $loans[$previous] ) {
+	if ( isset($loans[$previous]) ) {
 		// If the proposed loan starts after the $previous loan ends and ends before the $current loan starts, then the proposed loan would work
 		if ( $proposed_start > $loans[$previous]['end'] && $proposed_end < $loans[$current]['start'] )
 			return true;
@@ -80,7 +80,7 @@ function wp_lib_recursive_scheduling_engine( $proposed_start, $proposed_end, $lo
 		return true;
 	
 	// Checks if a loan exists after the $current loan, if so then function calls itself on the next loan
-	if ( $loans[$next] )
+	if ( isset($loans[$next]) )
 		return wp_lib_recursive_scheduling_engine( $proposed_start, $proposed_end, $loans, $next );
 	
 	// Otherwise $current loan is last loan, so if proposed loan starts after $current loan ends, proposed loan would work
@@ -461,6 +461,60 @@ function wp_lib_return_item( $item_id, $date = false, $fine = true ) {
 	return true;
 }
 
+// Renews an item on loan, extending its due date
+function wp_lib_renew_item( $loan_id, $date = false ) {
+	wp_lib_prep_date( $date );
+	
+	$loan_meta = get_post_meta( $loan_id );
+	
+	// If loan is not currently open, call error
+	if ( $loan_meta['wp_lib_status'][0] !== '1' ) {
+		wp_lib_error( 208 );
+		return false;
+	}
+	
+	// If item has been renewed already
+	if ( isset($meta['wp_lib_renew']) ) {
+		// Fetches limit to number of times an item can be renewed
+		$limit = (int) get_option( 'wp_lib_renew_limit' )[0];
+		
+		// If renewing limit is not infinite and item has reached the limit, call error
+		if ( $limit !== 0 && !( $limit > count($meta['wp_lib_renew']) ) ) {
+			wp_lib_error( 209 );
+			return false;
+		}
+	}
+	
+	// Ensures renewal due date is after current due date
+	if (!( $date > $meta['wp_lib_end_date'][0] )) {
+		wp_lib_error( 323 );
+		return false;
+	}
+	
+	// Creates list of all loans of item, including future scheduled loans
+	$item_loans = wp_lib_create_loan_index( $meta['wp_lib_item'][0] );
+	
+	// Removes current loan from loan index
+	// This is so that is doesn't interferer with itself during the next check
+	array_filter( $item_loans, function($loan){
+		return ( $loan['loan_id'] !== $loan_id );
+	});
+	
+	// Checks if loan can be extended by checking if 'new' loan would not clash with existing loans, minus current loan
+	// Calls error on failure
+	if ( wp_lib_recursive_scheduling_engine( $meta['wp_lib_start_date'][0], $date, $item_loans ) ) {
+		// Adds new renewal entry, containing the renewal date and the previous loan due date
+		add_post_meta( $loan_id, 'wp_lib_renew', array( current_time('timestamp'), $meta['wp_lib_end_date'][0] ) );
+		
+		update_post_meta( $loan_id, 'wp_lib_end_date', $date );
+		
+		return true;
+	} else {
+		wp_lib_error( 210 );
+		return false;
+	}
+}
+
 // Fines member for returning item late
 function wp_lib_create_fine( $item_id, $date = false, $return = true ) {
 	// Sets date to current time if unspecified
@@ -614,6 +668,9 @@ function wp_lib_error( $error_id, $die = false, $param = 'NULL' ) {
 		205	=> 'Deletion can not be completed while an item is on loan',
 		206	=> 'Member does not owe the Library money',
 		207	=> 'Unable to cancel fine as it would result in member owing less than nothing',
+		208 => 'An item cannot be renewed unless it is on loan',
+		209 => 'Item has been renewed the maximum number of times allowed',
+		210 => 'Cannot renew item as it would clash with scheduled loan(s)',
 		300 => "{$param} ID is required but not given",
 		301 => "{$param} ID given is not a number",
 		302 => 'No loans found for that item ID',
@@ -637,6 +694,7 @@ function wp_lib_error( $error_id, $die = false, $param = 'NULL' ) {
 		320	=> 'Fine payment amount is invalid',
 		321	=> 'Proposed fine payment is greater than amount owed by member',
 		322	=> 'Loan must be scheduled and the start date must have passed to give item to member',
+		323 => 'Item renewal date must be after item\'s current due date',
 		400 => 'Loan creation failed for unknown reason, sorry :/',
 		401 => 'Can not loan item, it is already on loan or not allowed to be loaned.<br/>This can happen if you have multiple tabs open or refresh the loan page after a loan has already been created.',
 		402 => 'Item not on loan (Loan ID not found in item meta)<br/>This can happen if you refresh the page having already returned an item',

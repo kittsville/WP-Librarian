@@ -55,6 +55,11 @@ function wp_lib_do_action( dashAction, params ) {
 			}
 		break;
 		
+		case 'renew-item':
+			data.loan_id		= params['loan_id'];
+			data.renewal_date	= params['renewal_date'];
+		break;
+		
 		case 'fine-member':
 			data.fine_member = true;
 			data.dash_action = 'return-item';

@@ -14,6 +14,12 @@ class WP_LIB_SETTINGS {
 			'default'	=> array(12)
 		),
 		
+		// Maximum number of times an item can be renewed while on loan
+		array(
+			'key'		=> 'wp_lib_renew_limit',
+			'defualt'	=> array(2)
+		),
+		
 		// Fine length (per day)
 		array(
 			'key'		=> 'wp_lib_fine_daily',

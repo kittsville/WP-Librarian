@@ -191,6 +191,10 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 				$this->doGiveItem();
 			break;
 			
+			case 'renew-item':
+				$this->doRenewItem();
+			break;
+			
 			case 'run-test-loan':
 				$this->doRunTestLoan();
 			break;
@@ -399,6 +403,25 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 		$this->endAction(
 			wp_lib_give_item( $loan_id, $give_date ),
 			get_the_title( $item_id ) . ' has been loaned to ' . get_the_title( $member_id )
+		);
+	}
+	
+	/*
+	 * Renews an item on loan, extending its due date
+	 * Renewals can be limited, if the Library is configured accordingly
+	 */
+	private function doRenewItem() {
+		// Fetches params from AJAX request
+		$loan_id = $this->getLoanId();
+		$renewal_date = $this->getPostParam( 'renewal_date', 'Renewal Date' );
+		
+		// Attempts to convert renewal date to Unix timestamp
+		wp_lib_convert_date( $renewal_date );
+		
+		// Attempts to renew item, returning success
+		$this->endAction(
+			wp_lib_renew_item( $loan_id, $renewal_date ),
+			get_the_title( get_post_meta( $loan_id, 'wp_lib_item', true ) ) . ' has been renewed'
 		);
 	}
 	
@@ -645,6 +668,10 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			
 			case 'scheduling-page':
 				$this->prepScheduleLoan();
+			break;
+			
+			case 'renew-item':
+				$this->prepRenewItem();
 			break;
 			
 			case 'give-item-past':
@@ -921,6 +948,16 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			// Fetches loan ID from Item meta
 			$loan_id = wp_lib_fetch_loan_id( $item_id );
 			
+			// If item can be renewed, provided link to renew item
+			if ( wp_lib_loan_renewable( $loan_id ) ) {
+				$form[] = array(
+					'type'	=> 'button',
+					'link'	=> 'page',
+					'value'	=> 'renew-item',
+					'html'	=> 'Renew'
+				);
+			}
+			
 			// Regardless of lateness, provides link to return item at a past date
 			$form[] = array(
 				'type'	=> 'button',
@@ -1149,6 +1186,16 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 				'value'	=> $loan_id
 			)
 		);
+		
+		// If item can be renewed, provided link to renew item
+		if ( wp_lib_loan_renewable( $loan_id ) ) {
+			$form[] = array(
+				'type'	=> 'button',
+				'link'	=> 'page',
+				'value'	=> 'renew-item',
+				'html'	=> 'Renew Item'
+			);
+		}
 		
 		// Fetches current local time
 		$time = current_time( 'timestamp' );
@@ -1416,7 +1463,84 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	}
 	
 	/*
-	 * Displays form to allow Library to mark an item as having left the Library at a previous date
+	 * Displays form allowing Librarian to renew item, extending its due date
+	 */
+	private function prepRenewItem() {
+		// Fetches loan ID, or uses item ID to fetch loan ID
+		if ( isset( $_POST['item_id'] ) ) {
+			$item_id = $this->getItemId();
+			
+			$loan_id = get_post_meta( $item_id, 'wp_lib_loan', true );
+			
+			// If item is not currently on loan (and thus loan ID is missing from item meta), call error
+			if ( $loan_id === '' )
+				$this->stopAjax( 208 );
+		} else {
+			$loan_id = $this->getLoanId();
+			
+			$item_id = get_post_meta( $loan_id, 'wp_lib_item', true );
+		}
+		
+		// Counts number of times item has already been renewed
+		$renewed_count = count(get_post_meta( $loan_id, 'wp_lib_renew' ));
+		
+		// Fetches limit to number of times item can be renewed
+		$limit = (int) get_option( 'wp_lib_renew_limit' )[0];
+		
+		// If item can be renewed an infinite number of times
+		if ( $limit === 0 )
+			$renewals_left = 'This item can be renewed indefinitely';
+		// If item has been renewed the maxim number of times allowed (or more)
+		elseif (!( $limit > $renewed_count ))
+			$this->stopAjax( 209 );
+		// Otherwise item has at least renewal left
+		else
+			$renewals_left = wp_lib_plural( 'This item can be renewed \v more time\p', $limit - $renewed_count );
+		
+		$page[] = wp_lib_prep_item_meta_box( $item_id );
+		
+		$page[] = array(
+			'type'		=> 'paras',
+			'content'	=> array(
+				$renewals_left,
+				'Select when the item should now be due back:'
+			)
+		);
+		
+		$page[] = array(
+			'type'		=> 'form',
+			'content'	=> array(
+				array(
+					'type'	=> 'hidden',
+					'name'	=> 'loan_id',
+					'value'	=> $loan_id
+				),
+				array(
+					'type'	=> 'date',
+					'name'	=> 'renewal_date',
+					'id'	=> 'item-renew-date',
+					'value'	=> Date( 'Y-m-d', current_time( 'timestamp' ) )
+				),
+				array(
+					'type'	=> 'button',
+					'link'	=> 'action',
+					'value'	=> 'renew-item',
+					'html'	=> 'Renew Item'
+				)
+			)
+		);
+		
+		$page[] = wp_lib_prep_loans_table( $item_id );
+		
+		$this->sendPage(
+			'Renewing Item: ' . get_the_title( $item_id ),
+			'Renewing Item #' . $item_id,
+			$page
+		);
+	}
+	
+	/*
+	 * Displays form to allow Librarian to mark an item as having left the Library at a previous date
 	 */
 	private function prepGiveItemPast() {
 		// Fetches and validates Loan ID

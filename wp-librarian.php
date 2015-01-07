@@ -907,11 +907,28 @@ add_action( 'admin_init', function () {
 				)
 			),
 			array(
+				'name'		=> 'wp_lib_renew_limit',
+				'sanitize'	=>
+					function( $raw ) {
+						// Ensures input is a positive integer between 0-10 (inclusive)
+						return array( min( (int) abs( trim( $raw[0] ) ), 10 ) );
+					},
+				'fields'	=> array(
+					array(
+						'name'		=> 'Renewing Limit',
+						'field_type'=> 'textInput',
+						'args'		=> array(
+							'alt'	=> 'The maximum number of times an item can be renewed. 0 = no limit'
+						)
+					)
+				)
+			),
+			array(
 				'name'		=> 'wp_lib_fine_daily',
 				'sanitize'	=>
 					function( $raw ) {
 						// Ensures fine amount is a positive float with no more than 2 decimal places
-						return = array(round(max((float)trim($raw[0]),0),2));
+						return array(round(max((float)trim($raw[0]),0),2));
 					},
 				'fields'	=> array(
 					array(

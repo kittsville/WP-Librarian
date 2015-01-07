@@ -741,6 +741,30 @@ function wp_lib_format_item_condition( $number, $full = true ) {
 
 	/* -- Miscellaneous -- */
 
+/*
+ * Checks if item can be renewed
+ * @param	int 	$loan_id	Post ID of current item's loan
+ * @return	bool	If item is eligible for renewal
+ */
+function wp_lib_loan_renewable( $loan_id ) {
+	// Counts number of times item has already been renewed
+	$renewed = count(get_post_meta($loan_id, 'wp_lib_renew'));
+	
+	// If item hasn't been renewed on this loan yet, it will be able to be renewed at least once
+	if ( $renewed === 0 )
+		return true;
+	
+	// Fetches limit to number of times an item can be renewed
+	$limit = (int) get_option( 'wp_lib_renew_limit' )[0];
+	
+	// If no limit is set (infinite), item can be renewed
+	if ( $limit === 0 )
+		return true;
+	// If number of times left that item can be renewed is positive, item can be renewed
+	else
+		return ( ( $limit - $renewed ) > 0 );
+}
+
 // Fetches amount member owes Library in fines
 function wp_lib_fetch_member_owed( $member_id ) {
 	// Fetches total money owed by member to Library
