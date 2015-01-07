@@ -893,14 +893,8 @@ add_action( 'admin_init', function () {
 				'name'			=> 'wp_lib_loan_length',
 				'sanitize'		=>
 					function( $raw ) {
-						// Removes unnecessary whitespace and attempts to convert input to an int
-						$raw[0] = (int)trim($raw[0]);
-						
-						// If input is valid, allow setting to update, otherwise return nothing
-						if ( is_int($raw[0]) && $raw[0] > 0 )
-							return $raw;
-						else
-							return;
+						// Ensures loan length is an integer between 1-100 (inclusive)
+						return array( min( max( (int) abs( trim( $raw[0] ) ), 1 ), 100 ) );
 					},
 				'fields'		=> array(
 					array(
@@ -916,13 +910,8 @@ add_action( 'admin_init', function () {
 				'name'		=> 'wp_lib_fine_daily',
 				'sanitize'	=>
 					function( $raw ) {
-						$raw[0] = (float)trim($raw[0]);
-						
-						if ( is_numeric($raw[0]) && $raw[0] >= 0 ) {
-							return $raw;
-						} else {
-							return;
-						}
+						// Ensures fine amount is a positive float with no more than 2 decimal places
+						return = array(round(max((float)trim($raw[0]),0),2));
 					},
 				'fields'	=> array(
 					array(
