@@ -306,7 +306,7 @@ function wp_lib_prep_date_column( $post_id, $key ) {
 
 function wp_lib_format_unix_timestamp( $timestamp ) {
 	// If date is valid returns formatted date
-	if ( is_numeric( $timestamp ) )
+	if ( (int) $timestamp !== 0 )
 		return '<abbr title="' . date( 'Y/m/d g:i:s A', $timestamp ) . '">' . date( 'Y/m/d', $timestamp ) . '</abbr>';
 	// Otherwise return dash to indicate missing/unknown information
 	else
