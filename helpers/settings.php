@@ -195,9 +195,11 @@ class WP_LIB_SETTINGS_SECTION extends WP_LIB_SETTINGS {
 		// Fetches option value from database. Uses false if option does not exist
 		$option = get_option( $args['setting_name'], false );
 		
-		// If option does not exist or is invalid, call error. This will be handled better in future
-		if ( !is_array( $option ) )
+		// If option does not exist or is invalid, attempts to fix settings then calls error
+		if ( !is_array( $option ) ) {
+			$this->checkPluginSettingsIntegrity();
 			wp_lib_error( 114, true );
+		}
 		
 		// Fetches field value from option array
 		if ( isset( $option[$args['position']] ) )
