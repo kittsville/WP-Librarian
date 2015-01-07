@@ -1098,81 +1098,29 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			'content'	=> $form
 		);
 		
-		// Sets up loan history query arguments
-		$args = array(
-			'post_type' 	=> 'wp_lib_loans',
-			'post_status'	=> 'publish',
-			'meta_query'	=> array(
-				array(
-					'key'		=> 'wp_lib_member',
-					'value'		=> $member_id,
-					'compare'	=> 'IN'
-				)
-			)
-		);
+		wp_lib_add_helper( 'dynatable' );
 		
-		// Creates query of all loans attached to this member
-		$loan_query = new WP_Query( $args );
+		// Queries database for loans made by member
+		$dynatable = new WP_LIB_DYNATABLE_LOANS( 'wp_lib_member', $member_id );
 		
-		// Checks for any loans attached to member
-		if ( $loan_query->have_posts() ){
-			// Initialises loans array
-			$loans = array();
-			
-			// Iterates through loans
-			while ( $loan_query->have_posts() ) {
-				// Selects current post (loan)
-				$loan_query->the_post();
-				
-				// Fetches loan ID
-				$loan_id = get_the_ID();
-				
-				// Fetches all loan's meta
-				$meta = get_post_meta( $loan_id );
-				
-				// Gets item ID from loan meta
-				$item_id = $meta['wp_lib_item'][0];
-				
-				// If loan incurred fine, change loan status to include a link to manage said fine
-				if ( $meta['wp_lib_status'][0] == 4 ) {
-					$loan_status = wp_lib_prep_dash_hyperlink( wp_lib_format_loan_status( $meta['wp_lib_status'][0] ), wp_lib_prep_manage_fine_params( $meta['wp_lib_fine'][0] ) );
-				} else {
-					$loan_status = wp_lib_format_loan_status( $meta['wp_lib_status'][0] );
-				}
-				
-				$loans[] = array(
-					'loan'		=> wp_lib_manage_loan_dash_hyperlink( $loan_id ),
-					'item'		=> wp_lib_manage_item_dash_hyperlink( $item_id ),
-					'status'	=> $loan_status,
-					'loaned'	=> wp_lib_format_unix_timestamp( ( isset( $meta['wp_lib_loaned_date'] ) ? $meta['wp_lib_loaned_date'][0] : $meta['wp_lib_start_date'][0] ) ),
-					'expected'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_end_date'][0] ),
-					'returned'	=> wp_lib_format_unix_timestamp( $meta['wp_lib_returned_date'][0] )
-				);
-			}
-			
-			// Adds loans (rows) to table
-			$page[] = array(
-				'type'		=> 'dtable',
+		// Generates table of query results
+		$page[] = $dynatable->generateTable(
+			array(
+				array( 'Loan',		'loan',		'genColumnManageLoan' ),
+				array( 'Item',		'item',		'genColumnManageItem' ),
+				array( 'Status',	'status',	'genColumnLoanStatus' ),
+				array( 'Loaned',	'loaned',	'genColumnLoanStart' ),
+				array( 'Expected',	'expected',	'genColumnLoanEnd' ),
+				array( 'Returned',	'returned',	'genColumnReturned' )
+			),
+			array(
 				'id'		=> 'member-loans',
-				'headers'	=> array(
-					'Loan',
-					'Item',
-					'Status',
-					'Loaned',
-					'Expected',
-					'Returned'
-				),
-				'data'		=> $loans,
 				'labels'	=> array(
 					'records'	=> 'loans'
 				)
-			);
-		} else {
-			$page[] = array(
-				'type'		=> 'paras',
-				'content'	=> array( 'No loans to display' )
-			);
-		}
+			),
+			get_the_title( $member_id ) . ' has never borrowed an item'
+		);
 		
 		$this->sendPage( 'Managing: ' . get_the_title( $member_id ), 'Managing Member #' . $member_id, $page );
 	}
