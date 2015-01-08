@@ -465,10 +465,10 @@ function wp_lib_return_item( $item_id, $date = false, $fine = true ) {
 function wp_lib_renew_item( $loan_id, $date = false ) {
 	wp_lib_prep_date( $date );
 	
-	$loan_meta = get_post_meta( $loan_id );
+	$meta = get_post_meta( $loan_id );
 	
 	// If loan is not currently open, call error
-	if ( $loan_meta['wp_lib_status'][0] !== '1' ) {
+	if ( $meta['wp_lib_status'][0] !== '1' ) {
 		wp_lib_error( 208 );
 		return false;
 	}

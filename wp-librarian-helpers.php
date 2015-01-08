@@ -747,6 +747,10 @@ function wp_lib_format_item_condition( $number, $full = true ) {
  * @return	bool	If item is eligible for renewal
  */
 function wp_lib_loan_renewable( $loan_id ) {
+	// Checks if loan is currently open (item is with member)
+	if ( get_post_meta( $loan_id, 'wp_lib_status', true ) !== '1' )
+		return false;
+	
 	// Counts number of times item has already been renewed
 	$renewed = count(get_post_meta($loan_id, 'wp_lib_renew'));
 	

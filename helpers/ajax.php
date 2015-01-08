@@ -1495,7 +1495,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			$this->stopAjax( 209 );
 		// Otherwise item has at least renewal left
 		else
-			$renewals_left = wp_lib_plural( 'This item can be renewed \v more time\p', $limit - $renewed_count );
+			$renewals_left = wp_lib_plural( $limit - $renewed_count, 'This item can be renewed \v more time\p' );
 		
 		$page[] = wp_lib_prep_item_meta_box( $item_id );
 		
