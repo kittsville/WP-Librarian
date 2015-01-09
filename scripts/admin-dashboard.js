@@ -887,10 +887,19 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 		break;
 		
 		default:
-			var theElement = $('<strong/>', {
-				'html'	: 'UNKNOWN ELEMENT TYPE<br/>',
-				'style'	: 'color:red;'
-			});
+			// If debugging mode is enabled, render obvious placeholder for invalid element type
+			// Otherwise fail subtly
+			if ( wp_lib_vars.debugMode ) {
+				console.log( 'Dash element has unknown element type:' );
+				console.log( pageItem );
+				
+				var theElement = $('<strong/>', {
+					'html'	: 'UNKNOWN ELEMENT TYPE<br/>',
+					'style'	: 'color:red;'
+				});
+			} else {
+				var theElement = $('<div/>',{});
+			}
 		break;
 	}
 	
