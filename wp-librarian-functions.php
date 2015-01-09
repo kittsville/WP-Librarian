@@ -41,9 +41,9 @@ function wp_lib_on_loan( $item_id, $start_date = false, $end_date = false ) {
 		$loan_already = get_post_meta( $item_id, 'wp_lib_member', true );
 
 		// If a member is not assigned to the item (meta value is an empty string) then item is not on loan
-		$loan_already = ( $loan_already != '' ? true : false );
+		$loan_already = ( $loan_already !== '' ? true : false );
 		
-		return $loan_already;	
+		return $loan_already;
 	}
 	
 	// Fetches all loans assigned to item
