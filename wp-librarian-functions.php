@@ -450,6 +450,12 @@ function wp_lib_give_item( $loan_id, $date = false ) {
 	// Sets date to current time if not set
 	wp_lib_prep_date( $date );
 	
+	// Checks to make sure loan is currently scheduled
+	if ( get_post_meta( $loan_id, 'wp_lib_status', true ) !== '5' ) {
+		wp_lib_error( 211 );
+		return false;
+	}
+	
 	// Fetches item and member IDs from loan meta
 	$item_id = get_post_meta( $loan_id, 'wp_lib_item', true );
 	$member_id = get_post_meta( $loan_id, 'wp_lib_member', true );
@@ -761,6 +767,7 @@ function wp_lib_error( $error_id, $param = 'NULL' ) {
 		208 => 'An item cannot be renewed unless it is on loan',
 		209 => 'Item has been renewed the maximum number of times allowed',
 		210 => 'Cannot renew item as it would clash with scheduled loan(s)',
+		211 => 'Loan cannot be fulfilled unless it is currently scheduled',
 		300 => "{$param} ID is required but not given",
 		301 => "{$param} ID given is not a number",
 		302 => 'No loans found for that item ID',
