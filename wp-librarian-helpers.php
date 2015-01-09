@@ -992,17 +992,6 @@ function wp_lib_display_item_meta( $item_id, $item_permalink = true ) {
 	}
 }
 
-// Renders notification to page, to send notification to cl
-function wp_lib_add_notification_on_load( $text ) {
-	?>
-	<script type="text/javascript">
-		jQuery(function($){
-			wp_lib_local_notification( <?php echo json_encode( $text ); ?> );
-		});
-	</script>
-	<?php
-}
-
 // Recursively searches for any Library objects connected directly or indirectly to a given object. Uses depth first searching
 function wp_lib_fetch_dependant_objects( $post_id, $post_type = false, $connected_posts = array() ) {
 	// If post type has not been given, fetches

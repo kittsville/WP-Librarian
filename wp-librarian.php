@@ -851,18 +851,6 @@ add_action( 'admin_menu', function() {
 				
 				// Checks that all plugin settings are valid, resets any settings that aren't
 				WP_LIB_SETTINGS::checkPluginSettingsIntegrity();
-				
-				// If settings were successfully updated, notifies user
-				if ( $_GET['settings-updated'] === 'true' ) {
-					// Flushes permalink rules so new slugs work
-					wp_lib_flush_permalinks();
-					
-					// Notifies user settings have been updated
-					wp_lib_add_notification_on_load( 'Settings updated successfully' );
-				} elseif ( $_GET['settings-updated'] === 'false' ) {
-					// Calls error to inform user that settings update failed
-					wp_lib_add_notification_on_load( 'Settings failed to update' );
-				}
 			}
 		});
 	}
@@ -880,7 +868,7 @@ add_action( 'admin_menu', function() {
 add_action( 'admin_init', function () {
 	// Loads helper to manage settings sections
 	wp_lib_add_helper( 'settings' );
-
+	
 	/* -- General Library Settings -- */
 	
 	// Registers general settings section, settings and fields with sanitization callbacks

@@ -1,6 +1,15 @@
 jQuery(function($){
-	// Renders any buffered notifications
-	wp_lib_display_notifications();
+	if ( wp_lib_vars.getParams.hasOwnProperty( 'settings-updated' ) ) {
+		switch ( wp_lib_vars.getParams['settings-updated'] ) {
+			case 'true':
+				wp_lib_local_notification( 'Settings updated successfully' );
+			break;
+			
+			case 'false':
+				wp_lib_local_notification( 'Settings failed to update' );
+			break;
+		}
+	}
 	
 	// Updates slug previews based on changed input field
 	function wp_lib_update_slug_previews( slugInput ) {
