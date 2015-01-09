@@ -36,7 +36,7 @@ function wp_lib_is_library_admin() {
 function wp_lib_on_loan( $item_id, $start_date = false, $end_date = false ) {
 	// If dates weren't given then the schedule doesn't need to be checked
 	// The simpler method of checking the item for an assigned member can be used
-	if ( !( $start_date || $end_date ) ) {
+	if ( $start_date === false || $end_date === false ) {
 		// Fetches all members assigned to item
 		$loan_already = get_post_meta( $item_id, 'wp_lib_member', true );
 
