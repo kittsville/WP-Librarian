@@ -61,7 +61,7 @@ class WP_LIB_AJAX {
 	 */
 	protected function getLibraryObjectId( $object, $post_type, $var_name ) {
 		if ( !isset( $_POST[$var_name] ) ) {
-			wp_lib_error( 300, false, $object );
+			wp_lib_error( 300, $object );
 			return false;
 		} else {
 			$object_id = (int) $_POST[$var_name];
@@ -69,7 +69,7 @@ class WP_LIB_AJAX {
 			if ( get_post_type( $object_id ) === $post_type ) {
 				return $object_id;
 			} else {
-				wp_lib_error( 303, false, $object );
+				wp_lib_error( 303, $object );
 				return false;
 			}
 		}
@@ -143,7 +143,7 @@ class WP_LIB_AJAX {
 	protected function stopAjax( $error_code = false, $params = false ) {
 		// If error code was set, call error
 		if ( $error_code )
-			wp_lib_error( $error_code, false, $params );
+			wp_lib_error( $error_code, $params );
 		
 		// Set output success to failure
 		$this->output_buffer[0] = false;
@@ -707,7 +707,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	 */
 	protected function stopAjax( $error_code = false, $param = false ) {
 		if ( $error_code !== false )
-			wp_lib_error( $error_code, false, $param );
+			wp_lib_error( $error_code, $param );
 		
 		// If this is the user's first Dash page then, to avoid user being faced with a blank Dash page, load Dashboard
 		// Otherwise allows user to remain on current page and just returns error

@@ -725,14 +725,12 @@ function wp_lib_cancel_fine( $fine_id ) {
 /*
  * Generates error based on given error code and, if not an AJAX request, kills thread
  * @param int			$error_id	Error that has occurred
- * @param bool			$die		OPTIONAL Whether to kill thread (DEPRICATED)
  * @param string|array	$param		OPTIONAL Relevant parameters to error to enhance error message (not optional for certain error messages)
- * @todo Remove $die and mentions of it from all relevant calling functions
  */
-function wp_lib_error( $error_id, $die = false, $param = 'NULL' ) {
+function wp_lib_error( $error_id, $param = 'NULL' ) {
 	// Checks if error code is valid and error exists, if not returns error
 	if ( !is_numeric( $error_id ) ) {
-		wp_lib_error( 901, $die );
+		wp_lib_error( 901 );
 		return;
 	}
 	
@@ -814,7 +812,7 @@ function wp_lib_error( $error_id, $die = false, $param = 'NULL' ) {
 	
 	// Checks if error exists, if not returns error
 	if ( !array_key_exists( $error_id, $all_errors ) ) {
-		wp_lib_error( 902, $die, $error_id );
+		wp_lib_error( 902, $error_id );
 		return;
 	}
 	

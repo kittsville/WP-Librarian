@@ -198,14 +198,14 @@ class WP_LIB_SETTINGS_SECTION extends WP_LIB_SETTINGS {
 		// If option does not exist or is invalid, attempts to fix settings then calls error
 		if ( !is_array( $option ) ) {
 			$this->checkPluginSettingsIntegrity();
-			wp_lib_error( 114, true );
+			wp_lib_error( 114 );
 		}
 		
 		// Fetches field value from option array
 		if ( isset( $option[$args['position']] ) )
 			$option = $option[$args['position']];
 		else
-			wp_lib_error( 115, true );
+			wp_lib_error( 115 );
 		
 		// If filter exists, to prep the option for field display, filters
 		if ( isset( $args['filter'] ) )

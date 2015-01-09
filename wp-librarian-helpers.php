@@ -110,13 +110,13 @@ function wp_lib_sanitize_donor( $member_id ) {
 function wp_lib_get_object_type( $post_id ) {
 	// Checks if item ID exists
 	if ( !$post_id ) {
-		wp_lib_error( 300, false, 'Library Object' );
+		wp_lib_error( 300, 'Library Object' );
 		return false;
 	}
 
 	// Checks if ID is a number
 	if ( !is_numeric( $post_id ) ) {
-		wp_lib_error( 301, false, 'Library Object' );
+		wp_lib_error( 301, 'Library Object' );
 		return false;
 	}
 	
@@ -660,8 +660,10 @@ function wp_lib_format_loan_status( $status ) {
 	);
 	
 	// If given number refers to a status that doesn't exist, throw error
-	if ( empty( $strings[$status] ) )
-		wp_lib_error( 201, true, 'Loan' );
+	if ( empty( $strings[$status] ) ) {
+		wp_lib_error( 201, 'Loan' );
+		return false;
+	}
 	
 	// State is looked up in the array and returned
 	return $strings[$status];
@@ -677,8 +679,10 @@ function wp_lib_format_fine_status( $status ) {
 	);
 	
 	// If given number refers to a status that doesn't exist, throw error
-	if ( empty( $strings[$status] ) )
-		wp_lib_error( 201, true, 'Fine' );
+	if ( empty( $strings[$status] ) ) {
+		wp_lib_error( 201, 'Fine' );
+		return false;
+	}
 	
 	// State is looked up in the array and returned
 	return $strings[$status];
@@ -700,8 +704,10 @@ function wp_lib_format_user_permission_status( $status ) {
 	$strings = wp_lib_fetch_user_roles();
 	
 	// If given number refers to a status that doesn't exist, throw error
-	if ( !array_key_exists( $status, $strings ) )
-		wp_lib_error( 201, true, 'User' );
+	if ( !array_key_exists( $status, $strings ) ) {
+		wp_lib_error( 201, 'User' );
+		return false;
+	}
 	
 	// State is looked up in the array and returned
 	return $strings[$status];
