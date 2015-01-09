@@ -809,7 +809,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		$page = array(
 			array(
 				'type'		=> 'paras',
-				'content'	=> array( 'Use the options below to manage your Library' )
+				'content'	=> 'Use the options below to manage your Library'
 			),
 			array(
 				'type'		=> 'div',
@@ -845,7 +845,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		if ( $query->have_posts() ){
 			$page[] = array(
 				'type'		=> 'paras',
-				'content'	=> array('Select an item to manage it. Late items are highlighted in red.')
+				'content'	=> 'Select an item to manage it. Late items are highlighted in red.'
 			);
 			
 			// Iterates through items
@@ -902,7 +902,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		} else {
 			$page[] = array(
 				'type'		=> 'paras',
-				'content'	=> array('No items found.')
+				'content'	=> 'No items found.'
 			);
 		}
 		
@@ -1287,7 +1287,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			),
 			array(
 				'type'		=> 'paras',
-				'content'	=> array( 'Fines can be paid from the member\'s management page.' )
+				'content'	=> 'Fines can be paid from the member\'s management page.'
 			)
 		);
 		
@@ -1333,7 +1333,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 					wp_lib_prep_nonce( 'Lookup Item Barcode' ),
 					array(
 						'type'		=> 'paras',
-						'content'	=> array( 'Once the barcode is scanned the item will be retried automatically' )
+						'content'	=> 'Once the barcode is scanned the item will be retried automatically'
 					),
 					array(
 						'type'		=> 'input',
@@ -1571,7 +1571,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 						),
 						array(
 							'type'		=> 'paras',
-							'content'	=> array( 'Enter date that item was given to member. In future do not release the item from the Library without recording it first.' )
+							'content'	=> 'Enter date that item was given to member. In future do not release the item from the Library without recording it first.'
 						),
 						array(
 							'type'	=> 'date',
@@ -1695,7 +1695,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 						),
 						array(
 							'type'		=> 'paras',
-							'content'	=> array( "{$title} is late by {$days_late}. If fined, {$member_name} would incur a fine of {$fine} ({$fine_per_day_formatted} per day x {$days_late})." )
+							'content'	=> "{$title} is late by {$days_late}. If fined, {$member_name} would incur a fine of {$fine} ({$fine_per_day_formatted} per day x {$days_late})."
 						),
 						array(
 							'type'	=> 'button',
@@ -1747,7 +1747,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 					array(
 						array(
 							'type'		=> 'paras',
-							'content'	=> array("Enter an amount to reduce the member's total owed to the Library")
+							'content'	=> 'Enter an amount to reduce the member\'s total owed to the Library'
 						),
 						array(
 							'type'	=> 'hidden',
@@ -1965,7 +1965,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		} else {
 			$page[] = array(
 				'type'		=> 'paras',
-				'content'	=> array( 'No other objects in the Library are dependant on this object' )
+				'content'	=> 'No other objects in the Library are dependant on this object'
 			);
 		}
 		
