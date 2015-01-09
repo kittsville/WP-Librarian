@@ -445,13 +445,24 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 		
 		// Paras groups of at least one paragraph, wrapped in a div
 		case 'paras':
-			elementObject.html = [];
+			// Can be passed array of strings or single string
+			if ( pageItem.hasOwnProperty('content') ){
+				if ( pageItem.content instanceof Array ) {
+					elementObject.html = [];
+				
+					$( pageItem.content ).each( function ( i, e ) {
+						elementObject.html.push($('<p/>', {
+							html	: e
+						}));
+					});
+				} else if ( typeof pageItem.content === 'string' ) {
+					elementObject.html = $('<p/>', {
+						html	: pageItem.content
+					});
+				}
+			}
 			
-			$( pageItem.content ).each( function ( i, e ) {
-				elementObject.html.push($('<p/>', {
-					html	: e
-				}));
-			});
+			
 			
 			// Creates parent div that contains the paragraph elements
 			var theElement = $('<div/>',elementObject)
