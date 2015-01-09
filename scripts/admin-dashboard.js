@@ -714,8 +714,8 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 			theTable.dynatable({
 				dataset: {
 					records: tableRecords,
-					perPageDefault: 15,
-					perPageOptions: [15, 30, 60, 180]
+					perPageDefault: 10,
+					perPageOptions: [10, 20, 50, 100]
 				},
 				params: {
 					records: pageItem.labels.records
