@@ -311,7 +311,7 @@ function wp_lib_prep_item_due( $item_id, $date = false, $array ) {
  */
 function wp_lib_fetch_loan_id( $item_id, $date = false ) {
 	// If a date hasn't been given, assume loan is in progress
-	if ( !$date ) {
+	if ( $date == false ) {
 		// Fetches loan ID from item metadata
 		$loan_id = get_post_meta( $item_id, 'wp_lib_loan', true );
 
@@ -363,7 +363,7 @@ function wp_lib_loan_item( $item_id, $member_id, $loan_length = false ) {
 	$start_date = current_time( 'timestamp' );
 	
 	// If loan length wasn't given, use default loan length
-	if ( !$loan_length )
+	if ( $loan_length === false )
 		$loan_length = get_option( 'wp_lib_loan_length', array(12) )[0];
 	// If loan length is not a positive integer, call error
 	elseif ( !ctype_digit( $loan_length ) ) {
@@ -377,7 +377,8 @@ function wp_lib_loan_item( $item_id, $member_id, $loan_length = false ) {
 	// Schedules loan, returns loan's ID on success
 	$loan_id = wp_lib_schedule_loan( $item_id, $member_id, $start_date, $end_date );
 	
-	if ( !$loan_id )
+	// If scheduling function failed, return failure (schedule_loan will have already called errors)
+	if ( $loan_id === false )
 		return $loan_id;
 	
 	// Passes item to member then checks for success
