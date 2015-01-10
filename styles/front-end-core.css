@@ -5,11 +5,7 @@
  * Version:		0.1
  */
 
-.wp-lib-item-description {
-	float: left;
-	text-align: left;
-	display: flex;
-}
+
 
 .wp-lib-item-title, .item-meta-wrap, .wp-lib-item-description {
 	min-width: 250px;
@@ -17,13 +13,14 @@
 
 .wp-lib-item-cover {
 	float: right;
-	vertical-align: top;
-	padding: 0px 0px 5px 5px;
-	display: block;
+	padding: 0px 0px 0px 5px;
 }
 
-article.wp-lib-items {
+article.wp_lib_items {
 	display: block;
+	overflow: auto;
+	border-bottom: 1px solid grey;
+	margin-top: 10px;
 }
 
 div.item-meta-wrap * {
