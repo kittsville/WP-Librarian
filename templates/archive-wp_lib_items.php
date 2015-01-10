@@ -27,6 +27,7 @@ get_header();
 			</div>
 		</article>
 		<?php endwhile; else: endif; ?>
+		<div class="navigation"><p><?php posts_nav_link(); ?></p></div>
 	</div>
 </div>
 <?php get_footer(); ?>

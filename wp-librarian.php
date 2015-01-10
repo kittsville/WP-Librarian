@@ -305,8 +305,10 @@ add_filter( 'generate_rewrite_rules', function( $wp_rewrite ) {
 	
 	$new_rules = array();
 	
-	$new_rules[$archive.'?$']							= 'index.php?post_type=wp_lib_items';
-	$new_rules[$archive.'(feed|rdf|rss|rss2|atom)/?$']	= 'index.php?post_type=wp_lib_items&feed=' . $wp_rewrite->preg_index( 1 );
+	$new_rules[$archive.'?$']								= 'index.php?post_type=wp_lib_items';
+	$new_rules[$archive.'page/?([0-9]{1,})/?$']				= 'index.php?post_type=wp_lib_items&paged=' . $wp_rewrite->preg_index( 1 );
+	$new_rules[$archive.'(feed|rdf|rss|rss2|atom)/?$']		= 'index.php?post_type=wp_lib_items&feed=' . $wp_rewrite->preg_index( 1 );
+	$new_rules[$archive.'feed/(feed|rdf|rss|rss2|atom)/?$']	= 'index.php?post_type=wp_lib_items&feed=' . $wp_rewrite->preg_index( 1 );
 	
 	$wp_rewrite->rules = $new_rules + $wp_rewrite->rules;
 	
