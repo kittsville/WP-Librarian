@@ -836,8 +836,9 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		// Queries database for all valid library items
 		$query = NEW WP_Query(
 			array(
-				'post_type' 	=> 'wp_lib_items',
-				'post_status'	=> 'publish'
+				'post_type' 		=> 'wp_lib_items',
+				'post_status'		=> 'publish',
+				'posts_per_page'	=> '-1'
 			)
 		);
 		
