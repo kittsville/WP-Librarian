@@ -41,7 +41,7 @@ register_activation_hook( __FILE__, function() {
 		array(
 			'channel'	=> 'Alpha',
 			'version'	=> '0.1',
-			'subversion'=> '002',
+			'subversion'=> '003',
 			'nickname'	=> 'Fox Paw'
 		)
 	);
