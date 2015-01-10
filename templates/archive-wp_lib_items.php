@@ -26,9 +26,7 @@ get_header();
 				<?php the_content(); ?>
 			</div>
 		</article>
-		<?php if ( $wp_query->current_post + 1 !== $wp_query->post_count ): ?>
-		<hr />
-		<?php endif; endwhile; else: endif; ?>
+		<?php endwhile; else: endif; ?>
 	</div>
 </div>
 <?php get_footer(); ?>
