@@ -351,6 +351,7 @@ add_filter( 'manage_wp_lib_members_posts_columns', function ( $columns ) {
 	$new_columns = array(
 		'member_name'		=> 'Name',
 		'member_loans'		=> 'Items on Loan',
+		'member_donated'	=> 'Items Donated',
 		'member_fines'		=> 'Owed in Fines'
 	);
 	
@@ -371,8 +372,23 @@ add_action( 'manage_wp_lib_members_posts_custom_column' , function ( $column, $m
 			echo wp_lib_prep_members_items_out( $member_id );
 		break;
 		
+		// Displays total amount currently owed to the Library in late item fines
 		case 'member_fines':
 			echo wp_lib_format_money( wp_lib_fetch_member_owed( $member_id ) );
+		break;
+		
+		// Displays total number of items donated by the member to the Library
+		case 'member_donated':
+			echo (new WP_Query(array(
+				'post_type' 		=> 'wp_lib_items',
+				'meta_query'		=> array(
+					array(
+						'key'			=> 'wp_lib_item_donor',
+						'value'			=> $member_id,
+						'compare'		=> '='
+					)
+				)
+			)))->post_count;
 		break;
 	}
 }, 10, 2 );
