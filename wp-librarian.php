@@ -260,7 +260,7 @@ function wp_lib_register_post_and_tax() {
 				'update_item'		=> 'Update Media Type',
 				'add_new_item'		=> 'Add New Media Type',
 				'new_item_name'		=> 'New Media Type Name',
-				'menu_name'			=> 'Media Type'
+				'menu_name'			=> 'Media Types'
 			)
 		)
 	);
