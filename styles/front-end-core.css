@@ -19,8 +19,11 @@
 article.wp_lib_items {
 	display: block;
 	overflow: auto;
-	border-bottom: 1px solid grey;
 	margin-top: 10px;
+}
+
+article.wp_lib_items:not(:last-of-type) {
+	border-bottom: 1px solid #CCC;
 }
 
 div.item-meta-wrap * {
