@@ -266,7 +266,7 @@ function wp_lib_register_post_and_tax() {
 	);
 	
 	// Creates Default Media Type entries if they don't already exist, unless configured otherwise
-	if ( wp_lib_prep_boolean_option( get_option( 'wp_lib_default_media_types', '3' )[0] ) ) {
+	if ( wp_lib_prep_boolean_option( get_option( 'wp_lib_default_media_types', array(3) )[0] ) ) {
 		$default_media_types = array(
 			array(
 				'name' => 'Book',
@@ -1219,6 +1219,9 @@ function wp_lib_check_post_pre_trash( $post_id ) {
 
 // Sets up WP-Librarian on plugin activation
 register_activation_hook( __FILE__, function() {
+	wp_lib_add_helper( 'settings' );
+	WP_LIB_SETTINGS::addPluginSettings();
+
 	// Flushes permalink rules so new URLs don't 404
 	wp_lib_flush_permalinks();
 });
