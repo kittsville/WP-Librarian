@@ -5,7 +5,7 @@
  * Version: 0.0.1
  * Author: Kit Maywood
  * Text Domain: wp-librarian
- * Author URI: http://nerdverse.co.uk/wp-librarian
+ * Author URI: https://github.com/kittsville
  * License: GPL2
  */
 
