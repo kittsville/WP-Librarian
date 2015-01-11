@@ -7,8 +7,12 @@
 
 
 
-.wp-lib-item-title, .item-meta-wrap, .wp-lib-item-description {
+.item-meta-wrap, .wp-lib-item-description {
 	min-width: 250px;
+}
+
+.item-meta-wrap {
+	max-width: 500px;
 }
 
 .wp-lib-item-cover {
