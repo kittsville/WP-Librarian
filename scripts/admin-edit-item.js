@@ -21,8 +21,13 @@ function wp_lib_post_render($) {
 	// Formats ISBN field, if input exists
 	var isbnField = $( '[name="wp_lib_item_isbn"]' );
 	
-	if ( isbnField.val() != '' ) {
-		isbnField.val( hyphenateISBN( isbnField.val() ) );
+	if ( isbnField.val() !== '' ) {
+		var isbnVal = hyphenateISBN( isbnField.val() );
+		
+		// If hyphenateISBN worked, update value with formatted value
+		if ( typeof isbnVal === 'string' ) {
+			isbnField.val( isbnVal );
+		}
 	}
 }
 
