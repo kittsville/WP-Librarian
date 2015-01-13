@@ -1172,7 +1172,7 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
 
 // Enqueues scripts and styles needed for WP-Librarian's front-end
 add_action( 'wp_enqueue_scripts', function() {
-	if ( get_post_type() == 'wp_lib_items' )
+	if ( get_post_type() === 'wp_lib_items' )
 		wp_enqueue_style( 'wp_lib_frontend', wp_lib_style_url( 'front-end-core' ), array(), '0.1' );
 });
 
