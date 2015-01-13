@@ -419,10 +419,10 @@ function wp_lib_schedule_loan( $item_id, $member_id, $start_date, $end_date ) {
 	);
 	
 	// Creates the loan, a custom post type that holds useful meta about the loan
-	$loan_id = wp_insert_post( $args, true );
+	$loan_id = wp_insert_post( $args );
 	
 	// If loan was not successfully created, call error
-	if ( !is_numeric( $loan_id ) ) {
+	if ( $loan_id === 0 ) {
 		wp_lib_error( 400 );
 		return false;
 	}
@@ -634,13 +634,18 @@ function wp_lib_create_fine( $item_id, $date = false, $return = true ) {
 	
 	// Creates arguments for fine
 	$args = array(
-
 		'post_status'		=> 'publish',
 		'post_type'			=> 'wp_lib_fines'
 	);
 	
 	// Creates the fine, a custom post type that holds useful meta about the fine
-	$fine_id = wp_insert_post( $args, true );
+	$fine_id = wp_insert_post( $args );
+	
+	// If fine creation failed, call error
+	if ( $fine_id === 0 ) {
+		wp_lib_error( 407 );
+		return false;
+	}
 	
 	// Due in -5 days == 5 days late
 	$days_late = -$due_in;
@@ -650,12 +655,6 @@ function wp_lib_create_fine( $item_id, $date = false, $return = true ) {
 	
 	// Calculates fine based off days late * charge per day
 	$fine = $days_late * $daily_fine;
-	
-	// If fine creation failed, call error
-	if ( !is_numeric( $fine_id ) ) {
-		wp_lib_error( 407 );
-		return false;
-	}
 	
 	// Fetches member object from item tax
 	$member_id = get_post_meta( $item_id, 'wp_lib_member', true );
