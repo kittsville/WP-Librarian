@@ -545,10 +545,15 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 		
 		// An item/member/etc. meta box containing information on the object concerned
 		case 'metabox':
-			// Initialises meta box
-			var metaBox = $('<table/>',{
-				'class'	: 'lib-metabox',
-			});
+			// Creates meta box wrapper
+			var theElement = $('<div/>',elementObject)
+			.addClass('lib-metabox')
+			.append($('<strong/>',{
+				html	: pageItem.title
+			}));
+			
+			// Initialises meta field output
+			var metaFields = [];
 			
 			// Iterates through meta fields, rendering them to the meta box
 			$( pageItem.fields ).each( function( i, e ) {
@@ -590,7 +595,7 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 				}
 				
 				// Renders meta row inside div and adds to 
-				metaBox.append( $('<tr/>', {
+				metaFields.push( $('<tr/>', {
 					'class'	: 'meta-row',
 					html	: [
 						// Meta field's name e.g. Item ID
@@ -606,16 +611,11 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 				}));
 			});
 			
-			// Sets up meta box wrapper's internal elements
-			elementObject.html = [
-				$('<strong/>',{
-					html	: pageItem.title
-				}),
-				metaBox
-			];
-			
-			// Creates meta box wrapper
-			var theElement = $('<div/>',elementObject).addClass('lib-metabox');
+			// Adds meta fields to meta wrapper
+			theElement.append($('<table/>',{
+				'class'	: 'lib-metabox',
+				'html'	: metaFields
+			}));
 		break;
 		
 		case 'form':
