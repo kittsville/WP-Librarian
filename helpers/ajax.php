@@ -634,64 +634,64 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	function loadPage() {
 		// If no dash page has been specified, load Dashboard
 		if ( !isset( $_POST['dash_page'] ) )
-			$this->prepDashboard();
+			$this->genDashboard();
 		
 		// Calls relevant function to prepare requested page
 		switch( $_POST['dash_page'] ) {
 			case 'dashboard':
-				$this->prepDashboard();
+				$this->genDashboard();
 			break;
 			
 			case 'view-items':
-				$this->prepViewItems();
+				$this->genViewItems();
 			break;
 			
 			case 'manage-item':
-				$this->prepManageItem();
+				$this->genManageItem();
 			break;
 			
 			case 'manage-member':
-				$this->prepManageMember();
+				$this->genManageMember();
 			break;
 			
 			case 'manage-loan':
-				$this->prepManageLoan();
+				$this->genManageLoan();
 			break;
 			
 			case 'manage-fine':
-				$this->prepManageFine();
+				$this->genManageFine();
 			break;
 			
 			case 'scan-item':
-				$this->prepSearchItems();
+				$this->genSearchItems();
 			break;
 			
 			case 'scheduling-page':
-				$this->prepScheduleLoan();
+				$this->genScheduleLoan();
 			break;
 			
 			case 'renew-item':
-				$this->prepRenewItem();
+				$this->genRenewItem();
 			break;
 			
 			case 'give-item-past':
-				$this->prepGiveItemPast();
+				$this->genGiveItemPast();
 			break;
 			
 			case 'return-past':
-				$this->prepReturnItemPast();
+				$this->genReturnItemPast();
 			break;
 			
 			case 'resolve-loan':
-				$this->prepLateItemResolution();
+				$this->genLateItemResolution();
 			break;
 			
 			case 'pay-fines':
-				$this->prepPayMemberFines();
+				$this->genPayMemberFines();
 			break;
 			
 			case 'object-deletion':
-				$this->prepConfirmObjectDeletion();
+				$this->genConfirmObjectDeletion();
 			break;
 			
 			default:
@@ -719,7 +719,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			if ( debug_backtrace()[1]['function'] === 'prepDashboard' )
 				parent::stopAjax( 506 );
 			else
-				$this->prepDashboard();
+				$this->genDashboard();
 		}
 	}
 	
@@ -746,7 +746,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	/*
 	 * Displays Library Dashboard with links to manage the Library, change settings or read the documentation
 	 */
-	private function prepDashboard() {
+	private function genDashboard() {
 		// Dashboard icons
 		$buttons = array(
 			array(
@@ -829,7 +829,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	 * Displays list of all current items in the library
 	 * @todo Move Dynatable generation to dedicated class
 	 */
-	private function prepViewItems() {
+	private function genViewItems() {
 		// Initialises page output
 		$page = array();
 		
@@ -914,7 +914,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	 * Displays information about the given item with links to modify the item based on its current state
 	 * @todo Refactor function heavily, it hasn't been reviewed in a very long time
 	 */
-	private function prepManageItem() {
+	private function genManageItem() {
 		// Fetches, sanitizes and verifies validity of item ID
 		$item_id = $this->getItemID();
 		
@@ -1082,7 +1082,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	/*
 	 * Displays member's details and loan history, giving means to pay any outstanding fines
 	 */
-	private function prepManageMember() {
+	private function genManageMember() {
 		// Fetches and validates member ID
 		$member_id = $this->getMemberId();
 		
@@ -1166,7 +1166,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	/*
 	 * Displays loan details and options to change the loan, if it hasn't been completed yet
 	 */
-	private function prepManageLoan() {
+	private function genManageLoan() {
 		// Fetches loan ID from AJAX request
 		$loan_id = $this->getLoanId();
 		
@@ -1268,7 +1268,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	/*
 	 * Displays details of fine and provides options to cancel/pay fine
 	 */
-	private function prepManageFine() {
+	private function genManageFine() {
 		// Fetches and validates Fine ID
 		$fine_id = $this->getFineId();
 		
@@ -1325,7 +1325,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	/*
 	 * Displays page for user to look up an item using its barcode or ISBN
 	 */
-	private function prepSearchItems() {
+	private function genSearchItems() {
 		$page = array(
 			array(
 				'type'		=> 'form',
@@ -1370,7 +1370,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	 * Provides form for Library to schedule a loan to be fulfilled later
 	 * Scheduled loans are fulfilled when the item is then given to the member on the appropriate date
 	 */
-	private function prepScheduleLoan() {
+	private function genScheduleLoan() {
 		// Fetches and validates Item ID
 		$item_id = $this->getItemId();
 		
@@ -1466,7 +1466,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	/*
 	 * Displays form allowing Librarian to renew item, extending its due date
 	 */
-	private function prepRenewItem() {
+	private function genRenewItem() {
 		// Fetches loan ID, or uses item ID to fetch loan ID
 		if ( isset( $_POST['item_id'] ) ) {
 			$item_id = $this->getItemId();
@@ -1543,7 +1543,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	/*
 	 * Displays form to allow Librarian to mark an item as having left the Library at a previous date
 	 */
-	private function prepGiveItemPast() {
+	private function genGiveItemPast() {
 		// Fetches and validates Loan ID
 		$loan_id = $this->getLoanId();
 		
@@ -1595,7 +1595,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	/*
 	 * Provides a form to choose when in the past to return an item
 	 */
-	private function prepReturnItemPast() {
+	private function genReturnItemPast() {
 		// Fetches item ID from AJAX request
 		$item_id = $this->getItemId();
 
@@ -1649,7 +1649,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	/*
 	 * Provides options to remedy an item that should have been returned earlier
 	 */
-	private function prepLateItemResolution() {
+	private function genLateItemResolution() {
 		// Fetches loan ID using item ID
 		$item_id = $this->getItemId();
 		
@@ -1729,7 +1729,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	/*
 	 * Allows Library to reduce fines owed by member by paying part/all owed
 	 */
-	private function prepPayMemberFines() {
+	private function genPayMemberFines() {
 		// Fetches and validates Member ID
 		$member_id = $this->getMemberId();
 		
@@ -1781,7 +1781,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	 * Checks for confirmation for deleting an object in the Library
 	 * Also displays all objects connected to the current object
 	 */
-	private function prepConfirmObjectDeletion() {
+	private function genConfirmObjectDeletion() {
 		// If page is being visited from item/member/etc. management pages, fetch post ID from relevant POST field
 		if ( !isset( $_POST['post_id'] ) ) {
 			foreach( ['item','member','loan','fine'] as $key ) {
