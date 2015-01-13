@@ -282,6 +282,8 @@ li.single-item a {
 div.item-meta {
 	position: absolute;
 	top: 245px;
+	height: 6em;
+	overflow: hidden;
 }
 
 a.item-manage {
