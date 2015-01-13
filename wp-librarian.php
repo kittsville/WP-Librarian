@@ -1137,9 +1137,9 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
 	if ( $hook == 'post-new.php' || $hook == 'post.php' ) {
 		switch ( $GLOBALS['post_type'] ) {
 			case 'wp_lib_items':
-				wp_register_script( 'wp_lib_hypenate', wp_lib_script_url( 'hyphenateISBN' ), array(), '0.1' );
+				wp_register_script( 'hyphenateISBN', wp_lib_script_url( 'hyphenateISBN' ), array(), '0.1' );
 				wp_register_style( 'wp_lib_admin_item_meta', wp_lib_style_url( 'admin-item-meta-box' ), array( 'wp_lib_meta_core_styles' ), '0.1' );
-				wp_enqueue_script( 'wp_lib_edit_item', wp_lib_script_url( 'admin-edit-item' ), array( 'wp_lib_meta_core', 'wp_lib_hypenate' ), '0.2' );
+				wp_enqueue_script( 'wp_lib_edit_item', wp_lib_script_url( 'admin-edit-item' ), array( 'wp_lib_meta_core', 'hyphenateISBN' ), '0.2' );
 			break;
 			
 			case 'wp_lib_members':
