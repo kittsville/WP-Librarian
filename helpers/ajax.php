@@ -744,6 +744,163 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	}
 	
 	/*
+	 * Prepares a box of details about the given item
+	 * @param	int		$item_id	The post ID of the item
+	 * @return	array				The meta box, as a Dash page element
+	 */
+	private function prepItemMetaBox( $item_id ) {
+		// Fetches title of item e.g. 'Moby-Dick'
+		$title = get_the_title( $item_id );
+		
+		// Fetches post meta
+		$meta = get_post_meta( $item_id );
+		
+		// Item meta fields to be displayed in management header
+		$meta_fields = array(
+			array( 'Item ID',	$item_id),
+			array( 'Condition',	wp_lib_format_item_condition( $meta['wp_lib_item_condition'][0] ) )
+		);
+		
+		// If item has a donor and the ID matches an existing member
+		if ( isset( $meta['wp_lib_item_donor'] ) && wp_lib_sanitize_donor( $meta['wp_lib_item_donor'][0] ) ) {
+			// Adds meta field, displaying donor with a link to manage the member
+			$meta_fields[] = array(
+				'Donor',
+				wp_lib_manage_member_dash_hyperlink( $meta['wp_lib_item_donor'][0] )
+			);
+		}
+		
+		// Taxonomy terms to be fetched
+		$tax_terms = array(
+			'Media Type'=> 'wp_lib_media_type',
+			'Author'	=> 'wp_lib_author'
+		);
+		
+		// Iterates through taxonomies, fetching their terms and adding them to the meta field array
+		foreach ( $tax_terms as $tax_name => $tax_key ) {
+			// Fetches terms for given taxonomy
+			$terms = get_the_terms( $item_id, $tax_key );
+			
+			// If no terms or an error were returned, skip
+			if ( !$terms || is_wp_error( $terms ) )
+				continue;
+				
+			// Iterates through tax terms, formatting them
+			foreach ( $terms as $term ) {
+				// Adds tax term to term array
+				$terms_array[] = array( $term->name, get_term_link( $term ) );
+			}
+			
+			// Adds tax terms to meta fields
+			$meta_fields[] = array( $tax_name, $terms_array );
+			
+			unset( $terms_array );
+		}
+		
+		// Adds item status as last meta field
+		$meta_fields[] = array( 'Status', wp_lib_prep_item_status( $item_id, true ) );
+		
+		// Finalises and returns management header
+		return array(
+			'type'		=> 'metabox',
+			'title'		=> 'Details',
+			'classes'	=> 'item-man',
+			'fields'	=> $meta_fields
+		);
+	}
+	
+	/*
+	 * Prepares a box of details about the given member
+	 * @param	int		$member_id	The post ID of the member
+	 * @return	array				The meta box, as a Dash page element
+	 */
+	private function prepMemberMetaBox( $member_id ) {
+		// Fetches member meta
+		$meta = get_post_meta( $member_id );
+		
+		// Sets up header's meta fields
+		$meta_fields = array(
+			array( 'Member ID',	$member_id ),
+			array( 'Email',		$meta['wp_lib_member_email'][0] ),
+			array( 'Phone',		$meta['wp_lib_member_phone'][0] ),
+			array( 'Mobile',	$meta['wp_lib_member_mobile'][0] ),
+			array( 'Owed',		wp_lib_format_money( wp_lib_fetch_member_owed( $member_id ) ) ),
+			array( 'On Loan',	wp_lib_prep_members_items_out( $member_id ) )
+		);
+		
+		// Finalises and returns management header
+		return array(
+			'type'		=> 'metabox',
+			'title'		=> 'Details',
+			'classes'	=> 'member-man',
+			'fields'	=> $meta_fields
+		);
+	}
+
+	/*
+	 * Prepares a box of details about the given loan
+	 * @param	int		$loan_id	The post ID of the loan
+	 * @return	array				The meta box, as a Dash page element
+	 */
+	private function prepLoanMetaBox( $loan_id ) {
+		// Fetches loan meta
+		$meta = get_post_meta( $loan_id );
+		
+		// Adds basic loan meta fields
+		$meta_fields = array(
+			array( 'Loan ID',			$loan_id ),
+			array( 'Item',				wp_lib_manage_item_dash_hyperlink( $meta['wp_lib_item'][0] ) ),
+			array( 'Member',			wp_lib_manage_member_dash_hyperlink( $meta['wp_lib_member'][0] ) ),
+			array( 'Creator',			(get_the_author_meta( 'user_nicename', get_post_field( 'post_author', $loan_id ) ) )?: '[User Deleted]'),
+			array( 'Expected Start',	wp_lib_format_unix_timestamp( $meta['wp_lib_start_date'][0] ) ),
+			array( 'Expected End',		wp_lib_format_unix_timestamp( $meta['wp_lib_end_date'][0] ) ),
+			array( 'Actual Start',		( isset( $meta['wp_lib_loaned_date'] ) ? wp_lib_format_unix_timestamp( $meta['wp_lib_loaned_date'][0] ) : 'N/A' ) ),
+			array( 'Actual End',		( isset( $meta['wp_lib_returned_date'] ) ? wp_lib_format_unix_timestamp( $meta['wp_lib_returned_date'][0] ) : 'N/A' ) ),
+			array( 'Status',			wp_lib_format_loan_status( $meta['wp_lib_status'][0] ) )
+		);
+		
+		// If fine was incurred for loan, fetch details and add to metabox
+		if ( isset( $meta['wp_lib_fine'] ) ) {
+			$meta_fields[] = array( 'Fine ID', wp_lib_prep_dash_hyperlink( $meta['wp_lib_fine'][0], wp_lib_prep_manage_fine_params( $meta['wp_lib_fine'][0] ) ) );
+		}
+		
+		// Finalises and returns management header
+		return array(
+			'type'		=> 'metabox',
+			'title'		=> 'Details',
+			'classes'	=> 'loan-man',
+			'fields'	=> $meta_fields
+		);
+	}
+
+	/*
+	 * Prepares a box of details about the given fine
+	 * @param	int		$fine_id	The post ID of the fine
+	 * @return	array				The meta box, as a Dash page element
+	 */
+	private function prepFineMetaBox( $fine_id ) {
+		// Fetches fine meta
+		$meta = get_post_meta( $fine_id );
+		
+		// Creates and returns fine management header
+		return array(
+			'type'		=> 'metabox',
+			'title'		=> 'Details',
+			'classes'	=> 'fine-man',
+			'fields'	=> array(
+				array( 'Fine ID',	$fine_id ),
+				array( 'Loan ID',	wp_lib_prep_dash_hyperlink( $meta['wp_lib_loan'][0], wp_lib_prep_manage_loan_params( $meta['wp_lib_loan'][0] ) ) ),
+				array( 'Item',		wp_lib_manage_item_dash_hyperlink( $meta['wp_lib_item'][0] ) ),
+				array( 'Member',	wp_lib_manage_member_dash_hyperlink( $meta['wp_lib_member'][0] ) ),
+				array( 'Creator',	(get_the_author_meta( 'user_nicename', get_post_field( 'post_author', $loan_id ) ) )?: '[User Deleted]'),
+				array( 'Amount',	wp_lib_format_money( $meta['wp_lib_fine'][0] ) ),
+				array( 'Status',	wp_lib_format_fine_status( $meta['wp_lib_status'][0] ) ),
+				array( 'Created',	get_the_date( '', $fine_id ) )
+			)
+		);
+	}
+	
+	/*
 	 * Displays Library Dashboard with links to manage the Library, change settings or read the documentation
 	 */
 	private function genDashboard() {
@@ -919,7 +1076,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		$item_id = $this->getItemID();
 		
 		// Prepares the meta box
-		$page[] = wp_lib_prep_item_meta_box( $item_id );
+		$page[] = $this->prepItemMetaBox( $item_id );
 		
 		// Adds page nonce
 		$form[] = wp_lib_prep_nonce( 'Managing Item: ' . $item_id );
@@ -1087,7 +1244,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		$member_id = $this->getMemberId();
 		
 		// Renders meta box
-		$page[] = wp_lib_prep_member_meta_box( $member_id );
+		$page[] = $this->prepMemberMetaBox( $member_id );
 		
 		// Adds nonce to form
 		$form[] = wp_lib_prep_nonce( 'Managing Member ' . $member_id );
@@ -1174,7 +1331,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		$meta = get_post_meta( $loan_id );
 		
 		// Renders header with useful loan information
-		$page[] = wp_lib_prep_loan_meta_box( $loan_id );
+		$page[] = $this->prepLoanMetaBox( $loan_id );
 		
 		// Fetches item status
 		$status = $meta['wp_lib_status'][0];
@@ -1272,7 +1429,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		// Fetches and validates Fine ID
 		$fine_id = $this->getFineId();
 		
-		$page[] = wp_lib_prep_fine_meta_box( $fine_id );
+		$page[] = $this->prepFineMetaBox( $fine_id );
 		
 		// Fetches fine status
 		$fine_status = get_post_meta( $fine_id, 'wp_lib_status', true );
@@ -1375,7 +1532,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		$item_id = $this->getItemId();
 		
 		// Prepares box of useful information about the current item
-		$page[] = wp_lib_prep_item_meta_box( $item_id );
+		$page[] = $this->prepItemMetaBox( $item_id );
 		
 		$member_options = wp_lib_prep_member_options();
 		
@@ -1498,7 +1655,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		else
 			$renewals_left = wp_lib_plural( $limit - $renewed_count, 'This item can be renewed \v more time\p' );
 		
-		$page[] = wp_lib_prep_item_meta_box( $item_id );
+		$page[] = $this->prepItemMetaBox( $item_id );
 		
 		$page[] = array(
 			'type'		=> 'paras',
@@ -1559,7 +1716,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			'Managing: Loan #' . $loan_id,				// Page title
 			'Managing Loan #' . $loan_id,				// Tab title
 			array(
-				wp_lib_prep_loan_meta_box( $loan_id ),	// Prepares box with useful information about the loan
+				$this->prepLoanMetaBox( $loan_id ),	// Prepares box with useful information about the loan
 				array(
 					'type'		=> 'form',
 					'content'	=>
@@ -1607,7 +1764,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			'Returning: ' . get_the_title( $item_id ),	// Page Title
 			'Returning item #' . $item_id,				// Tab Title
 			array(
-				wp_lib_prep_item_meta_box( $item_id ),// Prepares box with useful details about the item
+				$this->prepItemMetaBox( $item_id ),// Prepares box with useful details about the item
 				array(
 					'type'		=> 'form',
 					'content'	=>
@@ -1683,7 +1840,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			'Resolving Late Item: ' . $title,
 			'Resolving Item #' . $item_id,
 			array(
-				wp_lib_prep_item_meta_box( $item_id ),
+				$this->prepItemMetaBox( $item_id ),
 				array(
 					'type'		=> 'form',
 					'content'	=>
@@ -1741,7 +1898,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			'Managing: ' . get_the_title( $member_id ),
 			'Managing Member #' . $member_id,
 			array(
-				wp_lib_prep_member_meta_box( $member_id ),
+				$this->prepMemberMetaBox( $member_id ),
 				array(
 					'type'		=> 'form',
 					'content'	=>
@@ -1815,7 +1972,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 					$this->stopAjax( 205 );
 				
 				// Renders meta box, displaying useful information about the item
-				$page[] = wp_lib_prep_item_meta_box( $post_id );
+				$page[] = $this->prepItemMetaBox( $post_id );
 				
 				// Sets titles of Dash page and browser tab
 				$page_title = 'Deleting: ' . get_the_title( $post_id );
@@ -1840,7 +1997,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 					$this->stopAjax( 205 );
 				
 				// Renders meta box, displaying useful information about the loan
-				$page[] = wp_lib_prep_loan_meta_box( $post_id );
+				$page[] = $this->prepLoanMetaBox( $post_id );
 				
 				// Sets titles of Dash page and browser tab
 				$page_title = 'Deleting: Loan #' . $post_id;
@@ -1858,7 +2015,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			
 			case 'fine':
 				// Renders meta box, displaying useful information about the fine
-				$page[] = wp_lib_prep_fine_meta_box( $post_id );
+				$page[] = $this->prepFineMetaBox( $post_id );
 				
 				// Sets titles of Dash page and browser tab
 				$page_title = 'Deleting: Fine #' . $post_id;
@@ -1877,7 +2034,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			
 			case 'member':
 				// Renders meta box, displaying useful information about the member
-				$page[] = wp_lib_prep_member_meta_box( $post_id );
+				$page[] = $this->prepMemberMetaBox( $post_id );
 				
 				// Sets dash page title and tab title
 				$page_title = 'Deleting: ' . get_the_title( $post_id );
