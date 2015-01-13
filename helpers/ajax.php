@@ -889,7 +889,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 				array( 'Loan ID',	wp_lib_prep_dash_hyperlink( $meta['wp_lib_loan'][0], wp_lib_prep_manage_loan_params( $meta['wp_lib_loan'][0] ) ) ),
 				array( 'Item',		wp_lib_manage_item_dash_hyperlink( $meta['wp_lib_item'][0] ) ),
 				array( 'Member',	wp_lib_manage_member_dash_hyperlink( $meta['wp_lib_member'][0] ) ),
-				array( 'Creator',	(get_the_author_meta( 'user_nicename', get_post_field( 'post_author', $loan_id ) ) )?: '[User Deleted]'),
+				array( 'Creator',	(get_the_author_meta( 'user_nicename', get_post_field( 'post_author', $fine_id ) ) )?: '[User Deleted]'),
 				array( 'Amount',	wp_lib_format_money( $meta['wp_lib_fine'][0] ) ),
 				array( 'Status',	wp_lib_format_fine_status( $meta['wp_lib_status'][0] ) ),
 				array( 'Created',	get_the_date( '', $fine_id ) )
