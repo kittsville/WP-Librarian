@@ -1109,10 +1109,10 @@ function wp_lib_render_settings() {
 // Enqueues scripts and styles needed on different wp-admin pages
 add_action( 'admin_enqueue_scripts', function( $hook ) {
 	// Registers core JavaScript file for WP-Librarian, a collection of various essential functions
-	wp_register_script( 'wp_lib_core', wp_lib_script_url( 'admin-core' ), array( 'jquery', 'jquery-ui-datepicker' ), '0.1' );
+	wp_register_script( 'wp_lib_core', wp_lib_script_url( 'admin-core' ), array( 'jquery', 'jquery-ui-datepicker' ), '0.2' );
 	
 	// Registers meta core script, an extension of wp_lib_core with functions useful specifically to meta boxes
-	wp_register_script( 'wp_lib_meta_core', wp_lib_script_url( 'admin-meta-core' ),  array( 'jquery', 'jquery-ui-datepicker', 'wp_lib_core' ), '0.1' );
+	wp_register_script( 'wp_lib_meta_core', wp_lib_script_url( 'admin-meta-core' ),  array( 'jquery', 'jquery-ui-datepicker', 'wp_lib_core' ), '0.2' );
 	
 	// Registers meta core style, this adds the base styling of meta boxes to post edit pages
 	wp_register_style( 'wp_lib_meta_core_styles', wp_lib_style_url( 'admin-core-meta-box' ), array(), '0.1' );
@@ -1139,12 +1139,12 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
 			case 'wp_lib_items':
 				wp_register_script( 'wp_lib_hypenate', wp_lib_script_url( 'hyphenateISBN' ), array(), '0.1' );
 				wp_register_style( 'wp_lib_admin_item_meta', wp_lib_style_url( 'admin-item-meta-box' ), array( 'wp_lib_meta_core_styles' ), '0.1' );
-				wp_enqueue_script( 'wp_lib_edit_item', wp_lib_script_url( 'admin-edit-item' ), array( 'wp_lib_meta_core', 'wp_lib_hypenate' ), '0.1' );
+				wp_enqueue_script( 'wp_lib_edit_item', wp_lib_script_url( 'admin-edit-item' ), array( 'wp_lib_meta_core', 'wp_lib_hypenate' ), '0.2' );
 			break;
 			
 			case 'wp_lib_members':
 				wp_register_style( 'wp_lib_admin_member_meta', wp_lib_style_url( 'admin-member-meta-box' ), array( 'wp_lib_meta_core_styles' ), '0.1' );
-				wp_enqueue_script( 'wp_lib_edit_member', wp_lib_script_url( 'admin-edit-member' ), array( 'wp_lib_meta_core' ), '0.1' );
+				wp_enqueue_script( 'wp_lib_edit_member', wp_lib_script_url( 'admin-edit-member' ), array( 'wp_lib_meta_core' ), '0.2' );
 			break;
 		}
 	} elseif ( $hook == 'edit.php' && in_array( $GLOBALS['post_type'], array( 'wp_lib_items', 'wp_lib_members', 'wp_lib_loans', 'wp_lib_fines' ), true ) ) {
@@ -1154,13 +1154,13 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
 	switch ( $hook ) {
 		// Plugin settings page
 		case 'wp_lib_items_page_wp-lib-settings':
-			wp_enqueue_script( 'wp_lib_settings', wp_lib_script_url( 'admin-settings' ), array( 'wp_lib_core' ), '0.2' );
+			wp_enqueue_script( 'wp_lib_settings', wp_lib_script_url( 'admin-settings' ), array( 'wp_lib_core' ), '0.3' );
 			wp_register_style( 'wp_lib_admin_settings', wp_lib_style_url( 'admin-settings' ), array( 'wp_lib_admin_core_styles' ), '0.1' );
 		break;
 		
 		// Library Dashboard
 		case 'wp_lib_items_page_dashboard':
-			wp_enqueue_script( 'wp_lib_dashboard', wp_lib_script_url( 'admin-dashboard' ), array( 'wp_lib_core' ), '0.1' );
+			wp_enqueue_script( 'wp_lib_dashboard', wp_lib_script_url( 'admin-dashboard' ), array( 'wp_lib_core' ), '0.2' );
 			wp_enqueue_script( 'dynatable', wp_lib_script_url( 'dynatable' ), array(), '0.3.1' );
 			wp_enqueue_style( 'wp_lib_dashboard', wp_lib_style_url( 'admin-dashboard' ), array( 'wp_lib_admin_core_styles' ), '0.1' );
 			wp_enqueue_style( 'wp_lib_mellon-datepicker', wp_lib_style_url( 'mellon-datepicker' ), array(), '0.1' ); // Styles Datepicker
