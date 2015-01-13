@@ -749,9 +749,6 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	 * @return	array				The meta box, as a Dash page element
 	 */
 	private function prepItemMetaBox( $item_id ) {
-		// Fetches title of item e.g. 'Moby-Dick'
-		$title = get_the_title( $item_id );
-		
 		// Fetches post meta
 		$meta = get_post_meta( $item_id );
 		
@@ -784,7 +781,9 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			// If no terms or an error were returned, skip
 			if ( !$terms || is_wp_error( $terms ) )
 				continue;
-				
+			
+			$terms_array = array();
+			
 			// Iterates through tax terms, formatting them
 			foreach ( $terms as $term ) {
 				// Adds tax term to term array
@@ -793,8 +792,6 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			
 			// Adds tax terms to meta fields
 			$meta_fields[] = array( $tax_name, $terms_array );
-			
-			unset( $terms_array );
 		}
 		
 		// Adds item status as last meta field
