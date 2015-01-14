@@ -170,7 +170,7 @@ function wp_lib_create_loan_index( $item_id ) {
 		
 		// Sorts array by start/end date rather than post creation order, then returns
 		// Thanks to Nightmare's (http://stackoverflow.com/users/1495319) answer to a question on sorting multidimensional arrays (http://stackoverflow.com/questions/11288778)
-		return uasort( $loan_index, function( $a, $b ) {
+		uasort( $loan_index, function( $a, $b ) {
 			if ($a['start'] > $b['start'])
 				return 1;
 			elseif ($a['start'] < $b['start'])
@@ -178,6 +178,9 @@ function wp_lib_create_loan_index( $item_id ) {
 			elseif ($a['start'] == $b['start'])
 				return 0;
 		});
+		
+		// Returns loan index
+		return $loan_index;
 	} else {
 		// If item has never been loaned, return empty array
 		return array();
