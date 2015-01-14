@@ -849,6 +849,9 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		// Fetches loan meta
 		$meta = get_post_meta( $loan_id );
 		
+		// Formats loan status as natural language
+		$status = wp_lib_format_loan_status( $meta['wp_lib_status'][0] );
+		
 		// Adds basic loan meta fields
 		$meta_fields = array(
 			array( 'Loan ID',			$loan_id ),
@@ -859,13 +862,8 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			array( 'Expected End',		wp_lib_format_unix_timestamp( $meta['wp_lib_end_date'][0] ) ),
 			array( 'Actual Start',		( isset( $meta['wp_lib_loaned_date'] ) ? wp_lib_format_unix_timestamp( $meta['wp_lib_loaned_date'][0] ) : 'N/A' ) ),
 			array( 'Actual End',		( isset( $meta['wp_lib_returned_date'] ) ? wp_lib_format_unix_timestamp( $meta['wp_lib_returned_date'][0] ) : 'N/A' ) ),
-			array( 'Status',			wp_lib_format_loan_status( $meta['wp_lib_status'][0] ) )
+			array( 'Status',			$meta['wp_lib_status'][0] === '4' ? wp_lib_prep_dash_hyperlink( $status, wp_lib_prep_manage_fine_params( $meta['wp_lib_fine'][0] ) ) : $status ) // If loan incurred fine, status is link to manage fine
 		);
-		
-		// If fine was incurred for loan, fetch details and add to metabox
-		if ( isset( $meta['wp_lib_fine'] ) ) {
-			$meta_fields[] = array( 'Fine ID', wp_lib_prep_dash_hyperlink( $meta['wp_lib_fine'][0], wp_lib_prep_manage_fine_params( $meta['wp_lib_fine'][0] ) ) );
-		}
 		
 		// Finalises and returns management header
 		return array(
