@@ -961,16 +961,19 @@ jQuery(function($){
 		return false;
 	});
 	
-	// Adds listener for page loading buttons
-	jQuery('#wp-lib-workspace').on('click', 'a[name="dash_page"]', function ( e ){
+	// Loads dash page when a dash page button or dash URL is clicked
+	jQuery('#wp-lib-workspace').on('click', 'a[name="dash_page"], a.dash-url', function ( e ){
 		// Fetches form parameters that have been set
 		var params = wp_lib_collect_form_params(e.target);
 		
-		// Fetches page to be loaded
-		params.dash_page = $(e.currentTarget).attr('value');
-		
-		// Deletes nonce as it is only needed for dash actions
-		delete params.wp_lib_ajax_nonce;
+		// If element is a dash button
+		if ( e.currentTarget.getAttribute('name') === 'dash_page' ) {
+			// Fetch dash page from element value
+			params.dash_page = e.currentTarget.getAttribute('value');
+			
+			// Deletes nonce as it is only needed for dash actions
+			delete params.wp_lib_ajax_nonce;
+		}
 		
 		// Loads page in current or new tab, depending on whether control was pressed
 		if ( e.ctrlKey ) {
@@ -983,15 +986,6 @@ jQuery(function($){
 			// Prevents default behaviour
 			return false;
 		}
-	});
-	
-	// Adds listener for Dash URL being clicked
-	jQuery('#wp-lib-workspace').on('click', 'a.dash-url', function ( e ){
-		// Loads dash page using parameters collected from hyperlink's parent form
-		wp_lib_load_page( wp_lib_collect_form_params(e.target) );
-		
-		// Prevents normal behaviour
-		return false;
 	});
 	
 	// Adds listener for Item thumbnail being clicked
