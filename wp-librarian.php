@@ -1118,7 +1118,7 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
 	wp_register_style( 'wp_lib_meta_core_styles', wp_lib_style_url( 'admin-core-meta-box' ), array(), '0.1' );
 	
 	// Registers admin-core, a file of core CSS rules for WP-Librarian's admin-end
-	wp_register_style( 'wp_lib_admin_core_styles', wp_lib_style_url( 'admin-core' ), array(), '0.1' );
+	wp_register_style( 'wp_lib_admin_core_styles', wp_lib_style_url( 'admin-core' ), array(), '0.2' );
 
 	// Sets up array of variables to be passed to JavaScript
 	$vars = array(
@@ -1162,7 +1162,7 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
 		case 'wp_lib_items_page_dashboard':
 			wp_enqueue_script( 'wp_lib_dashboard', wp_lib_script_url( 'admin-dashboard' ), array( 'wp_lib_core' ), '0.2' );
 			wp_enqueue_script( 'dynatable', wp_lib_script_url( 'dynatable' ), array(), '0.3.1' );
-			wp_enqueue_style( 'wp_lib_dashboard', wp_lib_style_url( 'admin-dashboard' ), array( 'wp_lib_admin_core_styles' ), '0.1' );
+			wp_enqueue_style( 'wp_lib_dashboard', wp_lib_style_url( 'admin-dashboard' ), array( 'wp_lib_admin_core_styles' ), '0.2' );
 			wp_enqueue_style( 'wp_lib_mellon-datepicker', wp_lib_style_url( 'mellon-datepicker' ), array(), '0.1' ); // Styles Datepicker
 			wp_enqueue_style( 'jquery-ui', wp_lib_style_url( 'jquery-ui' ), array(), '1.10.1' ); // Core Datepicker Styles
 			wp_enqueue_style( 'dynatable', wp_lib_style_url( 'dynatable' ), array( 'jquery-ui' ), '0.3.1' );
@@ -1173,7 +1173,7 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
 // Enqueues scripts and styles needed for WP-Librarian's front-end
 add_action( 'wp_enqueue_scripts', function() {
 	if ( get_post_type() === 'wp_lib_items' )
-		wp_enqueue_style( 'wp_lib_frontend', wp_lib_style_url( 'front-end-core' ), array(), '0.1' );
+		wp_enqueue_style( 'wp_lib_frontend', wp_lib_style_url( 'front-end-core' ), array(), '0.2' );
 });
 
 // Modifies title of Featured Image box on item edit page
