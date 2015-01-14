@@ -336,22 +336,28 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 			if ( !$end_date )
 				$this->stopAjax( 310 );
 		} else {
-			// Defaults to not specifying an end date (item will be returned at current WP install time)
+			// Defaults to not specifying an end date (item will be returned at current WP time)
 			$end_date = false;
 		}
 		
-		if ( isset( $_POST['fine_member'] ) && $_POST['fine_member'] === 'true' ) {
-			$member_id = get_post_meta($item_id, 'wp_lib_member', true );
-			
-			$this->endAction(
-				wp_lib_create_fine( $item_id, $end_date ),
-				get_the_title($member_id).' has been fined and '.get_the_title($item_id).' has been returned'
-			);
+		// Sets whether to fine member and if any behaviour for a fine has been specified
+		$fine = ( isset( $_POST['fine_member'] ) ? ( $_POST['fine_member'] === 'true' ? true : false ) : null );
+		
+		// Attempts to return item, potentially charging fine
+		$success = wp_lib_return_item( $item_id, $end_date, $fine );
+		
+		$title = get_the_title( $item_id );
+		
+		// If fine was charged, use different (more informative) notification
+		if (is_int( $success )) {
+			$notification = get_the_title(get_post_meta($success, 'wp_lib_member', true )).' has been fined and '.$title.' has been returned';
+		} else {
+			$notification = $title.' has been returned to the library';
 		}
 		
 		$this->endAction(
-			wp_lib_return_item( $item_id, $end_date, false ),
-			get_the_title( $item_id ) . ' has been returned to the library'
+			$success,
+			$notification
 		);
 	}
 	
