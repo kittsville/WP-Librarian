@@ -660,7 +660,7 @@ function wp_lib_setup_member_meta_box() {
 	add_meta_box(
 		'library_members_meta_box',
 		'Member Details',
-		function($item){require_once (dirname( __FILE__ ) . '/wp-librarian-member-meta-box.php');},
+		function($member){require_once (dirname( __FILE__ ) . '/wp-librarian-member-meta-box.php');},
 		'wp_lib_members',
 		'normal',
 		'high'
