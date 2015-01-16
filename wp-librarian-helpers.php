@@ -7,7 +7,7 @@
 	/* -- File Management -- */
 
 // Loads file containing requested helper classes. Will handle failure less extremely after greater use of classes
-function wp_lib_add_helper( $file_name ) {
+function wp_lib_load_helper( $file_name ) {
 	require_once( dirname( __FILE__ ) . '/helpers/' . $file_name . '.php' );
 }
 
@@ -435,7 +435,7 @@ function wp_lib_prep_members_items_out( $member_id ) {
 
 // Displays list of loans associated with an item
 function wp_lib_prep_loans_table( $item_id ) {
-	wp_lib_add_helper( 'dynatable' );
+	wp_lib_load_helper( 'dynatable' );
 	
 	// Queries WP for all loans of item
 	$dynatable = new WP_LIB_DYNATABLE_LOANS( 'wp_lib_item', $item_id );

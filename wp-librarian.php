@@ -865,7 +865,7 @@ add_action( 'admin_menu', function() {
 			// If settings have been updated (or failed to do so)
 			if ( isset( $_GET['settings-updated'] ) ) {
 				// Loads helper to manage settings sections
-				wp_lib_add_helper( 'settings' );
+				wp_lib_load_helper( 'settings' );
 				
 				// Checks that all plugin settings are valid, resets any settings that aren't
 				WP_LIB_SETTINGS::checkPluginSettingsIntegrity();
@@ -885,7 +885,7 @@ add_action( 'admin_menu', function() {
 // Sets up plugin settings
 add_action( 'admin_init', function () {
 	// Loads helper to manage settings sections
-	wp_lib_add_helper( 'settings' );
+	wp_lib_load_helper( 'settings' );
 	
 	/* -- General Library Settings -- */
 	
@@ -1237,7 +1237,7 @@ function wp_lib_check_post_pre_trash( $post_id ) {
 
 // Sets up WP-Librarian on plugin activation
 register_activation_hook( __FILE__, function() {
-	wp_lib_add_helper( 'settings' );
+	wp_lib_load_helper( 'settings' );
 	WP_LIB_SETTINGS::addPluginSettings();
 
 	// Flushes permalink rules so new URLs don't 404

@@ -9,7 +9,7 @@
 	/* -- Page Requests -- */
 	/* Dynamically loaded pages */
 add_action( 'wp_ajax_wp_lib_page', function() {
-	wp_lib_add_helper( 'ajax' );
+	wp_lib_load_helper( 'ajax' );
 	
 	// Creates AJAX page object
 	$GLOBALS['wp_lib_ajax'] = new WP_LIB_AJAX_PAGE;
@@ -24,7 +24,7 @@ add_action( 'wp_ajax_wp_lib_page', function() {
 	/* -- Dashboard Actions -- */
 	/* AJAX requests to modify the Library */
 add_action( 'wp_ajax_wp_lib_action', function() {
-	wp_lib_add_helper( 'ajax' );
+	wp_lib_load_helper( 'ajax' );
 	
 	// Creates AJAX page object
 	$GLOBALS['wp_lib_ajax'] = new WP_LIB_AJAX_ACTION;
@@ -40,7 +40,7 @@ add_action( 'wp_ajax_wp_lib_action', function() {
 	/* AJAX requests for parts of pages or specific information */
 
 add_action( 'wp_ajax_wp_lib_api', function() {
-	wp_lib_add_helper( 'ajax' );
+	wp_lib_load_helper( 'ajax' );
 	
 	// Creates AJAX API request object
 	$GLOBALS['wp_lib_ajax'] = new WP_LIB_AJAX_API;
