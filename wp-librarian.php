@@ -648,7 +648,7 @@ function wp_lib_setup_item_meta_box() {
 	add_meta_box(
 		'library_items_meta_box',
 		'Item Details',
-		function($item){require_once (dirname( __FILE__ ) . '/wp-librarian-item-meta-box.php');},
+		function($item){require_once(dirname( __FILE__ ).'/admin-templates/edit-item-meta-box.php');},
 		'wp_lib_items',
 		'normal',
 		'high'
@@ -660,7 +660,7 @@ function wp_lib_setup_member_meta_box() {
 	add_meta_box(
 		'library_members_meta_box',
 		'Member Details',
-		function($member){require_once (dirname( __FILE__ ) . '/wp-librarian-member-meta-box.php');},
+		function($member){require_once(dirname( __FILE__ ).'/admin-templates/edit-member-meta-box.php');},
 		'wp_lib_members',
 		'normal',
 		'high'
@@ -858,7 +858,7 @@ add_filter( 'enter_title_here', function() {
 add_action( 'admin_menu', function() {
 	if ( wp_lib_is_library_admin() ) {
 		// Adds settings page to Library submenu of wp-admin menu
-		$hook = add_submenu_page('edit.php?post_type=wp_lib_items', 'WP Librarian Settings', 'Settings', 'wp_lib_change_settings', 'wp-lib-settings', 'wp_lib_render_settings');
+		$hook = add_submenu_page('edit.php?post_type=wp_lib_items', 'WP Librarian Settings', 'Settings', 'wp_lib_change_settings', 'wp-lib-settings', function(){require_once(dirname( __FILE__ ).'/admin-templates/settings.php');});
 		
 		// Registers hook to flush permalinks on successful settings update
 		add_action('load-' . $hook, function() {
@@ -875,7 +875,7 @@ add_action( 'admin_menu', function() {
 
 	// Registers Library Dashboard and saves handle to variable
 	if ( wp_lib_is_librarian() ) {
-		add_submenu_page('edit.php?post_type=wp_lib_items', 'Library Dashboard', 'Dashboard', 'edit_wp_lib_items_cap', 'dashboard', function(){require_once( dirname( __FILE__ ) . '/wp-librarian-dashboard-template.php' );});
+		add_submenu_page('edit.php?post_type=wp_lib_items', 'Library Dashboard', 'Dashboard', 'edit_wp_lib_items_cap', 'dashboard', function(){require_once(dirname( __FILE__ ).'/admin-templates/dashboard.php');});
 	}
 });
 
@@ -1097,11 +1097,6 @@ add_action( 'admin_init', function () {
 		)
 	));
 });
-
-// Renders plugin settings page
-function wp_lib_render_settings() {
-	require_once( dirname( __FILE__ ) . '/wp-librarian-admin-settings.php' );
-}
 
 	/* -- Scripts and Styles -- */
 	/* Registers and enqueues JavaScript and CSS files on the relevant pages, including their dependencies */
