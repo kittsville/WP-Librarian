@@ -1294,7 +1294,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			'content'	=> $form
 		);
 		
-		wp_lib_add_helper( 'dynatable' );
+		wp_lib_load_helper( 'dynatable' );
 		
 		// Queries database for loans made by member
 		$dynatable = new WP_LIB_DYNATABLE_LOANS( 'wp_lib_member', $member_id );
@@ -2214,7 +2214,7 @@ class WP_LIB_AJAX_API extends WP_LIB_AJAX {
 		// If setting are invalid, run settings integrity check
 		// Otherwise sends settings to user
 		if ( $settings === false ) {
-			wp_lib_add_helper( 'settings' );
+			wp_lib_load_helper( 'settings' );
 			WP_LIB_SETTINGS::checkPluginSettingsIntegrity();
 			
 			$this->stopAjax();
