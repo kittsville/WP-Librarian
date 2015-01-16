@@ -61,7 +61,7 @@ class WP_LIB_AJAX {
 	 */
 	protected function getLibraryObjectId( $object, $post_type, $var_name ) {
 		if ( !isset( $_POST[$var_name] ) ) {
-			wp_lib_error( 300, $object );
+			wp_lib_error( 314, $object.' ID' );
 			return false;
 		} else {
 			$object_id = (int) $_POST[$var_name];
@@ -1953,7 +1953,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			
 			// If no ID field was set, call error
 			if ( !isset( $post_id ) )
-				$this->stopAjax( 300, 'Object' );
+				$this->stopAjax( 314, 'Object ID' );
 		} else {
 			$post_id = $_POST['post_id'];
 		}

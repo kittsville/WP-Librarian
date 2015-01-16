@@ -110,13 +110,13 @@ function wp_lib_sanitize_donor( $member_id ) {
 function wp_lib_get_object_type( $post_id ) {
 	// Checks if item ID exists
 	if ( !$post_id ) {
-		wp_lib_error( 300, 'Library Object' );
+		wp_lib_error( 314, 'ID of library object' );
 		return false;
 	}
 
 	// Checks if ID is a number
 	if ( !is_numeric( $post_id ) ) {
-		wp_lib_error( 301, 'Library Object' );
+		wp_lib_error( 301, 'ID of library object' );
 		return false;
 	}
 	
