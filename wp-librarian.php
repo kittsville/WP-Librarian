@@ -875,7 +875,7 @@ add_action( 'admin_menu', function() {
 
 	// Registers Library Dashboard and saves handle to variable
 	if ( wp_lib_is_librarian() ) {
-		add_submenu_page('edit.php?post_type=wp_lib_items', 'Library Dashboard', 'Dashboard', 'edit_wp_lib_items_cap', 'dashboard', function(){require_once(dirname( __FILE__ ).'/admin-templates/dashboard.php');});
+		add_submenu_page('edit.php?post_type=wp_lib_items', 'Library Dashboard', 'Dashboard', 'edit_wp_lib_items_caps', 'dashboard', function(){require_once(dirname( __FILE__ ).'/admin-templates/dashboard.php');});
 	}
 });
 
