@@ -467,7 +467,12 @@ function wp_lib_give_item( $loan_id, $date = false ) {
 	update_post_meta( $loan_id, 'wp_lib_status', 1 );
 	
 	// Sets date item was loaned
-	add_post_meta( $loan_id, 'wp_lib_loaned_date', $date );
+	wp_lib_add_meta( $loan_id,
+		array(
+			'wp_lib_loaned_date'	=> $date,				// Date/time item is passed to member
+			'wp_lib_give_user'		=> get_current_user_id()// Librarian who marks item as being given
+		)
+	);
 	
 	wp_lib_add_meta( $item_id,
 		array(
@@ -600,6 +605,9 @@ function wp_lib_return_item( $item_id, $date = false, $fine = null ) {
 	// Note: The returned_date is when the item is returned, the end_date is when it is due back
 	add_post_meta( $loan_id, 'wp_lib_returned_date', $date );
 	
+	// Adds ID of librarian who returned item to loan meta
+	add_post_meta( $loan_id, 'wp_lib_return_user', get_current_user_id() );
+	
 	// Returns fine ID is fine was charged or true if fine was wavered/not needed
 	return isset( $fine_id ) ? $fine_id : true;
 }
@@ -651,8 +659,8 @@ function wp_lib_renew_item( $loan_id, $date = false ) {
 	// Checks if loan can be extended by checking if 'new' loan would not clash with existing loans, minus current loan
 	// Calls error on failure
 	if ( wp_lib_recursive_scheduling_engine( $meta['wp_lib_start_date'][0], $date, $item_loans ) ) {
-		// Adds new renewal entry, containing the renewal date and the previous loan due date
-		add_post_meta( $loan_id, 'wp_lib_renew', array( current_time('timestamp'), $meta['wp_lib_end_date'][0] ) );
+		// Adds new renewal entry, containing the renewal date, the previous loan due date and the librarian who is renewing the item
+		add_post_meta( $loan_id, 'wp_lib_renew', array( current_time('timestamp'), $meta['wp_lib_end_date'][0], get_current_user_id() ) );
 		
 		update_post_meta( $loan_id, 'wp_lib_end_date', $date );
 		
