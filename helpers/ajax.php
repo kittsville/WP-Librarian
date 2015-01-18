@@ -1190,17 +1190,16 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 				'value'	=> 'loan',
 				'html'	=> 'Loan Item'
 			);
-			
-			// Button to schedule a loan to be fulfilled later
-			$form[] = array(
-				'type'	=> 'button',
-				'link'	=> 'page',
-				'html'	=> 'Schedule Loan',
-				'value'	=> 'scheduling-page',
-				'title'	=> 'Schedule a loan to be fulfilled later'
-			);
-
 		}
+		
+		// Button to schedule a loan to be fulfilled later
+		$form[] = array(
+			'type'	=> 'button',
+			'link'	=> 'page',
+			'html'	=> 'Schedule Loan',
+			'value'	=> 'scheduling-page',
+			'title'	=> 'Schedule a loan to be fulfilled later'
+		);
 		
 		// Button to edit item
 		$form[] = array(
