@@ -476,8 +476,8 @@ function wp_lib_give_item( $loan_id, $date = false ) {
 	
 	wp_lib_add_meta( $item_id,
 		array(
-			'wp_lib_member'	=> $member_id, // Assigns item to member to signify the physical item is in their possession
-			'wp_lib_loan'	=> $loan_id // Adds loan ID to item meta as caching, until item returns to Library possession
+			'wp_lib_member'	=> $member_id,	// Assigns item to member to signify the physical item is in their possession
+			'wp_lib_loan'	=> $loan_id		// Adds loan ID to item meta as caching, until item returns to Library possession
 		)
 	);
 
@@ -725,16 +725,18 @@ function wp_lib_error( $error_id, $param = 'NULL' ) {
 		return;
 	}
 	
-	// Array of all error codes and their explanations
-	// 0xx - Reserved, see wp_lib_add_notification()
-	// 1xx - Core functionality failure
-	// 2xx - General loan/return systems error
-	// 3xx - Invalid loan/return parameters
-	// 4xx - Error loaning/returning item or fining user
-	// 5xx - AJAX systems error
-	// 6xx - Debugging Errors
-	// 8xx - JavaScript Errors, stored client-side
-	// 9xx - Error processing error
+	/* 
+	 * Array of all error codes and their explanations
+	 * 0xx - Reserved, see wp_lib_add_notification()
+	 * 1xx - Core functionality failure
+	 * 2xx - General loan/return systems error
+	 * 3xx - Invalid loan/return parameters
+	 * 4xx - Error loaning/returning item or fining user
+	 * 5xx - AJAX systems error
+	 * 6xx - Debugging Errors
+	 * 8xx - JavaScript Errors, stored client-side
+	 * 9xx - Error processing error
+	 */
 	$all_errors = array(
 		110 => 'DateTime neither positive or negative',
 		112 => 'Insufficient permissions',
