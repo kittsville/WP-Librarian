@@ -149,14 +149,14 @@ function wp_lib_create_loan_index( $item_id ) {
 			$meta = get_post_meta( get_the_ID() );
 			
 			// Sets start date to date item was given to member, falls back to scheduled start date
-			if ( isset( $meta['wp_lib_loaned_date'] ) )
-				$start_date = $meta['wp_lib_loaned_date'][0];
+			if ( isset( $meta['wp_lib_give_date'] ) )
+				$start_date = $meta['wp_lib_give_date'][0];
 			else
 				$start_date = $meta['wp_lib_start_date'][0];
 			
 			// Sets end date to date item was returned, falls back to scheduled end date
-			if ( isset( $meta['wp_lib_returned_date'] ) )
-				$end_date = $meta['wp_lib_returned_date'][0];
+			if ( isset( $meta['wp_lib_return_date'] ) )
+				$end_date = $meta['wp_lib_return_date'][0];
 			else
 				$end_date = $meta['wp_lib_end_date'][0];
 			
@@ -469,8 +469,8 @@ function wp_lib_give_item( $loan_id, $date = false ) {
 	// Sets date item was loaned
 	wp_lib_add_meta( $loan_id,
 		array(
-			'wp_lib_loaned_date'	=> $date,				// Date/time item is passed to member
-			'wp_lib_give_user'		=> get_current_user_id()// Librarian who marks item as being given
+			'wp_lib_give_date'	=> $date,				// Date/time item is passed to member
+			'wp_lib_give_user'	=> get_current_user_id()// Librarian who marks item as being given
 		)
 	);
 	
@@ -601,9 +601,8 @@ function wp_lib_return_item( $item_id, $date = false, $fine = null ) {
 	// Sets loan status
 	update_post_meta( $loan_id, 'wp_lib_status', $status );
 
-	// Loan returned date set
-	// Note: The returned_date is when the item is returned, the end_date is when it is due back
-	add_post_meta( $loan_id, 'wp_lib_returned_date', $date );
+	// Date item was returned to library is set. Note that the end_date is when the the item was scheduled to be returned
+	add_post_meta( $loan_id, 'wp_lib_return_date', $date );
 	
 	// Adds ID of librarian who returned item to loan meta
 	add_post_meta( $loan_id, 'wp_lib_return_user', get_current_user_id() );

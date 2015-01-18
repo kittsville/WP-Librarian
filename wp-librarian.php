@@ -469,7 +469,7 @@ add_action( 'manage_wp_lib_loans_posts_custom_column' , function ( $column, $loa
 		
 		// Displays date item was actually returned
 		case 'loan_returned':
-			echo wp_lib_prep_date_column( $loan_id, 'wp_lib_returned_date' );
+			echo wp_lib_prep_date_column( $loan_id, 'wp_lib_return_date' );
 		break;
 	}
 }, 10, 2 );

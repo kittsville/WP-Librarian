@@ -860,8 +860,8 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			array( 'Creator',			(get_the_author_meta( 'user_nicename', get_post_field( 'post_author', $loan_id ) ) )?: '[User Deleted]'),
 			array( 'Expected Start',	wp_lib_format_unix_timestamp( $meta['wp_lib_start_date'][0] ) ),
 			array( 'Expected End',		wp_lib_format_unix_timestamp( $meta['wp_lib_end_date'][0] ) ),
-			array( 'Actual Start',		( isset( $meta['wp_lib_loaned_date'] ) ? wp_lib_format_unix_timestamp( $meta['wp_lib_loaned_date'][0] ) : 'N/A' ) ),
-			array( 'Actual End',		( isset( $meta['wp_lib_returned_date'] ) ? wp_lib_format_unix_timestamp( $meta['wp_lib_returned_date'][0] ) : 'N/A' ) ),
+			array( 'Actual Start',		( isset( $meta['wp_lib_give_date'] ) ? wp_lib_format_unix_timestamp( $meta['wp_lib_give_date'][0] ) : 'N/A' ) ),
+			array( 'Actual End',		( isset( $meta['wp_lib_return_date'] ) ? wp_lib_format_unix_timestamp( $meta['wp_lib_return_date'][0] ) : 'N/A' ) ),
 			array( 'Status',			$meta['wp_lib_status'][0] === '4' ? wp_lib_prep_dash_hyperlink( $status, wp_lib_prep_manage_fine_params( $meta['wp_lib_fine'][0] ) ) : $status ) // If loan incurred fine, status is link to manage fine
 		);
 		

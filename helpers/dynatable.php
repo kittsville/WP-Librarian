@@ -149,7 +149,7 @@ class WP_LIB_DYNATABLE_LOANS extends WP_LIB_DYNATABLE {
 	 * Generates formatted date of when item was loaned or, if not yet loaned, the date the loan is scheduled to start
 	 */
 	protected function genColumnLoanStart() {
-		return wp_lib_format_unix_timestamp( ( isset( $this->row_meta['wp_lib_loaned_date'] ) ? $this->row_meta['wp_lib_loaned_date'][0] : $this->row_meta['wp_lib_start_date'][0] ) );
+		return wp_lib_format_unix_timestamp( ( isset( $this->row_meta['wp_lib_give_date'] ) ? $this->row_meta['wp_lib_give_date'][0] : $this->row_meta['wp_lib_start_date'][0] ) );
 	}
 	
 	/*
@@ -163,7 +163,7 @@ class WP_LIB_DYNATABLE_LOANS extends WP_LIB_DYNATABLE {
 	 * Generates formatted date of when item was actually returned
 	 */
 	protected function genColumnReturned() {
-		return wp_lib_format_unix_timestamp( $this->row_meta['wp_lib_returned_date'][0] );
+		return wp_lib_format_unix_timestamp( $this->row_meta['wp_lib_return_date'][0] );
 	}
 }
 ?>
