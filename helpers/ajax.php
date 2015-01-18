@@ -1428,6 +1428,37 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			'content'	=> $form
 		);
 		
+		// If loan has ever been renewed, generates table listing all times loan has been renewed
+		if (isset($meta['wp_lib_renew'])) {
+			// Un-serializes renewing events
+			foreach ( $meta['wp_lib_renew'] as $i => $renew_event ) $meta['wp_lib_renew'][$i] = unserialize($renew_event);
+			
+			// Initialises table output and counter
+			$renewings = array();
+			$count = 0;
+			
+			// Generates table rows
+			foreach( $meta['wp_lib_renew'] as $renew_event ) {
+				++$count;
+				$renewings[] = array(
+					'renewedDate'	=> wp_lib_format_unix_timestamp($renew_event[0]),
+					'renewedUntil'	=> wp_lib_format_unix_timestamp( isset($meta['wp_lib_renew'][$count]) ? $meta['wp_lib_renew'][$count][1] : $meta['wp_lib_end_date'][0] ),
+					'librarian'		=> $this->getUserName($renew_event[2])
+				);
+			}
+			
+			// Creates table using table rows
+			$page[] = array(
+				'type'		=> 'dtable',
+				'id'		=> 'loan-renewings',
+				'headers'	=> ['Renewed Date', 'Renewed Until', 'Librarian'],
+				'data'		=> $renewings,
+				'labels'	=> array(
+					'records'	=> 'times renewed'
+				)
+			);
+		}
+		
 		$this->sendPage( 'Managing: Loan #' . $loan_id, 'Managing Loan #' . $loan_id, $page );
 	}
 	
