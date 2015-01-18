@@ -659,7 +659,7 @@ function wp_lib_renew_item( $loan_id, $date = false ) {
 	// Calls error on failure
 	if ( wp_lib_recursive_scheduling_engine( $meta['wp_lib_start_date'][0], $date, $item_loans ) ) {
 		// Adds new renewal entry, containing the renewal date, the previous loan due date and the librarian who is renewing the item
-		add_post_meta( $loan_id, 'wp_lib_renew', array( current_time('timestamp'), $meta['wp_lib_end_date'][0], get_current_user_id() ) );
+		add_post_meta( $loan_id, 'wp_lib_renew', array( current_time('timestamp'), (int)$meta['wp_lib_end_date'][0], get_current_user_id() ) );
 		
 		update_post_meta( $loan_id, 'wp_lib_end_date', $date );
 		
