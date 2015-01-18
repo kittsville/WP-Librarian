@@ -142,7 +142,8 @@ h4.dash-button-text {
 
 div.ui-widget-content {
 	border: none;
-	background: #9C9C9C;
+	background: #1F8DBF;
+	color: #C9C9C9;
 }
 
 /* Dynatable */
