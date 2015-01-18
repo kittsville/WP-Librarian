@@ -162,21 +162,18 @@ function wp_lib_create_loan_index( $item_id ) {
 			
 			// Adds loan index entry
 			$loan_index[] = array(
-				'start'		=> $start_date,
-				'end'		=> $end_date,
+				'start'		=> (int)$start_date,
+				'end'		=> (int)$end_date,
 				'loan_id'	=> get_the_ID()
 			);
 		}
 		
-		// Sorts array by start/end date rather than post creation order, then returns
-		// Thanks to Nightmare's (http://stackoverflow.com/users/1495319) answer to a question on sorting multidimensional arrays (http://stackoverflow.com/questions/11288778)
-		uasort( $loan_index, function( $a, $b ) {
-			if ($a['start'] > $b['start'])
-				return 1;
-			elseif ($a['start'] < $b['start'])
-				return -1;
-			elseif ($a['start'] == $b['start'])
+		// Sorts array by start/end date rather than post creation order
+		usort( $loan_index, function( $a, $b ) {
+			if ( $a['start'] == $b['start'])
 				return 0;
+			
+			return ($a['start'] > $b['start']) ? 1 : -1;
 		});
 		
 		// Returns loan index
