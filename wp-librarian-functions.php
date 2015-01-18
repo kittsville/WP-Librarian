@@ -651,8 +651,8 @@ function wp_lib_renew_item( $loan_id, $date = false ) {
 	
 	// Removes current loan from loan index
 	// This is so that is doesn't interferer with itself during the next check
-	array_filter( $item_loans, function($loan){
-		return ( $loan['loan_id'] !== $loan_id );
+	$item_loans = array_filter( $item_loans, function($loan){
+		return ( $loan['loan_id'] === $loan_id );
 	});
 	
 	// Checks if loan can be extended by checking if 'new' loan would not clash with existing loans, minus current loan
