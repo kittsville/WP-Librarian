@@ -857,7 +857,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			array( 'Loan ID',			$loan_id ),
 			array( 'Item',				wp_lib_manage_item_dash_hyperlink( $meta['wp_lib_item'][0] ) ),
 			array( 'Member',			wp_lib_manage_member_dash_hyperlink( $meta['wp_lib_member'][0] ) ),
-			array( 'Creator',			(get_the_author_meta( 'user_nicename', get_post_field( 'post_author', $loan_id ) ) )?: '[User Deleted]'),
+			array( 'Creator',			$this->getUserName( get_post_field( 'post_author', $loan_id ) ) ),
 			array( 'Expected Start',	wp_lib_format_unix_timestamp( $meta['wp_lib_start_date'][0] ) ),
 			array( 'Expected End',		wp_lib_format_unix_timestamp( $meta['wp_lib_end_date'][0] ) ),
 			array( 'Actual Start',		( isset( $meta['wp_lib_give_date'] ) ? wp_lib_format_unix_timestamp( $meta['wp_lib_give_date'][0] ) : 'N/A' ) ),
@@ -893,12 +893,21 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 				array( 'Loan ID',	wp_lib_prep_dash_hyperlink( $meta['wp_lib_loan'][0], wp_lib_prep_manage_loan_params( $meta['wp_lib_loan'][0] ) ) ),
 				array( 'Item',		wp_lib_manage_item_dash_hyperlink( $meta['wp_lib_item'][0] ) ),
 				array( 'Member',	wp_lib_manage_member_dash_hyperlink( $meta['wp_lib_member'][0] ) ),
-				array( 'Creator',	(get_the_author_meta( 'user_nicename', get_post_field( 'post_author', $fine_id ) ) )?: '[User Deleted]'),
+				array( 'Creator',	$this->getUserName( get_post_field( 'post_author', $fine_id ) ) ),
 				array( 'Amount',	wp_lib_format_money( $meta['wp_lib_fine'][0] ) ),
 				array( 'Status',	wp_lib_format_fine_status( $meta['wp_lib_status'][0] ) ),
 				array( 'Created',	get_the_date( '', $fine_id ) )
 			)
 		);
+	}
+	
+	/*
+	 * Gets a user's name. If the user has been deleted, returns a placeholder
+	 * @param	int|str	$user_id	ID of WordPress user
+	 * @return	str					Name of user, or placeholder
+	 */
+	private function getUserName( $user_id ) {
+		return get_the_author_meta( 'user_nicename', $user_id )?: '[User #'.$user_id.' Deleted]';
 	}
 	
 	/*
