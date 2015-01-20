@@ -3,6 +3,10 @@
  * Holds information about an error that occurred within WP-Librarian such as the error's description and where it occurred
  */
 class WP_LIB_ERROR {
+	public $ID;			// Error code
+	public $description;// Description of error, look up in $error_codes
+	public $ajax;		// Whether or not error was called from an AJAX request
+
 	/*
 	 * All valid error codes within WP-Librarian and their descriptions
 	 * Each block of 100 codes is assigned to a category of error, as such:
