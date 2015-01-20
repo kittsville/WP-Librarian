@@ -299,11 +299,11 @@ function wp_lib_register_post_and_tax() {
 
 add_filter( 'generate_rewrite_rules', function( $wp_rewrite ) {
 	// Fetches single/archive slugs
-	$slugs = get_option( 'wp_lib_slugs', array('wp-librarian','item','authors','type'));
-	$archive = trailingslashit($slugs[0]);
-	$single = $archive . trailingslashit($slugs[1]);
+	$slugs		= get_option( 'wp_lib_slugs', array('wp-librarian','item','authors','type'));
+	$archive	= trailingslashit($slugs[0]);
+	$single		= $archive . trailingslashit($slugs[1]);
 	
-	$new_rules = array();
+	$new_rules	= array();
 	
 	$new_rules[$archive.'?$']								= 'index.php?post_type=wp_lib_items';
 	$new_rules[$archive.'page/?([0-9]{1,})/?$']				= 'index.php?post_type=wp_lib_items&paged=' . $wp_rewrite->preg_index( 1 );
