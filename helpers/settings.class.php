@@ -1,4 +1,7 @@
 <?php
+// No direct loading
+defined( 'ABSPATH' ) OR die('No');
+
 /*
  * Holds basic properties/functions relating the plugin's settings
  */

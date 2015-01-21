@@ -1,4 +1,7 @@
 <?php
+// No direct loading
+defined( 'ABSPATH' ) OR die('No');
+
 /*
  * Used to generate a Dynatable from a WordPress query, using columns built into the class
  * A single instance and thus query can be used to generate multiple tables

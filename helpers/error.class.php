@@ -1,4 +1,7 @@
 <?php
+// No direct loading
+defined( 'ABSPATH' ) OR die('No');
+
 /*
  * Holds information about an error that occurred within WP-Librarian such as the error's description and where it occurred
  */

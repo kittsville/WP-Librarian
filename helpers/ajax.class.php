@@ -1,4 +1,7 @@
 <?php
+// No direct loading
+defined( 'ABSPATH' ) OR die('No');
+
 /*
  * Handles all Dashboard AJAX requests
  */
@@ -2323,7 +2326,6 @@ class WP_LIB_AJAX_API extends WP_LIB_AJAX {
 		}
 	}
 }
-
 
 
 
