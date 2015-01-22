@@ -4,6 +4,9 @@
  * These are a collection of various useful functions used by WP-Librarian to operate
  */
 
+// No direct loading
+defined( 'ABSPATH' ) OR die('No');
+
 	/* -- File Management -- */
 
 /*

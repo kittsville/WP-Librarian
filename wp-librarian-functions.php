@@ -6,6 +6,9 @@
  * and rely on post types and taxonomies set up in wp-librarian.php
  */
 
+// No direct loading
+defined( 'ABSPATH' ) OR die('No');
+
 /*
  * Checks if item item is scheduled to be on loan between given dates
  * Given no dates, checks if item is currently on loan
