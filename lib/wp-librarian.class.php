@@ -85,9 +85,6 @@ class WP_LIBRARIAN {
 		add_action( 'wp_ajax_wp_lib_page',				array( $this, 'ajaxLoadPage' ) );
 		add_action( 'wp_ajax_wp_lib_action',			array( $this, 'ajaxDoAction' ) );
 		add_action( 'wp_ajax_wp_lib_api',				array( $this, 'ajaxDoApiRequest' ) );
-		
-		register_activation_hook( __FILE__,				array( $this, 'runOnActivation' ) );
-		register_deactivation_hook( __FILE__, 			'flush_rewrite_rules' );
 	}
 	
 	/**
@@ -106,12 +103,10 @@ class WP_LIBRARIAN {
 		
 		// If plugin has been previously installed
 		if ( is_array( $version ) ) {
-			// Prevents plugin from 
-			
+			// If previous plugin version is version 0.1 or older, remove depreciated data
+			if ( version_compare( $version['version'], '0.1', '<=' ) )
+				delete_option( 'wp_lib_default_media_types' );
 		} else {
-			// Sets plugin channel/version/build being installed
-			add_option( 'wp_lib_version', $this->getPluginVersion() );
-			
 			// Sets current user as a Library Admin
 			wp_lib_update_user_meta( get_current_user_id(), 10 );
 			
@@ -119,8 +114,33 @@ class WP_LIBRARIAN {
 			wp_lib_load_helper( 'settings' );
 			WP_LIB_SETTINGS::addPluginSettings();
 			
-			
+			// Registers default media types
+			foreach ([
+				array(
+					'name' => 'Book',
+					'slug' => 'books',
+				),
+				array(
+					'name' => 'DVD',
+					'slug' => 'dvds',
+				),
+				array(
+					'name' => 'Graphic Novel',
+					'slug' => 'graphic-novels',
+				)
+			] as $type ) {
+				if ( get_term_by( 'name', $type['name'], 'wp_lib_media_type' ) == false){
+					wp_insert_term(
+						$type['name'],
+						'wp_lib_media_type',
+						array( 'slug' => $type['slug'] )
+					);
+				}
+			}
 		}
+		
+		// Adds or updates plugins current version
+		update_option( 'wp_lib_version', $this->getPluginVersion() );
 		
 		// Registers plugin post types then flushes permalinks, adding them to rewrite rules
 		$this->flushPermalinks();
@@ -649,34 +669,6 @@ class WP_LIBRARIAN {
 				)
 			)
 		);
-		
-		// Creates Default Media Type entries if they don't already exist, unless configured otherwise
-		if ( wp_lib_prep_boolean_option( get_option( 'wp_lib_default_media_types', array(3) )[0] ) ) {
-			$default_media_types = array(
-				array(
-					'name' => 'Book',
-					'slug' => 'books',
-				),
-				array(
-					'name' => 'DVD',
-					'slug' => 'dvds',
-				),
-				array(
-					'name' => 'Graphic Novel',
-					'slug' => 'graphic-novels',
-				),
-			);
-			// Iterates through default media types and creates them if they do not already exist
-			foreach ( $default_media_types as $type ) {
-				if ( get_term_by( 'name', $type['name'], 'wp_lib_media_type' ) == false){
-					wp_insert_term(
-						$type['name'],
-						'wp_lib_media_type',
-						array( 'slug' => $type['slug'] )
-					);
-				}
-			}
-		}
 	}
 	
 	/**
@@ -1070,7 +1062,7 @@ class WP_LIBRARIAN {
 	public function getPluginVersion() {
 		return array(
 			'channel'	=> 'Alpha',
-			'version'	=> '0.1',
+			'version'	=> '0.2',
 			'subversion'=> '003',
 			'nickname'	=> 'Fox Paw'
 		);
