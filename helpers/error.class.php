@@ -4,6 +4,7 @@ defined( 'ABSPATH' ) OR die('No');
 
 /*
  * Holds information about an error that occurred within WP-Librarian such as the error's description and where it occurred
+ * @todo Add injective dependencies and reap the relevant benefits
  */
 class WP_LIB_ERROR {
 	public $ID;			// Error code

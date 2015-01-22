@@ -6,9 +6,32 @@
 
 	/* -- File Management -- */
 
-// Loads file containing requested helper classes. Will handle failure less extremely after greater use of classes
-function wp_lib_load_helper( $file_name ) {
-	require_once( dirname( __FILE__ ) . '/helpers/' . $file_name . '.class.php' );
+/*
+ * Loads helper file from /helper directory
+ * @param	string	$helper	Name of helper file excluding .class.php
+ */
+function wp_lib_load_helper( $helper ) {
+	require_once( dirname( __FILE__ ) . '/helpers/' . $helper . '.class.php' );
+}
+
+	/* -- Permissions -- */
+
+/*
+* Checks if user is a librarian
+* A librarian can view and modify items, members, loans and fines, where appropriate
+* @return bool Whether user is a librarian
+*/
+function wp_lib_is_librarian( $user_id = null ) {
+	return ( get_user_meta( ( is_int($user_id)? $user_id : get_current_user_id() ), 'wp_lib_role', true ) >= 5 ) ? true : false;
+}
+
+/*
+* Checks if user is a library admin
+* A library admin has the permissions of a librarian, plus the ability to modify Library settings
+* @return bool Whether the user is a library admin
+*/
+function wp_lib_is_library_admin( $user_id = null ) {
+	return ( get_user_meta( ( is_int($user_id)? $user_id : get_current_user_id() ), 'wp_lib_role', true ) >= 10 ) ? true : false;
 }
 
 	/* -- Sanitising Functions -- */
@@ -210,16 +233,6 @@ function wp_lib_format_dash_url( $params = array() ) {
 	}
 
 	return $url;
-}
-
-// Formats script's URL using its name. Presumes default script dir is used
-function wp_lib_script_url( $name ) {
-	return plugins_url( '/scripts/'. $name . '.js', __FILE__ );
-}
-
-// Formats CSS file's URL using its name. Presumes default css dir is used
-function wp_lib_style_url( $name ) {
-	return plugins_url( '/styles/'. $name . '.css', __FILE__ );
 }
 
 // Returns item's title formatted as a hyperlink to manage that item
@@ -433,33 +446,6 @@ function wp_lib_prep_members_items_out( $member_id ) {
 	return $query->post_count;
 }
 
-// Displays list of loans associated with an item
-function wp_lib_prep_loans_table( $item_id ) {
-	wp_lib_load_helper( 'dynatable' );
-	
-	// Queries WP for all loans of item
-	$dynatable = new WP_LIB_DYNATABLE_LOANS( 'wp_lib_item', $item_id );
-	
-	// Generates Dynatable table of query results
-	return $dynatable->generateTable(
-		array(
-			array( 'Loan',		'loan',		'genColumnManageLoan' ),
-			array( 'Member',	'member',	'genColumnManageMember' ),
-			array( 'Status',	'status',	'genColumnLoanStatus' ),
-			array( 'Loaned',	'loaned',	'genColumnLoanStart' ),
-			array( 'Expected',	'expected',	'genColumnLoanEnd' ),
-			array( 'Returned',	'returned',	'genColumnReturned' )
-		),
-		array(
-			'id'			=> 'member-loans',
-			'labels'		=> array(
-				'records'	=> 'loans'
-			)
-		),
-		get_the_title( $item_id ) . ' has never been loaned'
-	);
-}
-
 	/* -- Debugging -- */
 
 // Renders current plugin's version, update channel and similar information
@@ -549,20 +535,10 @@ function wp_lib_format_fine_status( $status ) {
 	return $strings[$status];
 }
 
-// Fetches list of all possible user roles within the plugin
-function wp_lib_fetch_user_roles() {
-	return array(
-		0	=> '',
-		1	=> '',
-		5	=> 'Librarian',
-		10	=> 'Administrator'
-	);
-}
-
 // Turns numeric user status into readable string e.g. 5 -> Librarian
 function wp_lib_format_user_permission_status( $status ) {
 	// Array of all possible user permissions
-	$strings = wp_lib_fetch_user_roles();
+	$strings = WP_LIBRARIAN::getUserRoles();
 	
 	// If given number refers to a status that doesn't exist, throw error
 	if ( !array_key_exists( $status, $strings ) ) {

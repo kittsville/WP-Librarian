@@ -3,6 +3,9 @@
  * Template Name: Library Item Archive
  */
 
+// No direct loading
+defined( 'ABSPATH' ) OR die('No');
+
 get_header();
 
 ?>

@@ -6,6 +6,7 @@ defined( 'ABSPATH' ) OR die('No');
  * Used to generate a Dynatable from a WordPress query, using columns built into the class
  * A single instance and thus query can be used to generate multiple tables
  * @link http://dynatable.com/
+ * @todo Add injective dependencies and reap the relevant benefits
  */
 class WP_LIB_DYNATABLE {
 	/*
@@ -37,7 +38,7 @@ class WP_LIB_DYNATABLE {
 	 */
 	function __construct( $args ) {
 		// Checks class has been called from a valid context
-		if ( !( defined('DOING_AJAX') && DOING_AJAX && isset($GLOBALS['wp_lib_ajax']) ) )
+		if ( !defined('DOING_AJAX') || !DOING_AJAX )
 			wp_lib_error( 116 );
 		
 		// Runs query, generating object containing matching posts

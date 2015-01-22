@@ -13,7 +13,15 @@ class WP_LIB_AJAX {
 		array()	// Content
 	);
 	
-	function __construct() {
+	// Instance of core plugin class WP_LIBRARIAN
+	protected $wp_librarian;
+	
+	/*
+	 * Adds instance of core plugin class to ajax classes' properties
+	 */
+	function __construct( $wp_librarian ) {
+		$this->wp_librarian = $wp_librarian;
+		
 		// Ensures object can only be created if an AJAX request is being performed
 		if ( !defined('DOING_AJAX') || !DOING_AJAX )
 			wp_lib_error( 116 );
@@ -172,7 +180,8 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 	/*
 	 * Performs Dashboard based on requested action
 	 */
-	public function doAction(){
+	function __construct( $wp_librarian ) {
+		parent::__construct( $wp_librarian );
 		// If no action has been specified, call error
 		if ( !isset( $_POST['dash_action'] ) )
 			$this->stopAjax(500);
@@ -640,7 +649,9 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	/*
 	 * Calls relevant prep function based on requested Dash page
 	 */
-	function loadPage() {
+	function __construct( $wp_librarian ) {
+		parent::__construct( $wp_librarian );
+	
 		// If no dash page has been specified, load Dashboard
 		if ( !isset( $_POST['dash_page'] ) )
 			$this->genDashboard();
@@ -901,6 +912,37 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 				array( 'Status',	wp_lib_format_fine_status( $meta['wp_lib_status'][0] ) ),
 				array( 'Created',	get_the_date( '', $fine_id ) )
 			)
+		);
+	}
+	
+	/*
+	 * Generates table of all loans of a given item
+	 * @param	int		$item_id	Post ID of item
+	 * @return	array				Dynatable of loans of given item
+	 */
+	private function prepLoansTable( $item_id ) {
+		wp_lib_load_helper('dynatable');
+		
+		// Queries WP for all loans of item
+		$dynatable = new WP_LIB_DYNATABLE_LOANS( 'wp_lib_item', $item_id );
+		
+		// Generates Dynatable table of query results
+		return $dynatable->generateTable(
+			array(
+				array( 'Loan',		'loan',		'genColumnManageLoan' ),
+				array( 'Member',	'member',	'genColumnManageMember' ),
+				array( 'Status',	'status',	'genColumnLoanStatus' ),
+				array( 'Loaned',	'loaned',	'genColumnLoanStart' ),
+				array( 'Expected',	'expected',	'genColumnLoanEnd' ),
+				array( 'Returned',	'returned',	'genColumnReturned' )
+			),
+			array(
+				'id'			=> 'member-loans',
+				'labels'		=> array(
+					'records'	=> 'loans'
+				)
+			),
+			get_the_title( $item_id ) . ' has never been loaned'
 		);
 	}
 	
@@ -1239,7 +1281,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		);
 		
 		// Fetches list of loans of item
-		$page[] = wp_lib_prep_loans_table( $item_id );
+		$page[] = $this->prepLoansTable( $item_id );
 		
 		// Lists additional scripts needed for Dash page
 		$scripts = array( 'admin-dashboard-manage-item' );
@@ -1655,7 +1697,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		);
 		
 		// Fetches list of loans of item
-		$page[] = wp_lib_prep_loans_table( $item_id );
+		$page[] = $this->prepLoansTable( $item_id );
 		
 		// Lists additional scripts needed for Dash page
 		$scripts = array( 'admin-dashboard-manage-item' );
@@ -1731,7 +1773,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			)
 		);
 		
-		$page[] = wp_lib_prep_loans_table( $item_id );
+		$page[] = $this->prepLoansTable( $item_id );
 		
 		$this->sendPage(
 			'Renewing Item: ' . get_the_title( $item_id ),
@@ -1921,7 +1963,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 						)
 					)
 				),
-				wp_lib_prep_loans_table( $item_id )
+				$this->prepLoansTable( $item_id )
 			)
 		);
 	}
@@ -2192,7 +2234,9 @@ class WP_LIB_AJAX_API extends WP_LIB_AJAX {
 	/*
 	 * Performs API request and returns relevant information to client
 	 */
-	public function doRequest(){
+	function __construct( $wp_librarian ) {
+		parent::__construct( $wp_librarian );
+		
 		// If no request has been given, return error
 		if ( !isset( $_POST['api_request'] ) )
 			$this->stopAjax( 504 );

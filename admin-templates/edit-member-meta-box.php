@@ -5,6 +5,9 @@
  * these vales are saved with the post in wp-librarian.php
  */
 
+// No direct loading
+defined( 'ABSPATH' ) OR die('No');
+
 // Loads meta box css
 wp_enqueue_style( 'wp_lib_admin_member_meta' );
 
