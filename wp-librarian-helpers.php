@@ -1,5 +1,5 @@
 <?php
-/* 
+/**
  * WP-LIBRARIAN HELPERS
  * These are a collection of various useful functions used by WP-Librarian to operate
  */
@@ -9,7 +9,7 @@ defined( 'ABSPATH' ) OR die('No');
 
 	/* -- File Management -- */
 
-/*
+/**
  * Loads helper file from /helper directory
  * @param	string	$helper	Name of helper file excluding .class.php
  */
@@ -19,7 +19,7 @@ function wp_lib_load_helper( $helper ) {
 
 	/* -- Permissions -- */
 
-/*
+/**
 * Checks if user is a librarian
 * A librarian can view and modify items, members, loans and fines, where appropriate
 * @return bool Whether user is a librarian
@@ -28,7 +28,7 @@ function wp_lib_is_librarian( $user_id = null ) {
 	return ( get_user_meta( ( is_int($user_id)? $user_id : get_current_user_id() ), 'wp_lib_role', true ) >= 5 ) ? true : false;
 }
 
-/*
+/**
 * Checks if user is a library admin
 * A library admin has the permissions of a librarian, plus the ability to modify Library settings
 * @return bool Whether the user is a library admin
@@ -335,7 +335,7 @@ function wp_lib_prep_date( &$date ) {
 		$date = current_time( 'timestamp' );
 }
 
-	/* Language */
+	/* -- Language -- */
 
 // Makes string plural if needed, returns un-pluralised string otherwise
 function wp_lib_plural( $value, $string, $plural = 's' ) {
@@ -587,7 +587,7 @@ function wp_lib_format_item_condition( $number, $full = true ) {
 
 	/* -- Miscellaneous -- */
 
-/*
+/**
  * Checks if item can be renewed
  * @param	int 	$loan_id	Post ID of current item's loan
  * @return	bool	If item is eligible for renewal

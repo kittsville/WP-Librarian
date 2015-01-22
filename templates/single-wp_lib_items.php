@@ -1,5 +1,5 @@
 <?php
-/*
+/**
  * Template Name: Library Single Item
  */
 

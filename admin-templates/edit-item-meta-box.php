@@ -1,5 +1,5 @@
 <?php
-/* 
+/**
  * WP-LIBRARIAN ITEM META BOX
  * This renders the meta box that displays below the item description on the item editing page.
  * These vales are saved with the post in wp-librarian.php

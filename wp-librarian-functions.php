@@ -1,5 +1,5 @@
 <?php
-/*
+/**
  * WP-LIBRARIAN FUNCTIONS
  * Various functions used to display or modify parts of the Library.
  * These functions use numerous helpers from wp-librarian-helpers.php
@@ -9,7 +9,7 @@
 // No direct loading
 defined( 'ABSPATH' ) OR die('No');
 
-/*
+/**
  * Checks if item item is scheduled to be on loan between given dates
  * Given no dates, checks if item is currently on loan
  * @param	int			$item_id	Post ID of library item to be checked
@@ -62,7 +62,7 @@ function wp_lib_loanable( $item_id, $start_date = false, $end_date = false ) {
 		return false;
 }
 
-/*
+/**
  * Given an array of loans, checks if a proposed loan would be viable
  * Use create_loan_index to generate and sort the ordered loan index necessary for the function
  * @param	int		$proposed_start	Proposed start of new loan as a UNIX timestamp
@@ -99,7 +99,7 @@ function wp_lib_recursive_scheduling_engine( $proposed_start, $proposed_end, $lo
 	return false;
 }
 
-/*
+/**
  * Creates chronologically ordered list of loans associated with an item
  * @param	int			$item_id	Post ID of library item to be checked
  * @return	array					Ordered list of item's loans
@@ -169,7 +169,7 @@ function wp_lib_create_loan_index( $item_id ) {
 	}
 }
 
-/*
+/**
  * Calculates days until an item needs to be returned
  * It's the damn fine cherry pie function! amon.jpg
  * @param	int 	$loan_id	Post ID of a loan that is currently open (item is with member)
@@ -214,7 +214,7 @@ function wp_lib_cherry_pie( $loan_id, $date ) {
 	}
 }
 
-/*
+/**
  * Checks if given item would be late at given time
  * @param	int			$item_id	Post ID of library item to be checked
  * @param	int|bool	$date		OPTIONAL Date to base item lateness calculations on, uses current time by default
@@ -238,10 +238,7 @@ function wp_lib_item_late( $loan_id, $date = false ) {
 		return false;
 }
 
-// Formats item's days late/due
-// Array is expected, containing late/due/today key/values with \d and \p for due and plural values
-// e.g. 'this item is \d day\p late' --> 'this item is 4 days late'
-/*
+/**
  * Creates formatted string specifying item lateness
  * e.g. 'this item is \d day\p late' --> 'this item is 4 days late'
  * @param	int			$item_id	Post ID of library item to be checked
@@ -288,7 +285,7 @@ function wp_lib_prep_item_due( $item_id, $date = false, $array ) {
 	return $text;
 }
 
-/*
+/**
  * Fetches loan ID of current loan item is on, or 
  * @param	int	$item_id	Post ID of item from which loan will be fetched
  * @param	int	$date		OPTIONAL Date (as UNIX timestamp) to check for loan on. Uses current time if unspecified
@@ -335,7 +332,7 @@ function wp_lib_fetch_loan_id( $item_id, $date = false ) {
 	return $loan_id;
 }
 
-/*
+/**
  * Loans given item to given member for the given number of days
  * Uses schedule_loan() and give_item() to achieve most functionality
  * @param	int			$item_id		Post ID of item to loan to member
@@ -375,7 +372,7 @@ function wp_lib_loan_item( $item_id, $member_id, $loan_length = false ) {
 	return true;
 }
 
-/*
+/**
  * Schedules a loan of an item to a member
  * For an item to be marked as having left the library use give_item after calling this function
  * @param	int			$item_id	Post ID of item for which will be scheduled
@@ -426,7 +423,7 @@ function wp_lib_schedule_loan( $item_id, $member_id, $start_date, $end_date ) {
 	return $loan_id;
 }
 
-/*
+/**
  * Marks item as having left the library
  * @param	int			$loan_id	Post ID of loan of item to member
  * @param	int|bool	$date		OPTIONAL Date (as UNIX timestamp) to give item to member on, deafaults to WP's current_time()
@@ -469,7 +466,7 @@ function wp_lib_give_item( $loan_id, $date = false ) {
 	return true;
 }
 
-/*
+/**
  * Returns an item that was on loan to the library, charging a fine if appropriate
  * @param	int			$item_id	Post ID of item being returned
  * @param	int|bool	$date		OPTIONAL Date (as UNIX timestamp) to return item, defaults to WP's current_time()
@@ -596,7 +593,7 @@ function wp_lib_return_item( $item_id, $date = false, $fine = null ) {
 	return isset( $fine_id ) ? $fine_id : true;
 }
 
-/*
+/**
  * Renews an item currently on loan, giving the member more time before they have to return it
  * @param	int			$loan_id		Post ID of loan for which due date is being extended
  * @param	int|bool	$date			OPTIONAL Date to extend loan's due date to, defaults to WP's current_time()
@@ -655,7 +652,7 @@ function wp_lib_renew_item( $loan_id, $date = false ) {
 	}
 }
 
-/*
+/**
  * Cancels fine, removing fine amount from member's total debt
  * @param	int 	$fine_id	Post ID of fine to be cancelled
  * @return	bool				Success/failure of fine cancellation
@@ -697,7 +694,7 @@ function wp_lib_cancel_fine( $fine_id ) {
 	return true;
 }
 
-/*
+/**
  * Generates error based on given error code and, if not an AJAX request, kills thread
  * @param int			$error_id	Error that has occurred
  * @param string|array	$param		OPTIONAL Relevant parameters to error to enhance error message (not optional for certain error messages)

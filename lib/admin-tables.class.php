@@ -2,7 +2,7 @@
 // No direct loading
 defined( 'ABSPATH' ) OR die('No');
 
-/*
+/**
  * Creates, removes and manages the columns of admin post tables for WP-Librarian's post types
  * @todo Add option to sort appropriate admin post table columns
  */
@@ -10,7 +10,7 @@ class WP_LIB_ADMIN_TABLES {
 	// Instance of core plugin class WP_LIBRARIAN
 	protected $wp_librarian;
 	
-	/*
+	/**
 	 * Adds WordPress hooks to add custom columns, remove unneeded default columns and add content to the custom columns
 	 */
 	function __construct( $wp_librarian ) {
@@ -35,7 +35,7 @@ class WP_LIB_ADMIN_TABLES {
 		add_filter('bulk_actions-edit-wp_lib_fines',			function(){ return array(); });
 	}
 	
-	/*
+	/**
 	 * Adds custom columns to admin post table for items
 	 * @param	array	$columns	Existing WordPress post table columns
 	 * @return	array				Modified WordPress post table columns
@@ -54,7 +54,7 @@ class WP_LIB_ADMIN_TABLES {
 		return $columns;
 	}
 	
-	/*
+	/**
 	 * Adds custom columns to admin post table for members
 	 * @param	array	$columns	Existing WordPress post table columns
 	 * @return	array				Modified WordPress post table columns
@@ -73,7 +73,7 @@ class WP_LIB_ADMIN_TABLES {
 		return array_slice( $columns, 0, 1, true ) + $new_columns;
 	}
 	
-	/*
+	/**
 	 * Overwrites all existing columns for the loans admin post table with new columns
 	 * @param	array	$columns	Existing WordPress post table columns
 	 * @return	array				Modified WordPress post table columns
@@ -92,7 +92,7 @@ class WP_LIB_ADMIN_TABLES {
 		);
 	}
 	
-	/*
+	/**
 	 * Overwrites all existing columns for the fines admin post table with new columns
 	 * @param	array	$columns	Existing WordPress post table columns
 	 * @return	array				Modified WordPress post table columns
@@ -109,7 +109,7 @@ class WP_LIB_ADMIN_TABLES {
 		);
 	}
 	
-	/*
+	/**
 	 * Adds users' library role column to admin user table columns
 	 * @param	array	$columns	Existing WordPress user table columns
 	 * @return	array				Modified WordPress user table columns
@@ -119,7 +119,7 @@ class WP_LIB_ADMIN_TABLES {
 		return array_slice( $columns, 0, 5, true ) + array('library-role' => 'Library Role') + array_slice( $columns, 5, NULL, true );
 	}
 	
-	/*
+	/**
 	 * Adds content to custom item admin post table columns
 	 * @param	string	$column		Name of an item post table column
 	 * @param	int		$item_id	Post ID of current row's item
@@ -139,7 +139,7 @@ class WP_LIB_ADMIN_TABLES {
 		}
 	}
 	
-	/*
+	/**
 	 * Adds content to custom member admin post table columns
 	 * @param	string	$column		Name of an member post table column
 	 * @param	int		$member_id	Post ID of current row's member
@@ -178,7 +178,7 @@ class WP_LIB_ADMIN_TABLES {
 		}
 	}
 	
-	/*
+	/**
 	 * Adds content to custom loan admin post table columns
 	 * @param	string	$column		Name of an loan post table column
 	 * @param	int		$loan_id	Post ID of current row's loan
@@ -245,7 +245,7 @@ class WP_LIB_ADMIN_TABLES {
 		}
 	}
 	
-	/*
+	/**
 	 * Adds content to custom fines admin post table columns
 	 * @param	string	$column		Name of an fines post table column
 	 * @param	int		$fine_id	Post ID of current row's fines
@@ -293,7 +293,7 @@ class WP_LIB_ADMIN_TABLES {
 		}
 	}
 	
-	/*
+	/**
 	 * Fills custom library role column with name of users' current library role
 	 * @param	string	$column		Name of an fines post table column
 	 * @param	int		$fine_id	Post ID of current row's fines

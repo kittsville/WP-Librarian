@@ -1,5 +1,5 @@
 <?php
-/* 
+/**
  * WP-LIBRARIAN DASHBOARD TEMPLATE
  * This file renders the template for the Dashboard.
  * The template is then populated and modified dynamically by JavaScript

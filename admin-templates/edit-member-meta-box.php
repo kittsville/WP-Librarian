@@ -1,5 +1,5 @@
 <?php
-/* 
+/**
  * WP-LIBRARIAN MEMBER META BOX
  * This renders the meta box that contains member's details;
  * these vales are saved with the post in wp-librarian.php

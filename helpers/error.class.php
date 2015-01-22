@@ -2,7 +2,7 @@
 // No direct loading
 defined( 'ABSPATH' ) OR die('No');
 
-/*
+/**
  * Holds information about an error that occurred within WP-Librarian such as the error's description and where it occurred
  * @todo Add injective dependencies and reap the relevant benefits
  */
@@ -11,7 +11,7 @@ class WP_LIB_ERROR {
 	public $description;// Description of error, look up in $error_codes
 	public $ajax;		// Whether or not error was called from an AJAX request
 
-	/*
+	/**
 	 * All valid error codes within WP-Librarian and their descriptions
 	 * Each block of 100 codes is assigned to a category of error, as such:
 	 * 0xx - Reserved, see wp_lib_add_notification()
@@ -78,7 +78,7 @@ class WP_LIB_ERROR {
 		902 => 'Error encountered while processing error ID:\p (error does not exist)'
 	);
 
-	/*
+	/**
 	 * Creates the error object
 	 * @param	int		$error_code	Error code, a number referring to an error already defined within the class
 	 * @param	mixed	$param		OPTIONAL Additional details required by certain error codes

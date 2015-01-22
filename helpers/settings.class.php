@@ -2,7 +2,7 @@
 // No direct loading
 defined( 'ABSPATH' ) OR die('No');
 
-/*
+/**
  * Holds basic properties/functions relating the plugin's settings
  * @todo Add injective dependencies and reap the relevant benefits
  */
@@ -10,7 +10,7 @@ class WP_LIB_SETTINGS {
 	// Instance of core plugin class WP_LIBRARIAN
 	protected $wp_librarian;
 	
-	/*
+	/**
 	 * Adds instance of core plugin class to settings classes' properties
 	 */
 	function __construct( $wp_librarian ) {
@@ -114,7 +114,7 @@ class WP_LIB_SETTINGS {
 		}
 	}
 	
-	/* 
+	/**
 	 * Checks if given key is a valid WP-Librarian settings key
 	 * @param string $settings_key WordPress settings key
 	 */
@@ -128,11 +128,11 @@ class WP_LIB_SETTINGS {
 	}
 }
 
-/*
+/**
  * A helper class for registering settings, generating settings sections and rendering settings fields
  */
 class WP_LIB_SETTINGS_SECTION extends WP_LIB_SETTINGS {
-	/*
+	/**
 	 * Registers settings section and all child settings and their child settings fields
 	 * @param WP_LIBRARIAN	$wp_librarian	Single instance of core plugin class
 	 * @param array			$section		Settings section to be registered

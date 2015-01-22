@@ -2,7 +2,7 @@
 // No direct loading
 defined( 'ABSPATH' ) OR die('No');
 
-/*
+/**
  * Handles all Dashboard AJAX requests
  */
 class WP_LIB_AJAX {
@@ -16,7 +16,7 @@ class WP_LIB_AJAX {
 	// Instance of core plugin class WP_LIBRARIAN
 	protected $wp_librarian;
 	
-	/*
+	/**
 	 * Adds instance of core plugin class to ajax classes' properties
 	 */
 	function __construct( $wp_librarian ) {
@@ -30,7 +30,7 @@ class WP_LIB_AJAX {
 			wp_lib_error( 112 );
 	}
 	
-	/*
+	/**
 	 * Adds notification to the notification/error buffer
 	 * Typically you should use stopAJAX() as this also handles stopping execution
 	 * @param string	$notification	Explanation of error that has occurred or modification to the library
@@ -40,7 +40,7 @@ class WP_LIB_AJAX {
 		$this->output_buffer[1][] = array( $error_code, $notification );
 	}
 	
-	/*
+	/**
 	 * Verifies WP nonce of AJAX request, stopping request with error on failure
 	 * @param string $action Circumstance of page that generated the request
 	 */
@@ -49,7 +49,7 @@ class WP_LIB_AJAX {
 			$this->stopAjax( 503 );
 	}
 	
-	/*
+	/**
 	 * Fetches a parameter from POST data, handling failure
 	 * This function does not perform any data sanitization
 	 * @param string $post_key Name of POST variable e.g 'item_id'
@@ -63,7 +63,7 @@ class WP_LIB_AJAX {
 			return $_POST[$post_key];
 	}
 	
-	/*
+	/**
 	 * Fetches Item/Member/Loan/Fine ID from POST data and validates
 	 * @param	string		$object		Name of object being fetched e.g. Item
 	 * @param	string		$post_type	Name of post type e.g. wp_lib_items
@@ -86,7 +86,7 @@ class WP_LIB_AJAX {
 		}
 	}
 	
-/*
+	/**
 	 * Fetches Item ID from URL parameters and validates, handling failure
 	 * @return int Item ID, if valid
 	 */
@@ -101,7 +101,7 @@ class WP_LIB_AJAX {
 			return $item_id;
 	}
 	
-	/*
+	/**
 	 * Fetches Member ID from URL parameters and validates, handling failure
 	 * @return int Member ID, if valid
 	 */
@@ -116,7 +116,7 @@ class WP_LIB_AJAX {
 			return $member_id;
 	}
 	
-	/*
+	/**
 	 * Fetches Loan ID from URL parameters and validates, handling failure
 	 * @return int Loan ID, if valid
 	 */
@@ -131,7 +131,7 @@ class WP_LIB_AJAX {
 			return $loan_id;
 	}
 	
-	/*
+	/**
 	 * Fetches Fine ID from URL parameters and validates, handling failure
 	 * @return int Fine ID, if valid
 	 */
@@ -146,7 +146,7 @@ class WP_LIB_AJAX {
 			return $fine_id;
 	}
 	
-	/*
+	/**
 	 * Terminates AJAX request, calling optional explanatory error
 	 * @param int			$error_code	OPTIONAL Error that necessitated terminating request
 	 * @param string|array	$params		OPTIONAL Details to enhance error message
@@ -169,7 +169,7 @@ class WP_LIB_AJAX {
 	}
 }
 
-/*
+/**
  * Performs a Dashboard action, modifying the Library in some way
  * such as loaning/returning an item or fining a member
  */
@@ -177,7 +177,7 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 	// Contains array of posts authorised for deletion
 	public $deletion_authed_objects = [];
 	
-	/*
+	/**
 	 * Performs Dashboard based on requested action
 	 */
 	function __construct( $wp_librarian ) {
@@ -233,7 +233,7 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 		}
 	}
 	
-	/*
+	/**
 	 * Ends AJAX request, returning indication of action success to client
 	 * Also buffers any given success notification
 	 * @param bool			$success		Whether the AJAX request succeeded or not
@@ -257,7 +257,7 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 		}
 	}
 	
-	/*
+	/**
 	 * Loans an item to a member from now until $loan_length of days
 	 */
 	private function doLoanItem() {
@@ -276,7 +276,7 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 		);
 	}
 	
-	/*
+	/**
 	 * Schedules a loan of an item between the given dates
 	 * Scheduled loans can be fulfilled later when the item is given to the member
 	 */
@@ -309,7 +309,7 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 		);
 	}
 	
-	/*
+	/**
 	 * Returns an item on loan on the given date
 	 * @todo Consider adding functionality to allow late fine suppression on items returned at a previous date
 	 * @todo Add ref specific nonce checking
@@ -373,7 +373,7 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 		);
 	}
 	
-	/*
+	/**
 	 * When a scheduled loan is fulfilled by giving the item to the member
 	 */
 	private function doGiveItem() {
@@ -424,7 +424,7 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 		);
 	}
 	
-	/*
+	/**
 	 * Renews an item on loan, extending its due date
 	 * Renewals can be limited, if the Library is configured accordingly
 	 */
@@ -443,7 +443,7 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 		);
 	}
 	
-	/*
+	/**
 	 * Creates a loan for testing purposes, loaning the item to a hardcoded member
 	 * Created loan is automatically late by design
 	 */
@@ -505,7 +505,7 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 		}
 	}
 	
-	/*
+	/**
 	 * Cancels a fine held against a member, cancelling the money owed by the member
 	 */
 	private function doCancelFine() {
@@ -522,7 +522,7 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 		);
 	}
 	
-	/*
+	/**
 	 * Subtracts debt from a member's total amount owed for late item return
 	 * @todo Move payment functionality to functions.php, actions should only prepare data and call functions
 	 */
@@ -560,7 +560,7 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 		$this->endAction( true, $notification );
 	}
 	
-	/*
+	/**
 	 * Deletes a Library object and any connected objects
 	 * e.g. an item and all loans/fines caused by said item
 	 */
@@ -627,7 +627,7 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 		}
 	}
 	
-	/*
+	/**
 	 * Attempts to repair an item with conflicting/bad data
 	 * Can occur if safeguards are disabled or a bug occurs
 	 */
@@ -642,11 +642,11 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 	}
 }
 
-/*
+/**
  * Prepares a requested Dashboard page to be rendered client-side by wp_lib_render_page()
  */
 class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
-	/*
+	/**
 	 * Calls relevant prep function based on requested Dash page
 	 */
 	function __construct( $wp_librarian ) {
@@ -720,7 +720,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		}
 	}
 	
-	/*
+	/**
 	 * Stops Dashboard page loading based on current user circumstances
 	 * @param int			$error_code	OPTIONAL error to generate
 	 * @param string|array	$param		OPTIONAL parameters to pass to error reporter
@@ -743,7 +743,8 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		}
 	}
 	
-	/* Adds prepared Dashboard page to content buffer then trigger AJAX request closure
+	/**
+	 * Adds prepared Dashboard page to content buffer then trigger AJAX request closure
 	 * @param string	$page_title	Title that displays on the Dash page
 	 * @param string	$tab_title	Title that displays in the browser tab
 	 * @param array		$page		All Dash page elements, passed to client-side wp_lib_render_page() to construct HTML
@@ -763,7 +764,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		die();
 	}
 	
-	/*
+	/**
 	 * Prepares a box of details about the given item
 	 * @param	int		$item_id	The post ID of the item
 	 * @return	array				The meta box, as a Dash page element
@@ -826,7 +827,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		);
 	}
 	
-	/*
+	/**
 	 * Prepares a box of details about the given member
 	 * @param	int		$member_id	The post ID of the member
 	 * @return	array				The meta box, as a Dash page element
@@ -854,7 +855,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		);
 	}
 
-	/*
+	/**
 	 * Prepares a box of details about the given loan
 	 * @param	int		$loan_id	The post ID of the loan
 	 * @return	array				The meta box, as a Dash page element
@@ -888,7 +889,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		);
 	}
 
-	/*
+	/**
 	 * Prepares a box of details about the given fine
 	 * @param	int		$fine_id	The post ID of the fine
 	 * @return	array				The meta box, as a Dash page element
@@ -915,7 +916,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		);
 	}
 	
-	/*
+	/**
 	 * Generates table of all loans of a given item
 	 * @param	int		$item_id	Post ID of item
 	 * @return	array				Dynatable of loans of given item
@@ -946,7 +947,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		);
 	}
 	
-	/*
+	/**
 	 * Gets a user's name. If the user has been deleted, returns a placeholder
 	 * @param	int|str	$user_id	ID of WordPress user
 	 * @return	str					Name of user, or placeholder
@@ -955,7 +956,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		return get_the_author_meta( 'user_nicename', $user_id )?: '[User #'.$user_id.' Deleted]';
 	}
 	
-	/*
+	/**
 	 * Displays Library Dashboard with links to manage the Library, change settings or read the documentation
 	 */
 	private function genDashboard() {
@@ -1037,7 +1038,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		$this->sendPage( $page_title, $page_title, $page );
 	}
 	
-	/*
+	/**
 	 * Displays list of all current items in the library
 	 * @todo Move Dynatable generation to dedicated class
 	 */
@@ -1122,7 +1123,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		$this->sendPage( 'Library Items', 'All Library Items', $page );
 	}
 	
-	/*
+	/**
 	 * Displays information about the given item with links to modify the item based on its current state
 	 * @todo Refactor function heavily, it hasn't been reviewed in a very long time
 	 */
@@ -1290,7 +1291,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		$this->sendPage( 'Managing: ' . get_the_title( $item_id ), 'Managing Item #' . $item_id, $page, $scripts );
 	}
 	
-	/*
+	/**
 	 * Displays member's details and loan history, giving means to pay any outstanding fines
 	 */
 	private function genManageMember() {
@@ -1374,7 +1375,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		$this->sendPage( 'Managing: ' . get_the_title( $member_id ), 'Managing Member #' . $member_id, $page );
 	}
 	
-	/*
+	/**
 	 * Displays loan details and options to change the loan, if it hasn't been completed yet
 	 */
 	private function genManageLoan() {
@@ -1507,7 +1508,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		$this->sendPage( 'Managing: Loan #' . $loan_id, 'Managing Loan #' . $loan_id, $page );
 	}
 	
-	/*
+	/**
 	 * Displays details of fine and provides options to cancel/pay fine
 	 */
 	private function genManageFine() {
@@ -1564,7 +1565,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		$this->sendPage( 'Managing: Fine #' . $fine_id, 'Managing Fine #' . $fine_id, $page );
 	}
 	
-	/*
+	/**
 	 * Displays page for user to look up an item using its barcode or ISBN
 	 */
 	private function genSearchItems() {
@@ -1608,7 +1609,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		$this->sendPage( $title, $title, $page, $scripts );
 	}
 	
-	/*
+	/**
 	 * Provides form for Library to schedule a loan to be fulfilled later
 	 * Scheduled loans are fulfilled when the item is then given to the member on the appropriate date
 	 */
@@ -1705,7 +1706,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		$this->sendPage( 'Scheduling loan of ' . get_the_title( $item_id ), 'Scheduling loan of #' . $item_id, $page, $scripts );
 	}
 	
-	/*
+	/**
 	 * Displays form allowing Librarian to renew item, extending its due date
 	 */
 	private function genRenewItem() {
@@ -1782,7 +1783,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		);
 	}
 	
-	/*
+	/**
 	 * Displays form to allow Librarian to mark an item as having left the Library at a previous date
 	 */
 	private function genGiveItemPast() {
@@ -1834,7 +1835,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		);
 	}
 	
-	/*
+	/**
 	 * Provides a form to choose when in the past to return an item
 	 */
 	private function genReturnItemPast() {
@@ -1888,7 +1889,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		);
 	}
 	
-	/*
+	/**
 	 * Provides options to remedy an item that should have been returned earlier
 	 */
 	private function genLateItemResolution() {
@@ -1968,7 +1969,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		);
 	}
 	
-	/*
+	/**
 	 * Allows Library to reduce fines owed by member by paying part/all owed
 	 */
 	private function genPayMemberFines() {
@@ -2019,7 +2020,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		);
 	}
 	
-	/*
+	/**
 	 * Checks for confirmation for deleting an object in the Library
 	 * Also displays all objects connected to the current object
 	 */
@@ -2216,11 +2217,11 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	}
 }
 
-/*
+/**
  * Handles Dashboard API requests, providing useful information to dynamically enhance Dash pages
  */
 class WP_LIB_AJAX_API extends WP_LIB_AJAX {
-	/*
+	/**
 	 * Adds result of API request to content buffer, to be returned to user, then triggers AJAX request closure
 	 * @param mixed $data Content to be returned to client
 	 */
@@ -2231,7 +2232,7 @@ class WP_LIB_AJAX_API extends WP_LIB_AJAX {
 		die();
 	}
 	
-	/*
+	/**
 	 * Performs API request and returns relevant information to client
 	 */
 	function __construct( $wp_librarian ) {
@@ -2264,7 +2265,7 @@ class WP_LIB_AJAX_API extends WP_LIB_AJAX {
 		}
 	}
 	
-	/*
+	/**
 	 * Creates a meta box with useful details for the given member ID
 	 */
 	private function getMemberMetaBox() {
@@ -2291,7 +2292,7 @@ class WP_LIB_AJAX_API extends WP_LIB_AJAX {
 		));
 	}
 	
-	/*
+	/**
 	 * Fetches barcode field settings and returns them
 	 */
 	private function getBarcodePageSettings() {
@@ -2309,7 +2310,7 @@ class WP_LIB_AJAX_API extends WP_LIB_AJAX {
 		}
 	}
 	
-	/*
+	/**
 	 * Looks up given barcode and returns ID of corresponding item, or error if no/more than one item exists
 	 */
 	private function getSearchItemByBarcode(){

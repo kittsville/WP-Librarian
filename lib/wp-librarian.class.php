@@ -2,7 +2,7 @@
 // No direct loading
 defined( 'ABSPATH' ) OR die('No');
 
-/*
+/**
  * Core plugin class. Registers post types, creates pages and manages all central plugin functionality
  * @todo Define custom post type/taxonomy names as class constants
  */
@@ -10,7 +10,7 @@ class WP_LIBRARIAN {
 	public $plugin_path;
 	public $plugin_url;
 	
-	/*
+	/**
 	 * Sets up plugin
 	 * @todo Consider merging some required files into this class
 	 */
@@ -26,7 +26,7 @@ class WP_LIBRARIAN {
 		require_once ($this->plugin_path . '/lib/admin-tables.class.php');
 	}
 
-	/*
+	/**
 	 * Registers nearly all context-regardless WordPress hooks needed for the plugin to work
 	 * Hooks relating to admin post tables are registered by the admin tables class
 	 * @see http://codex.wordpress.org/Plugin_API/Hooks
@@ -90,7 +90,7 @@ class WP_LIBRARIAN {
 		register_deactivation_hook( __FILE__, 			'flush_rewrite_rules' );
 	}
 	
-	/*
+	/**
 	 * Given the name of an admin template file, loads
 	 * @param	string	$name	File name, e.g. 'settings'
 	 */
@@ -98,7 +98,7 @@ class WP_LIBRARIAN {
 		require_once( $this->plugin_path . '/admin-templates/' . $name . '.php' );
 	}
 	
-	/*
+	/**
 	 * Sets up plugin on first activation or after an update
 	 */
 	public function runOnActivation() {
@@ -126,7 +126,7 @@ class WP_LIBRARIAN {
 		$this->flushPermalinks();
 	}
 	
-	/*
+	/**
 	 * Updates user's library role and capabilities
 	 * @param	int			$user_id	ID of user to be updated
 	 * @param	int|bool	$new_role	OPTIONAL New library role to assign user
@@ -224,7 +224,7 @@ class WP_LIBRARIAN {
 		$user->add_cap( 'wp_lib_change_settings' );
 	}
 	
-	/*
+	/**
 	 * Adds Library Role option to user profile page
 	 * @param WP_User $user WP_User object of current user being edited
 	 */
@@ -272,7 +272,7 @@ class WP_LIBRARIAN {
 		<?php
 	}
 	
-	/*
+	/**
 	 * Updates item and member post meta on post save hook
 	 * @param	int		$post_id	Post ID of current post being saved
 	 * @param	post	$post		WP Post object
@@ -410,17 +410,18 @@ class WP_LIBRARIAN {
 		}
 	}
 	
-	/*
+	/**
 	 * Registers all custom post types and taxonomies used by WordPress
 	 * @todo Move default media type registration to plugin activation
 	 */
 	public function registerPostAndTax() {
 		// Fetches slugs
 		$slugs = get_option( 'wp_lib_slugs', array('wp-librarian','item','authors','type'));
-
-		/* Registers Items as custom post type */
-		/* Items represent physical item in the Library, such as a single copy of a book */
 		
+		/**
+		 * Registers custom post type items
+		 * Items represent physical objects like books, comics and DVDs in the client's Library
+		 */
 		register_post_type( 'wp_lib_items',
 			array(
 				'labels' => array(
@@ -460,9 +461,10 @@ class WP_LIBRARIAN {
 			)
 		);
 		
-		/* Registers Members as custom post type */
-		/* Members represent people who may borrow items from the Library, or donate items to the Library */
-		
+		/**
+		 * Registers custom post type members
+		 * Members are people registered so that they may donate to or borrow books from the Library
+		 */
 		register_post_type( 'wp_lib_members',
 			array(
 				'labels' => array(
@@ -498,9 +500,11 @@ class WP_LIBRARIAN {
 			)
 		);
 		
-		/* Registers Loans as custom post type */
-		/* Loans represent the lending of an Item to a Member */
-		
+		/**
+		 * Registers custom post type loans
+		 * Loans are created when members borrow items from the Library
+		 * Loans hold information on when the item left the library and when it should be returned
+		 */
 		register_post_type( 'wp_lib_loans',
 			array(
 				'labels' => array(
@@ -530,9 +534,11 @@ class WP_LIBRARIAN {
 			)
 		);
 		
-		/* Registers Fines as custom post type */
-		/* Fines represent the monetary cost incurred if an Item is returned late (after the Loan specified) */
-		
+		/**
+		 * Registers custom post type fines
+		 * Fines can be created when an item is returned late, if a librarian chooses to fine the member
+		 * Fines hold information about the late fine incurred such as the amount
+		 */
 		register_post_type( 'wp_lib_fines',
 			array(
 				'labels' => array(
@@ -564,9 +570,10 @@ class WP_LIBRARIAN {
 		// Loads class to manage post tables of the post types registered above
 		new WP_LIB_ADMIN_TABLES( $this );
 		
-		/* Registers Authors as a taxonomy */
-		/* Authors are the creators of the item, such as the author of a book */
-		
+		/**
+		 * Registers custom taxonomy authors
+		 * Authors are the creator(s) of an item, such as J.K. Rowling being the author of Harry Potter And The Philosopher's Stone
+		 */
 		register_taxonomy( 'wp_lib_author', 'wp_lib_items',
 			array(
 				'capabilities'		=> array(	
@@ -604,9 +611,11 @@ class WP_LIBRARIAN {
 			)
 		);
 		
-		/* Registers media type as a taxonomy */
-		/* An item's media type defines wether it is a book, CD, comic etc. */
-		
+		/**
+		 * Registers custom taxonomy media type
+		 * Media Types define the type of an item, such as 'book' or 'DVD'
+		 * An item's media type defines what post meta can be assigned to it
+		 */
 		register_taxonomy( 'wp_lib_media_type', 'wp_lib_items',
 			array(
 				'capabilities'		=> array(	
@@ -669,7 +678,7 @@ class WP_LIBRARIAN {
 		}
 	}
 	
-	/*
+	/**
 	 * Registers all settings sections so they can be loaded on the plugin settings page
 	 */
 	public function registerSettings() {
@@ -887,7 +896,7 @@ class WP_LIBRARIAN {
 		));
 	}
 	
-	/*
+	/**
 	 * Registers all scripts and styles used on the front-end
 	 */
 	public function registerScripts() {
@@ -895,7 +904,7 @@ class WP_LIBRARIAN {
 			wp_enqueue_style( 'wp_lib_frontend', $this->getStyleUrl( 'front-end-core' ), array(), '0.2' );
 	}
 	
-	/*
+	/**
 	 * Registers and potentially enqueues scripts and styles used on the back end
 	 * @param string $hook	The URL prefix of the current admin page
 	 * @see					http://codex.wordpress.org/Plugin_API/Action_Reference/admin_enqueue_scripts
@@ -963,7 +972,7 @@ class WP_LIBRARIAN {
 		}
 	}
 
-	/*
+	/**
 	 * Adds Dashboard and (if user has sufficient permissions) the Settings page
 	 */
 	public function registerAdminPages() {
@@ -993,7 +1002,7 @@ class WP_LIBRARIAN {
 		}
 	}
 	
-	/*
+	/**
 	 * Generates a Dashboard page, dynamically loaded onto the Library Dashboard
 	 */
 	public function ajaxLoadPage() {
@@ -1002,7 +1011,7 @@ class WP_LIBRARIAN {
 		die(0);
 	}
 	
-	/*
+	/**
 	 * Performs a Dashboard action, modifying the Library in some way (such as loaning an item)
 	 */
 	public function ajaxDoAction() {
@@ -1011,7 +1020,7 @@ class WP_LIBRARIAN {
 		die(0);
 	}
 	
-	/*
+	/**
 	 * Performs an API request, fetching information for an already loaded Dashboard page
 	 */
 	public function ajaxDoApiRequest() {
@@ -1020,7 +1029,7 @@ class WP_LIBRARIAN {
 		die(0);
 	}
 	
-	/*
+	/**
 	 * Adds custom rewrite rules to WordPress permalink rules, allowing for pretty URLs for Library archives and single items
 	 * @return array Updated WP rewrite rules
 	 * @see http://codex.wordpress.org/Class_Reference/WP_Rewrite
@@ -1043,7 +1052,7 @@ class WP_LIBRARIAN {
 		return $wp_rewrite;
 	}
 	
-	/*
+	/**
 	 * Registers custom post types and taxonomies then flushes rewrite WordPress's rewrite rules
 	 * @see http://codex.wordpress.org/Using_Permalinks
 	 */
@@ -1053,7 +1062,7 @@ class WP_LIBRARIAN {
 		flush_rewrite_rules();
 	}
 	
-	/*
+	/**
 	 * Returns the current update channel, version, build and nickname of WP-Librarian
 	 * @return	array	Current plugin version
 	 */
@@ -1066,7 +1075,7 @@ class WP_LIBRARIAN {
 		);
 	}
 	
-	/*
+	/**
 	 * Returns all valid WP-Librarian roles and their names
 	 * @return array All library roles where the key is the role (int) and the value is the name (string)
 	 */
@@ -1079,7 +1088,7 @@ class WP_LIBRARIAN {
 		);
 	}
 	
-	/*
+	/**
 	 * Given the name of a CSS file, returns its full URL
 	 * @param	string	$name	File name e.g. 'front-end-core'
 	 * @return	string			Full file URL e.g. '.../styles/front-end-core.css'
@@ -1088,7 +1097,7 @@ class WP_LIBRARIAN {
 		return $this->plugin_url . '/styles/' . $name . '.css';
 	}
 	
-	/*
+	/**
 	 * Given the name of a JS file, returns its full URL
 	 * @param	string	$name	File name e.g. 'admin-dashboard'
 	 * @return	string			Full file URL e.g. '.../scripts/admin.js'
@@ -1097,7 +1106,7 @@ class WP_LIBRARIAN {
 		return $this->plugin_url . '/scripts/' . $name . '.js';
 	}
 	
-	/*
+	/**
 	 * Given the name of a template file, returns full path to template
 	 * @param	string	$name	File name, e.g. 'archive-wp_lib_items'
 	 * @return	string			Full file path e.g. '.../templates/archive-wp_lib_items.php'
@@ -1106,7 +1115,7 @@ class WP_LIBRARIAN {
 		return $this->plugin_path . '/templates/' . $name . '.php';
 	}
 	
-	/*
+	/**
 	 * Replaces 'Post title' prompt text with custom post type specific text
 	 * @return string	Prompt text relevant to the current post type
 	 */
@@ -1122,7 +1131,7 @@ class WP_LIBRARIAN {
 		}
 	}
 	
-	/*
+	/**
 	 * Replaces 'Featured Image' title of post's featured image box with 'Item Cover'
 	 */
 	public function replaceFeaturedImageTitle() {
@@ -1132,7 +1141,7 @@ class WP_LIBRARIAN {
 		}
 	}
 	
-	/*
+	/**
 	 * Replaces item and member post updated messages with custom messages
 	 * @param	array	$messages	An array of post types containing an array their post updated messages
 	 * @return	array				The message array originally passed in with modifications made
@@ -1176,7 +1185,7 @@ class WP_LIBRARIAN {
 		return $messages;
 	}
 	
-	/*
+	/**
 	 * Replaces plugin's taxonomy updated messages with custom messages
 	 * @param	array	$messages	Array of taxonomies, each containing an array of tax updated messages
 	 * @return	array				Given array with modifications made to plugin's taxes
@@ -1209,7 +1218,7 @@ class WP_LIBRARIAN {
 		return $messages;
 	}
 	
-	/*
+	/**
 	 * Looks for archive/single post templates in current theme, failing that uses plugin defaults
 	 */
 	public function locatePostTemplate( $template ) {
@@ -1239,7 +1248,7 @@ class WP_LIBRARIAN {
 		return $template;
 	}
 	
-	/*
+	/**
 	 * Checks a post before it is deleted to ensure, if it a library post, its deletion does not damage the library's integrity
 	 * @param int $post_id	The post ID of the post about to be deleted
 	 * @todo				Create deletion class to handle authorised deletion buffering etc.
@@ -1283,7 +1292,7 @@ class WP_LIBRARIAN {
 		}
 	}
 	
-	/*
+	/**
 	 * Hides items marked as 'delisted' from public item archive
 	 * Note that this does not hide them from being viewed via their direct URL
 	 * For greater control of who can see what, use a permissions plugin like Page Security by Contexture
@@ -1309,7 +1318,7 @@ class WP_LIBRARIAN {
 		}
 	}
 	
-	/*
+	/**
 	 * Hides 'Media Type' tax selection meta box from edit items screen
 	 * Media Type is selected from meta box below item description
 	 */

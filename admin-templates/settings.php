@@ -1,5 +1,5 @@
 <?php
-/*
+/**
  * WP-LIBRARIAN SETTINGS
  * Utilises WordPress Settings API to render settings fields for this plugin
  */
