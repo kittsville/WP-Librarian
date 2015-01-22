@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: WP Librarian
- * Description: Use WP-Librarian to manage a library of books/media. Loan, return and schedule with WP-Librarian.
+ * Description: Manage a physical library of books and media. Loan, return and schedule with WP-Librarian.
  * Version: 0.0.1
  * Author: Kit Maywood
  * Text Domain: wp-librarian
