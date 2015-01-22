@@ -427,7 +427,7 @@ class WP_LIBRARIAN {
 				'labels' => array(
 					'name'					=> 'Library',
 					'singular_name'			=> 'Library Item',
-					'name_admin_bar'		=> 'Add New Item',
+					'name_admin_bar'		=> 'Library Item',
 					'all_items'				=> 'All Items',
 					'add_new'				=> 'New Item',
 					'add_new_item'			=> 'New Item',
@@ -470,6 +470,7 @@ class WP_LIBRARIAN {
 				'labels' => array(
 					'name'					=> 'Members',
 					'singular_name'			=> 'Member',
+					'name_admin_bar'		=> 'Library Member',
 					'add_new'				=> 'Add New',
 					'add_new_item'			=> 'Add New',
 					'edit'					=> 'Edit',
