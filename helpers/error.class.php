@@ -56,6 +56,7 @@ class WP_LIB_ERROR {
 		321	=> 'Proposed fine payment is greater than amount owed by member',
 		322	=> 'Loan must be scheduled and the start date must have passed to give item to member',
 		323 => 'Item renewal date must be after item\'s current due date',
+		324 => 'Proposed return date is before item was loaned',
 		400 => 'Loan creation failed for unknown reason, sorry :/',
 		401 => 'Can\'t loan item between given dates, There may be a conflicting loan',
 		402 => 'Item not on loan (Loan ID not found in item meta)<br/>This can happen if you refresh the page having already returned an item',

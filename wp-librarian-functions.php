@@ -496,6 +496,12 @@ function wp_lib_return_item( $item_id, $date = false, $fine = null ) {
 		return false;
 	}
 	
+	// Checks that return date isn't before item was loaned
+	if ( get_post_meta( $loan_id, 'wp_lib_give_date', true ) > $date ) {
+		wp_lib_error( 324 );
+		return false;
+	}
+	
 	// Finds out how many days before item is due (negative is item is late)
 	$due_in = wp_lib_cherry_pie( $loan_id, $date );
 	
