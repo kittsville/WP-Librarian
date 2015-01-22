@@ -379,76 +379,6 @@ function wp_lib_format_money( $value, $html_ent = true ) {
 		return $symbol . $value; // £0.40
 }
 
-	/* -- AJAX -- */
-	/* Functions that assist preparing data for the client/server */
-
-// Creates option element for each member in the library, stored as an array
-function wp_lib_prep_member_options( $default_option = true ) {
-	// Initialises options
-	$option = array();
-	
-	// Adds default option, if specified
-	if ( $default_option ) {
-		$options[] = array(
-			'value'	=> '',
-			'html'	=> 'Member'
-		);
-	}
-	
-	$args = array(
-		'post_type'		=> 'wp_lib_members',
-		'post_status'	=> 'publish'
-	);
-	
-	// Fetches all, if any, members
-	$query = NEW WP_Query( $args );
-	
-	// Checks for any loans attached to member
-	if ( $query->have_posts() ){
-		// Iterates through loans
-		while ( $query->have_posts() ) {
-			$query->the_post();
-			
-			// Fetches member ID
-			$member_id = get_the_ID();
-			
-			// Skips displaying member if member has been archived
-			if ( get_post_meta( $member_id, 'wp_lib_member_archive', true ) )
-				continue;
-			
-			// Adds member's details to the options array
-			$options[] = array(
-				'value'	=> get_the_ID(),
-				'html'	=> get_the_title()
-			);
-		}
-	}
-	
-	return $options;
-}
-
-// Returns the number of items currently on loan by the member
-function wp_lib_prep_members_items_out( $member_id ) {
-	// Sets up meta query arguments
-	$args = array(
-		'post_type'		=> 'wp_lib_items',
-		'post_status'	=> 'publish',
-		'meta_query'	=> array(
-			array(
-				'key'		=> 'wp_lib_member',
-				'value'		=> $member_id,
-				'compare'	=> 'IN'
-			)
-		)
-	);
-	
-	// Queries post table for all items marked as currently in member's possession
-	$query = NEW WP_Query( $args );
-
-	// Returns number of items to post table
-	return $query->post_count;
-}
-
 	/* -- Debugging -- */
 
 // Renders current plugin's version, update channel and similar information
@@ -586,6 +516,28 @@ function wp_lib_format_item_condition( $number, $full = true ) {
 }
 
 	/* -- Miscellaneous -- */
+
+// Returns the number of items currently on loan by the member
+function wp_lib_prep_members_items_out( $member_id ) {
+	// Sets up meta query arguments
+	$args = array(
+		'post_type'		=> 'wp_lib_items',
+		'post_status'	=> 'publish',
+		'meta_query'	=> array(
+			array(
+				'key'		=> 'wp_lib_member',
+				'value'		=> $member_id,
+				'compare'	=> 'IN'
+			)
+		)
+	);
+	
+	// Queries post table for all items marked as currently in member's possession
+	$query = NEW WP_Query( $args );
+
+	// Returns number of items to post table
+	return $query->post_count;
+}
 
 /**
  * Checks if item can be renewed

@@ -948,6 +948,54 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	}
 	
 	/**
+	 * Creates array of option elements for each member in the library plus an optional default option
+	 * @param	bool	$default_option	Whether to include a default option at the start of the array
+	 */
+	private function prepMemberOptions( $default_option = true ) {
+		// Initialises options
+		$options = array();
+		
+		// Adds default option, if specified
+		if ( $default_option ) {
+			$options[] = array(
+				'value'	=> '',
+				'html'	=> 'Member'
+			);
+		}
+		
+		$args = array(
+			'post_type'		=> 'wp_lib_members',
+			'post_status'	=> 'publish'
+		);
+		
+		// Fetches all, if any, members
+		$query = NEW WP_Query( $args );
+		
+		// Checks for any loans attached to member
+		if ( $query->have_posts() ){
+			// Iterates through loans
+			while ( $query->have_posts() ) {
+				$query->the_post();
+				
+				// Fetches member ID
+				$member_id = get_the_ID();
+				
+				// Skips displaying member if member has been archived
+				if ( get_post_meta( $member_id, 'wp_lib_member_archive', true ) )
+					continue;
+				
+				// Adds member's details to the options array
+				$options[] = array(
+					'value'	=> get_the_ID(),
+					'html'	=> get_the_title()
+				);
+			}
+		}
+		
+		return $options;
+	}
+	
+	/**
 	 * Gets a user's name. If the user has been deleted, returns a placeholder
 	 * @param	int|str	$user_id	ID of WordPress user
 	 * @return	str					Name of user, or placeholder
@@ -1204,7 +1252,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			}
 		}
 		elseif ( wp_lib_loanable( $item_id ) ) {
-			$options = wp_lib_prep_member_options();
+			$options = $this->prepMemberOptions();
 			
 			// Adds dropdown menu using members options created above
 			$form[] = array(
@@ -1620,13 +1668,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		// Prepares box of useful information about the current item
 		$page[] = $this->prepItemMetaBox( $item_id );
 		
-		$member_options = wp_lib_prep_member_options();
-		
-		// Formats placeholder loan start date (current date)
-		$start_date = Date( 'Y-m-d', current_time( 'timestamp' ) );
-		
-		// Formats placeholder loan end date (current date + default loan length)
-		$end_date = Date( 'Y-m-d', current_time( 'timestamp' ) + ( get_option( 'wp_lib_loan_length', array(12) )[0] * 24 * 60 * 60) );
+		$current_time = current_time( 'timestamp' );
 		
 		$page[] = array(
 			'type'		=> 'form',
@@ -1650,7 +1692,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 						array(
 							'type'			=> 'select',
 							'name'			=> 'member_id',
-							'options'		=> $member_options,
+							'options'		=> $this->prepMemberOptions(),
 							'optionClass'	=> 'member-select-option',
 							'classes'		=> 'member-select'
 						)
@@ -1668,7 +1710,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 							'type'	=> 'date',
 							'name'	=> 'start_date',
 							'id'	=> 'loan-start',
-							'value'	=> $start_date
+							'value'	=> Date( 'Y-m-d', $current_time )
 						)
 					)
 				),
@@ -1684,7 +1726,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 							'type'	=> 'date',
 							'name'	=> 'end_date',
 							'id'	=> 'loan-end',
-							'value'	=> $end_date
+							'value'	=> Date( 'Y-m-d', $current_time + ( get_option( 'wp_lib_loan_length', array(12) )[0] * 24 * 60 * 60) )
 						)
 					)
 				),
