@@ -52,13 +52,7 @@ class WP_LIB_SETTINGS {
 		
 		/* -- Formatting -- */
 		/* Settings relating to plugin presentation */
-		
-		// Whether to create the default media types (Books, DVDs etc. )
-		array(
-			'key' 		=> 'wp_lib_default_media_types',
-			'default'	=> array(3)
-		),
-		
+
 		// The separator for item taxonomies (the comma between authors)
 		array(
 			'key' 		=> 'wp_lib_taxonomy_spacer',
