@@ -19,12 +19,6 @@ class WP_LIB_ERROR {
 	 * @var string
 	 */
 	public $description;
-	
-	/**
-	 * Whether or not error was called from an AJAX request
-	 * @var bool
-	 */
-	public $ajax;
 
 	/**
 	 * All valid error codes within WP-Librarian and their descriptions
@@ -111,15 +105,10 @@ class WP_LIB_ERROR {
 		// Sets up object properties
 		$this->ID			= $error_code;
 		$this->description	= str_replace( '\p', $param, WP_LIB_ERROR::$error_codes[$error_code] );
-		$this->ajax			= (defined('DOING_AJAX') && DOING_AJAX);
 		
-		// If error was called from an AJAX context, add to AJAX notification buffer
-		// Otherwise kill thread execution
-		if ( $this->ajax ) {
-			return $this;
-		} else {
-			echo "<div class='wp-lib-error error'><p><strong style=\"color: red;\">WP-Librarian Error {$error_code}: {$this->description}</strong></p></div>";
-			die();
+		// If error was not called from an AJAX request, kill thread execution
+		if ( !defined('DOING_AJAX') || !DOING_AJAX ) {
+			die("<div class='wp-lib-error error'><p><strong style=\"color: red;\">WP-Librarian Error {$error_code}: {$this->description}</strong></p></div>");
 		}
 	}
 }
