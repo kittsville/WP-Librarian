@@ -16,7 +16,7 @@ class WP_LIB_SETTINGS {
 	 * Adds instance of core plugin class to settings classes' properties
 	 * @param WP_LIBRARIAN $wp_librarian Single instance of core plugin class
 	 */
-	function __construct( $wp_librarian ) {
+	function __construct( WP_LIBRARIAN $wp_librarian ) {
 		$this->wp_librarian = $wp_librarian;
 	}
 
@@ -143,7 +143,7 @@ class WP_LIB_SETTINGS_SECTION extends WP_LIB_SETTINGS {
 	 * @param WP_LIBRARIAN	$wp_librarian	Single instance of core plugin class
 	 * @param array			$section		Settings section to be registered
 	 */
-	function __construct( $wp_librarian, $section ) {
+	function __construct( WP_LIBRARIAN $wp_librarian, array $section ) {
 		// Sets core plugin class as function property
 		parent::__construct( $wp_librarian );
 		
@@ -212,13 +212,13 @@ class WP_LIB_SETTINGS_SECTION extends WP_LIB_SETTINGS {
 	
 	// Adds field description to settings field's output
 	// e.g. Set symbol used to denote currency
-	private function addDescription( &$output, $args ) {
+	private function addDescription( array &$output, array $args ) {
 		if ( isset( $args['alt'] ) )
 			$output[] = '<p class="tooltip description">' . $args['alt'] . '</p>';
 	}
 	
 	// Fetches option and applies any given filters to it
-	private function getOption( $args ) {
+	private function getOption( array $args ) {
 		// Fetches option value from database. Uses false if option does not exist
 		$option = get_option( $args['setting_name'], false );
 		
@@ -242,7 +242,7 @@ class WP_LIB_SETTINGS_SECTION extends WP_LIB_SETTINGS {
 	}
 	
 	// Sets up field's element's properties
-	private function setupFieldProperties( $args, $add_prop ) {
+	private function setupFieldProperties( array $args, array $add_prop ) {
 		// Merges given field classes with default field classes
 		$classes = array_merge(
 			$args['classes'],
@@ -274,7 +274,7 @@ class WP_LIB_SETTINGS_SECTION extends WP_LIB_SETTINGS {
 	
 	// A type of settings field
 	// Renders an HTML text input (a single line text field)
-	public function textInput( $args ) {
+	public function textInput( array $args ) {
 		$properties = array(
 			'type' => 'text',
 			'value'=> $this->getOption( $args )
@@ -298,7 +298,7 @@ class WP_LIB_SETTINGS_SECTION extends WP_LIB_SETTINGS {
 	
 	// A type of settings field
 	// Renders an HTML checkbox
-	public function checkboxInput( $args ) {
+	public function checkboxInput( array $args ) {
 		$properties = array(
 			'type'	=> 'checkbox',
 			'value'	=> 3
@@ -325,7 +325,7 @@ class WP_LIB_SETTINGS_SECTION extends WP_LIB_SETTINGS {
 	
 	// Renders field's HTML
 	// @param array $lines Strings of HTML to be echoed
-	private function outputLines( $lines ) {
+	private function outputLines( array $lines ) {
 		foreach ( $lines as $line ) {
 			echo $line;
 		}
