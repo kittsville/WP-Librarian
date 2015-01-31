@@ -52,12 +52,6 @@ class WP_LIB_SETTINGS {
 		
 		/* -- Formatting -- */
 		/* Settings relating to plugin presentation */
-
-		// The separator for item taxonomies (the comma between authors)
-		array(
-			'key' 		=> 'wp_lib_taxonomy_spacer',
-			'default'	=> array(', ')
-		),
 		
 		// Currency Symbol and position relative to the numerical value (2 - Before: £20, 3 - After: 20£)
 		array(

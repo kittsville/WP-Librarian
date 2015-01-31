@@ -43,9 +43,6 @@ class WP_LIB_TEMPLATE_HOOKS {
 		// Creates instance of library item from post ID
 		$item = WP_LIB_ITEM::create( $this->wp_librarian, $post->ID );
 		
-		// Fetches default taxonomy spacer
-		$spacer = get_option( 'wp_lib_taxonomy_spacer', array(', ') )[0];
-		
 		// If user is librarian (or higher), or if the donor is set to be displayed, fetches item donor
 		// If user isn't a librarian, or there is no listed donor, returns false
 		$donor_id = ( wp_lib_is_librarian() || get_post_meta( $item->ID, 'wp_lib_display_donor', true ) ? get_post_meta( $item->ID, 'wp_lib_item_donor', true ) : false );
@@ -105,8 +102,8 @@ class WP_LIB_TEMPLATE_HOOKS {
 					$meta[0] .= 's';
 				}
 				
-				// Implodes array into string separated by users preferred spacer
-				$meta[1] = implode( $spacer, $meta[1] );
+				// Implodes array into string of comma separated taxonomy terms
+				$meta[1] = implode( ', ', $meta[1] );
 			}
 			
 			// If output is a string with a URL, create hyperlink

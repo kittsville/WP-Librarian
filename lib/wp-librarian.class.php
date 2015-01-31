@@ -141,6 +141,7 @@ class WP_LIBRARIAN {
 			// If previous plugin version is version 0.1 or older, remove depreciated data
 			if ( version_compare( $version['version'], '0.1', '<=' ) )
 				delete_option( 'wp_lib_default_media_types' );
+				delete_option( 'wp_lib_taxonomy_spacer' );
 		} else {
 			// Sets current user as a Library Admin
 			wp_lib_update_user_meta( get_current_user_id(), 10 );
