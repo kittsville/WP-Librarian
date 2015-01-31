@@ -4,20 +4,26 @@ defined( 'ABSPATH' ) OR die('No');
 
 /**
  * Holds basic properties/functions relating the plugin's settings
- * @todo Add injective dependencies and reap the relevant benefits
  */
 class WP_LIB_SETTINGS {
-	// Instance of core plugin class WP_LIBRARIAN
+	/**
+	 * Single instance of core plugin class
+	 * @var WP_LIBRARIAN
+	 */
 	protected $wp_librarian;
 	
 	/**
 	 * Adds instance of core plugin class to settings classes' properties
+	 * @param WP_LIBRARIAN $wp_librarian Single instance of core plugin class
 	 */
 	function __construct( $wp_librarian ) {
 		$this->wp_librarian = $wp_librarian;
 	}
 
-	// All settings WP-Librarian is responsible for
+	/**
+	 * All settings WP-Librarian is responsible for
+	 * @var array
+	 */
 	private static $plugin_settings = array(
 		/* -- Library Options -- */
 		/* Settings relating to loaning/returning systems */
