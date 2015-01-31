@@ -13,14 +13,6 @@ class WP_LIB_SETTINGS {
 	protected $wp_librarian;
 	
 	/**
-	 * Adds instance of core plugin class to settings classes' properties
-	 * @param WP_LIBRARIAN $wp_librarian Single instance of core plugin class
-	 */
-	function __construct( WP_LIBRARIAN $wp_librarian ) {
-		$this->wp_librarian = $wp_librarian;
-	}
-
-	/**
 	 * All settings WP-Librarian is responsible for
 	 * @var array
 	 */
@@ -91,6 +83,14 @@ class WP_LIB_SETTINGS {
 			)
 		)
 	);
+	
+	/**
+	 * Adds instance of core plugin class to settings classes' properties
+	 * @param WP_LIBRARIAN $wp_librarian Single instance of core plugin class
+	 */
+	function __construct( WP_LIBRARIAN $wp_librarian ) {
+		$this->wp_librarian = $wp_librarian;
+	}
 	
 	/**
 	 * Adds all plugin default options. If a setting already exists it is ignored
