@@ -8,9 +8,23 @@ defined( 'ABSPATH' ) OR die('No');
  * @todo Add injective dependencies and reap the relevant benefits
  */
 class WP_LIB_ERROR {
-	public $ID;			// Error code
-	public $description;// Description of error, look up in $error_codes
-	public $ajax;		// Whether or not error was called from an AJAX request
+	/**
+	 * Error code, must be a valid code from $error_codes
+	 * @var int
+	 */
+	public $ID;
+	
+	/**
+	 * Description of error that occurred, fetched from $error_codes
+	 * @var string
+	 */
+	public $description;
+	
+	/**
+	 * Whether or not error was called from an AJAX request
+	 * @var bool
+	 */
+	public $ajax;
 
 	/**
 	 * All valid error codes within WP-Librarian and their descriptions

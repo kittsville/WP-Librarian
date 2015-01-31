@@ -7,7 +7,10 @@ defined( 'ABSPATH' ) OR die('No');
  * @todo Add option to sort appropriate admin post table columns
  */
 class WP_LIB_ADMIN_TABLES {
-	// Instance of core plugin class WP_LIBRARIAN
+	/**
+	 * Single instance of core plugin class
+	 * @var WP_LIBRARIAN
+	 */
 	private $wp_librarian;
 	
 	/**

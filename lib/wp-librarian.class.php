@@ -7,7 +7,16 @@ defined( 'ABSPATH' ) OR die('No');
  * @todo Define custom post type/taxonomy names as class constants
  */
 class WP_LIBRARIAN {
+	/**
+	 * Path to plugin folder, without trailing slash
+	 * @var string
+	 */
 	public $plugin_path;
+	
+	/**
+	 * Public URL to plugin folder, without trailing slash
+	 * @var string
+	 */
 	public $plugin_url;
 	
 	/**

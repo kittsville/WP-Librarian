@@ -6,14 +6,20 @@ defined( 'ABSPATH' ) OR die('No');
  * Handles all Dashboard AJAX requests
  */
 class WP_LIB_AJAX {
-	// Holds data to be returned to the server
+	/**
+	 * Buffers content to be returned to server
+	 * @var array
+	 */
 	protected $output_buffer = array(
 		true,	// Success/failure of request
 		array(),// Buffered notifications
 		array()	// Content
 	);
 	
-	// Instance of core plugin class WP_LIBRARIAN
+	/**
+	 * Single instance of core plugin class
+	 * @var WP_LIBRARIAN
+	 */
 	protected $wp_librarian;
 	
 	/**

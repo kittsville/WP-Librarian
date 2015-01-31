@@ -9,10 +9,15 @@ defined( 'ABSPATH' ) OR die('No');
  * Loaded Automatically: NO
  */
 abstract class WP_LIB_OBJECT {
+	/**
+	 * Single instance of core plugin class
+	 * @var WP_LIBRARIAN
+	 */
 	protected $wp_librarian;
 	
 	/**
 	 * Post ID of object
+	 * @var int
 	 */
 	public $ID;
 	
