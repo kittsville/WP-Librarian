@@ -4,6 +4,7 @@ defined( 'ABSPATH' ) OR die('No');
 
 /**
  * Holds information about an error that occurred within WP-Librarian such as the error's description and where it occurred
+ * Loaded Automatically: YES
  * @todo Add injective dependencies and reap the relevant benefits
  */
 class WP_LIB_ERROR {
@@ -20,7 +21,7 @@ class WP_LIB_ERROR {
 	 * 3xx - Invalid loan/return parameters
 	 * 4xx - Error loaning/returning item or fining user
 	 * 5xx - AJAX systems error
-	 * 6xx - Debugging Errors
+	 * 6xx - Debugging/Development Errors
 	 * 8xx - JavaScript Errors, stored client-side
 	 * 9xx - Error processing error
 	 */
@@ -39,6 +40,8 @@ class WP_LIB_ERROR {
 		209 => 'Item has been renewed the maximum number of times allowed',
 		210 => 'Cannot renew item as it would clash with scheduled loan(s)',
 		211 => 'Loan cannot be fulfilled unless it is currently scheduled',
+		212 => 'Loan lateness calculator encountered an unexpected error',
+		213 => 'Item cannot leave the library as it has been manually marked as unavailable',
 		301 => '\p ID given is not a number',
 		302 => 'No loans found for that item ID',
 		303	=> 'No \p with given ID exists',
@@ -59,9 +62,7 @@ class WP_LIB_ERROR {
 		324 => 'Proposed return date is before item was loaned',
 		400 => 'Loan creation failed for unknown reason, sorry :/',
 		401 => 'Can\'t loan item between given dates, There may be a conflicting loan',
-		402 => 'Item not on loan (Loan ID not found in item meta)<br/>This can happen if you refresh the page having already returned an item',
 		403 => 'Loan not found (Loan ID found in item meta but no loan found that ID). The item has now been cleaned of all loan meta to attempt to resolve the issue. Refresh the page.',
-		405 => 'Loan is missing due date',
 		406 => 'Item is/was not late on given date, mate',
 		407 => 'Fine creation failed for unknown reasons, sorry :/',
 		409 => 'Loan status reports item is not currently on loan',
@@ -96,14 +97,12 @@ class WP_LIB_ERROR {
 		// Sets up object properties
 		$this->ID			= $error_code;
 		$this->description	= str_replace( '\p', $param, WP_LIB_ERROR::$error_codes[$error_code] );
-		$this->ajax			= (defined('DOING_AJAX') && DOING_AJAX && isset($GLOBALS['wp_lib_ajax']));
+		$this->ajax			= (defined('DOING_AJAX') && DOING_AJAX);
 		
 		// If error was called from an AJAX context, add to AJAX notification buffer
 		// Otherwise kill thread execution
 		if ( $this->ajax ) {
-			global $wp_lib_ajax;
-			
-			$wp_lib_ajax->addNotification( $this->description, $error_code );
+			return $this;
 		} else {
 			echo "<div class='wp-lib-error error'><p><strong style=\"color: red;\">WP-Librarian Error {$error_code}: {$this->description}</strong></p></div>";
 			die();

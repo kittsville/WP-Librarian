@@ -19,15 +19,22 @@ class WP_LIB_AJAX {
 	/**
 	 * Adds instance of core plugin class to ajax classes' properties
 	 */
-	function __construct( $wp_librarian ) {
+	function __construct( WP_LIBRARIAN $wp_librarian ) {
+		// Makes sure first parameter is instance of main plugin class
+		if ( !( $wp_librarian instanceof WP_LIBRARIAN ) )
+			return wp_lib_error( 601, get_class() );
+		
 		$this->wp_librarian = $wp_librarian;
 		
 		// Ensures object can only be created if an AJAX request is being performed
 		if ( !defined('DOING_AJAX') || !DOING_AJAX )
-			wp_lib_error( 116 );
+			return wp_lib_error( 116 );
 		
 		if ( !wp_lib_is_librarian() )
-			wp_lib_error( 112 );
+			return wp_lib_error( 112 );
+		
+		// Loads library object classes
+		$wp_librarian->loadObjectClasses();
 	}
 	
 	/**
@@ -64,102 +71,112 @@ class WP_LIB_AJAX {
 	}
 	
 	/**
-	 * Fetches Item/Member/Loan/Fine ID from POST data and validates
-	 * @param	string		$object		Name of object being fetched e.g. Item
-	 * @param	string		$post_type	Name of post type e.g. wp_lib_items
-	 * @param	string		$var_name	Name of POST variable
-	 * @return	int|bool	Item ID on success, false on failure
+	 * Creates instance of item class using Item ID fetched from AJAX request
+	 * @return WP_LIB_ITEM|WP_LIB_ERROR	Item instance
 	 */
-	protected function getLibraryObjectId( $object, $post_type, $var_name ) {
-		if ( !isset( $_POST[$var_name] ) ) {
-			wp_lib_error( 314, $object.' ID' );
-			return false;
-		} else {
-			$object_id = (int) $_POST[$var_name];
-			
-			if ( get_post_type( $object_id ) === $post_type ) {
-				return $object_id;
-			} else {
-				wp_lib_error( 303, $object );
-				return false;
-			}
-		}
+	protected function getItem() {
+		// If item ID was not given, call error
+		if ( !isset( $_POST['item_id'] ) )
+			return wp_lib_error( 314, 'Item ID' );
+		
+		// Attempts to create item instance from item ID
+		$item = WP_LIB_ITEM::create( $this->wp_librarian, (int) $_POST['item_id'] );
+		
+		// If item ID was invalid (error was returned) stops AJAX request
+		if ( wp_lib_is_error( $item ) )
+			$this->stopAjax( $item );
+		// Otherwise returns new item instance
+		else
+			return $item;
 	}
 	
 	/**
-	 * Fetches Item ID from URL parameters and validates, handling failure
-	 * @return int Item ID, if valid
+	 * Creates instance of member class using Member ID fetched from AJAX request
+	 * @return WP_LIB_MEMBER|WP_LIB_ERROR	Member instance
 	 */
-	protected function getItemId() {
-		$item_id = $this->getLibraryObjectId( 'Item', 'wp_lib_items', 'item_id' );
+	protected function getMember() {
+		// If member ID was not given, call error
+		if ( !isset( $_POST['member_id'] ) )
+			return wp_lib_error( 314, 'Member ID' );
 		
-		// If Item ID is invalid, stop page load
-		// Otherwise return Item ID
-		if ( $item_id === false )
-			$this->stopAjax();
+		// Attempts to create member instance from member ID
+		$member = WP_LIB_MEMBER::create( $this->wp_librarian, (int) $_POST['member_id'] );
+		
+		// If member ID was invalid (error was returned) stops AJAX request
+		if ( wp_lib_is_error( $member ) )
+			$this->stopAjax( $member );
+		// Otherwise returns new member instance
 		else
-			return $item_id;
+			return $member;
 	}
 	
 	/**
-	 * Fetches Member ID from URL parameters and validates, handling failure
-	 * @return int Member ID, if valid
+	 * Creates instance of loan class using Loan ID fetched from AJAX request
+	 * @return WP_LIB_LOAN|WP_LIB_ERROR	Loan instance
 	 */
-	protected function getMemberId() {
-		$member_id = $this->getLibraryObjectId( 'Member', 'wp_lib_members', 'member_id' );
+	protected function getLoan() {
+		// If loan ID was not given, call error
+		if ( !isset( $_POST['loan_id'] ) )
+			return wp_lib_error( 314, 'Loan ID' );
 		
-		// If Member ID is invalid, stop page load
-		// Otherwise return Member ID
-		if ( $member_id === false )
-			$this->stopAjax();
+		// Attempts to create loan instance from loan ID
+		$loan = WP_LIB_LOAN::create( $this->wp_librarian, (int) $_POST['loan_id'] );
+		
+		// If loan ID was invalid (error was returned) stops AJAX request
+		if ( wp_lib_is_error( $loan ) )
+			$this->stopAjax( $loan );
+		// Otherwise returns new loan instance
 		else
-			return $member_id;
+			return $loan;
 	}
 	
 	/**
-	 * Fetches Loan ID from URL parameters and validates, handling failure
-	 * @return int Loan ID, if valid
+	 * Creates instance of fine class using Fine ID fetched from AJAX request
+	 * @return WP_LIB_FINE|WP_LIB_ERROR	Fine instance
 	 */
-	protected function getLoanId() {
-		$loan_id = $this->getLibraryObjectId( 'Loan', 'wp_lib_loans', 'loan_id' );
+	protected function getFine() {
+		// If fine ID was not given, call error
+		if ( !isset( $_POST['fine_id'] ) )
+			return wp_lib_error( 314, 'Fine ID' );
 		
-		// If Loan ID is invalid, stop page load
-		// Otherwise return Loan ID
-		if ( $loan_id === false )
-			$this->stopAjax();
+		// Attempts to create fine instance from fine ID
+		$fine = WP_LIB_FINE::create( $this->wp_librarian, (int) $_POST['fine_id'] );
+		
+		// If fine ID was invalid (error was returned) stops AJAX request
+		if ( wp_lib_is_error( $fine ) )
+			$this->stopAjax( $fine );
+		// Otherwise returns new fine instance
 		else
-			return $loan_id;
+			return $fine;
 	}
 	
 	/**
-	 * Fetches Fine ID from URL parameters and validates, handling failure
-	 * @return int Fine ID, if valid
+	 * Adds error to notification buffer
+	 * @param int|WP_LIB_ERROR	$error	ID or instance of an error that occurred within WP-Librarian
+	 * @param string|array		$params	OPTIONAL Details to enhance error message
 	 */
-	protected function getFineId() {
-		$fine_id = $this->getLibraryObjectId( 'Fine', 'wp_lib_fines', 'fine_id' );
-		
-		// If Fine ID is invalid, stop AJAX request
-		// Otherwise return Fine ID
-		if ( $fine_id === false )
-			$this->stopAjax();
-		else
-			return $fine_id;
+	protected function handleError( $error, $params = false ) {
+		// If error code was given, create error instance then add error to notification buffer
+		if ( is_int( $error ) )
+			$this->addNotification( wp_lib_error( $error, $params )->description, $error );
+		// If error instance was given, add error to notification buffer
+		elseif ( wp_lib_is_error( $error ) )
+			$this->addNotification( $error->description, $error->ID );
 	}
 	
 	/**
 	 * Terminates AJAX request, calling optional explanatory error
-	 * @param int			$error_code	OPTIONAL Error that necessitated terminating request
-	 * @param string|array	$params		OPTIONAL Details to enhance error message
+	 * @param int|WP_LIB_ERROR	$error		OPTIONAL ID or instance of error that necessitated terminating request
+	 * @param string|array		$params		OPTIONAL Details to enhance error message
 	 */
-	protected function stopAjax( $error_code = false, $params = false ) {
-		// If error code was set, call error
-		if ( $error_code )
-			wp_lib_error( $error_code, $params );
+	protected function stopAjax( $error = false, $params = false ) {
+		if ( $error !== false )
+			$this->handleError( $error, $params );
 		
-		// Set output success to failure
+		// Sets request success to failure
 		$this->output_buffer[0] = false;
 		
-		// Kill execution, destructor will handle outputting
+		// Kills execution, destructor will handle sending buffer
 		die();
 	}
 	
@@ -236,12 +253,12 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 	/**
 	 * Ends AJAX request, returning indication of action success to client
 	 * Also buffers any given success notification
-	 * @param bool			$success		Whether the AJAX request succeeded or not
-	 * @param string|array	$notification	OPTIONAL Notification(s) to send to client
-	 * @todo Improve commenting and/or refactor function
+	 * @param bool|WP_LIB_ERROR	$success		Whether the AJAX request succeeded or not
+	 * @param string|array		$notification	OPTIONAL Notification(s) to send to client
+	 * @todo									Improve commenting and/or refactor function
 	 */
 	private function endAction( $success, $notification = false ){
-		if ( $success ) {
+		if ( $success === true ) {
 			if ( is_string( $notification ) ) {
 				$this->addNotification( $notification );
 			} elseif ( is_array( $notification ) ) {
@@ -253,7 +270,7 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 			// Triggers WP_LIB_AJAX destructor to render buffered output
 			die();
 		} else {
-			$this->stopAjax();
+			$this->stopAjax( $success );
 		}
 	}
 	
@@ -262,17 +279,17 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 	 */
 	private function doLoanItem() {
 		// Fetches params from AJAX request
-		$item_id = $this->getItemId();
-		$member_id = $this->getMemberId();
-		$loan_length = $this->getPostParam( 'loan_length', 'Loan Length' );
+		$item			= $this->getItem();
+		$member			= $this->getMember();
+		$loan_length	= $this->getPostParam( 'loan_length', 'Loan Length' );
 		
 		// Validates Nonce
-		$this->checkNonce( 'Managing Item: ' . $item_id );
+		$this->checkNonce( 'Managing Item: ' . $item->ID );
 		
 		// Attempts to loan item, retuning to client success/failure
 		$this->endAction(
-			wp_lib_loan_item( $item_id, $member_id, $loan_length ),
-			'Loan of ' . get_the_title( $item_id ) . ' to ' . get_the_title( $member_id ) . ' was successful!'
+			$item->loanItem( $member->ID, $loan_length ),
+			'Loan of ' . get_the_title( $item->ID ) . ' to ' . get_the_title( $member->ID ) . ' was successful!'
 		);
 	}
 	
@@ -282,13 +299,13 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 	 */
 	private function doScheduleLoan() {
 		// Fetches params from AJAX request
-		$item_id = $this->getItemId();
-		$member_id = $this->getMemberId();
-		$start_date = $this->getPostParam( 'start_date', 'Start Date' );
-		$end_date = $this->getPostParam( 'end_date', 'End Date' );
+		$item		= $this->getItem();
+		$member		= $this->getMember();
+		$start_date	= $this->getPostParam( 'start_date', 'Start Date' );
+		$end_date	= $this->getPostParam( 'end_date', 'End Date' );
 		
 		// Validates Nonce
-		$this->checkNonce( 'Scheduling Item: ' . $item_id );
+		$this->checkNonce( 'Scheduling Item: ' . $item->ID );
 		
 		// Attempts to convert given dates to Unix timestamps
 		wp_lib_convert_date( $start_date );
@@ -298,14 +315,14 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 		if ( !$start_date || !$end_date )
 			$this->stopAjax( 312 );
 		
-		// If loan starts before it sends or ends before current time, calls an error and The Doctor
+		// If loan starts before it sends or ends before current time, calls error
 		if ( $start_date > $end_date || $end_date < current_time( 'timestamp' ) )
 			$this->stopAjax( 307 );
 		
-		// Returns result (boolean)
+		// Returns success/failure
 		$this->endAction(
-			is_int( wp_lib_schedule_loan( $item_id, $member_id, $start_date, $end_date ) ),
-			'A loan of ' . get_the_title( $item_id ) . ' has been scheduled'
+			is_int( $item->scheduleLoan( $member->ID, $start_date, $end_date ) ),
+			'A loan of ' . get_the_title( $item->ID ) . ' has been scheduled'
 		);
 	}
 	
@@ -315,22 +332,22 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 	 * @todo Add ref specific nonce checking
 	 */
 	private function doReturnItem() {
-		// Fetches params from AJAX request
-		$item_id = $this->getItemId();
+		// Creates instance of item from item ID in AJAX request
+		$item = $this->getItem();
 		
 		// Verifies nonce based on where user came from
 		if ( isset( $_POST['ref'] ) ) {
 			switch ( $_POST['ref'] ) {
 				case 'manage-item':
-					$this->checkNonce( 'Managing Item: ' . $item_id );
+					$this->checkNonce( 'Managing Item: ' . $item->ID );
 				break;
 				
 				case 'resolve-loan':
-					$this->checkNonce( 'Resolution of item ' . $item_id . ' for loan '. wp_lib_fetch_loan_id( $item_id ) );
+					$this->checkNonce( 'Resolution of item ' . $item->ID . ' for loan '. $item->getLoanId() );
 				break;
 				
 				case 'return-past':
-					$this->checkNonce( 'Past returning: ' . $item_id );
+					$this->checkNonce( 'Past returning: ' . $item->ID );
 				break;
 			}
 		} else {
@@ -355,17 +372,19 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 		// Sets whether to fine member and if any behaviour for a fine has been specified
 		$fine = ( isset( $_POST['fine_member'] ) ? ( $_POST['fine_member'] === 'true' ? true : false ) : null );
 		
-		// Attempts to return item, potentially charging fine
-		$success = wp_lib_return_item( $item_id, $end_date, $fine );
+		// Creates loan object
+		$loan = $item->getLoan();
 		
-		$title = get_the_title( $item_id );
+		// Attempts to return item, potentially charging fine
+		$success = $loan->returnItem( $end_date, $fine );
+		
+		$title = get_the_title( $item->ID );
 		
 		// If fine was charged, use different (more informative) notification
-		if (is_int( $success )) {
+		if (is_int( $success ))
 			$notification = get_the_title(get_post_meta($success, 'wp_lib_member', true )).' has been fined and '.$title.' has been returned';
-		} else {
+		elseif ( $success === true )
 			$notification = $title.' has been returned to the library';
-		}
 		
 		$this->endAction(
 			$success,
@@ -377,17 +396,17 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 	 * When a scheduled loan is fulfilled by giving the item to the member
 	 */
 	private function doGiveItem() {
-		$loan_id = $this->getLoanId();
+		$loan = $this->getLoan();
 		
 		// Validates nonce based on source page, as action can come from an Item or Loan management page
 		if ( isset( $_POST['ref'] ) ) {
 			switch ( $_POST['ref'] ) {
 				case 'manage-loan':
-					$nonce_input = 'Managing Loan: ' . $loan_id;
+					$nonce_input = 'Managing Loan: ' . $loan->ID;
 				break;
 				
 				case 'give-item-past':
-					$nonce_input = 'Give item past. loan ID: ' . $loan_id;
+					$nonce_input = 'Give item past. loan ID: ' . $loan->ID;
 				break;
 				
 				default:
@@ -414,12 +433,12 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 		}
 		
 		// Fetches item and member IDs
-		$item_id = get_post_meta( $loan_id, 'wp_lib_item', true );
-		$member_id = get_post_meta( $loan_id, 'wp_lib_member', true );
+		$item_id = get_post_meta( $loan->ID, 'wp_lib_item', true );
+		$member_id = get_post_meta( $loan->ID, 'wp_lib_member', true );
 		
 		// Attempts to return item, returning success
 		$this->endAction(
-			wp_lib_give_item( $loan_id, $give_date ),
+			$loan->giveItem( $give_date ),
 			get_the_title( $item_id ) . ' has been loaned to ' . get_the_title( $member_id )
 		);
 	}
@@ -430,16 +449,16 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 	 */
 	private function doRenewItem() {
 		// Fetches params from AJAX request
-		$loan_id = $this->getLoanId();
-		$renewal_date = $this->getPostParam( 'renewal_date', 'Renewal Date' );
+		$loan			= $this->getLoan();
+		$renewal_date	= $this->getPostParam( 'renewal_date', 'Renewal Date' );
 		
 		// Attempts to convert renewal date to Unix timestamp
 		wp_lib_convert_date( $renewal_date );
 		
 		// Attempts to renew item, returning success
 		$this->endAction(
-			wp_lib_renew_item( $loan_id, $renewal_date ),
-			get_the_title( get_post_meta( $loan_id, 'wp_lib_item', true ) ) . ' has been renewed'
+			$loan->renewItem( $renewal_date ),
+			get_the_title( get_post_meta( $loan->ID, 'wp_lib_item', true ) ) . ' has been renewed'
 		);
 	}
 	
@@ -449,14 +468,14 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 	 */
 	private function doRunTestLoan() {
 		// Fetches params from AJAX request
-		$item_id = $this->getItemId();
+		$item = $this->getItem();
 		
 		// If debugging mode isn't enabled, stop action
 		if ( WP_LIB_DEBUG_MODE !== true )
 			$this->stopAjax();
 		
 		// Validates Nonce
-		$this->checkNonce( 'Managing Item: ' . $item_id );
+		$this->checkNonce( 'Managing Item: ' . $item->ID );
 		
 		// Fetches all valid (un-archived) members
 		$query = NEW WP_Query(
@@ -490,12 +509,16 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 		$end_date = current_time( 'timestamp' ) - ( 3 * 24 * 60 * 60 );
 		
 		// If possible creates loan of item starting 10 days ago, due 3 days ago (to test fining capabilities)
-		$loan_id = wp_lib_schedule_loan( $item_id, $member_id, $start_date, $end_date );
+		$loan_id = $item->scheduleLoan( $member_id, $start_date, $end_date );
 		
-		if ( !is_numeric( $loan_id ) )
-			$this->stopAjax( 600 );
+		// If scheduling failed, stop AJAX with error that occurred
+		if ( !is_int( $loan_id ) )
+			$this->stopAjax( $loan_id );
 		
-		if ( wp_lib_give_item( $loan_id, current_time( 'timestamp' ) - ( 10 * 24 * 60 * 60 ) + 900 ) ) {
+		// Creates loan object
+		$loan = WP_LIB_LOAN::create( $this->wp_librarian, $loan_id );
+		
+		if ( $loan->giveItem( current_time( 'timestamp' ) - ( 10 * 24 * 60 * 60 ) + 900 ) ) {
 			$this->endAction(
 				true,
 				"Debugging loan created"
@@ -510,15 +533,15 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 	 */
 	private function doCancelFine() {
 		// Fetches params from AJAX request
-		$fine_id = $this->getFineId();
+		$fine = $this->getFine();
 		
 		// Validates Nonce
-		$this->checkNonce( 'Managing Fine: ' . $fine_id );
+		$this->checkNonce( 'Managing Fine: ' . $fine->ID );
 		
 		// Attempts to cancel fine
 		$this->endAction(
-			wp_lib_cancel_fine( $fine_id ),
-			"Fine #{$fine_id} has been cancelled"
+			$fine->cancel(),
+			"Fine #{$fine->ID} has been cancelled"
 		);
 	}
 	
@@ -527,15 +550,15 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 	 * @todo Move payment functionality to functions.php, actions should only prepare data and call functions
 	 */
 	private function doPayFine() {
-		// Fetches member ID and fine amount
-		$member_id = $this->getMemberId();
-		$fine_payment = floatval( isset($_POST['fine_payment']) ? $_POST['fine_payment'] : 0 );
+		// Fetches member and fine amount
+		$member			= $this->getMember();
+		$fine_payment	= floatval( isset($_POST['fine_payment']) ? $_POST['fine_payment'] : 0 );
 		
 		// Validates Nonce
-		$this->checkNonce( 'Pay Member Fines ' . $member_id );
+		$this->checkNonce( 'Pay Member Fines ' . $member->ID );
 		
 		// Fetches member's current amount owed in fines
-		$owed = wp_lib_fetch_member_owed( $member_id );
+		$owed = wp_lib_fetch_member_owed( $member->ID );
 		
 		// If fine payment is negative or failed to validate (resulting in 0), call error
 		if ( $fine_payment <= 0 )
@@ -548,10 +571,10 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 		$owed = $owed - $fine_payment;
 		
 		// Updates member's amount owed
-		update_post_meta( $member_id, 'wp_lib_owed', $owed );
+		update_post_meta( $member->ID, 'wp_lib_owed', $owed );
 		
 		// Sets up notification for successful fine reduction
-		$notification = wp_lib_format_money( $fine_payment ) . ' in fines has been paid by ' . get_the_title( $member_id ) . '.';
+		$notification = wp_lib_format_money( $fine_payment ) . ' in fines has been paid by ' . get_the_title( $member->ID ) . '.';
 		
 		// If money is still owed by the member, inform librarian
 		if ( $owed != 0 )
@@ -566,14 +589,30 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 	 */
 	private function doDeleteObject() {
 		// Fetches library object ID
-		$post_id = $this->getPostParam( 'post_id', 'Library Item' );
+		$post_id = (int) $this->getPostParam( 'post_id', 'Library Item' );
 		
 		// Fetches object type and capitalises first letter
-		$object_type = ucwords( wp_lib_get_object_type( $post_id ) );
-		
-		// Validates ID of Library object
-		if ( $object_type === '' )
-			$this->stopAjax();
+		switch (get_post_type($post_id)){
+			case 'wp_lib_items':
+				$object_type = 'Items';
+			break;
+			
+			case 'wp_lib_members':
+				$object_type = 'Members';
+			break;
+			
+			case 'wp_lib_loans':
+				$object_type = 'Loans';
+			break;
+			
+			case 'wp_lib_fines':
+				$object_type = 'Fines';
+			break;
+			
+			default:
+				$this->stopAjax( 303, 'Library Object' );
+			break;
+		}
 		
 		// Validates Nonce
 		$this->checkNonce( 'Deleting object: ' . $post_id );
@@ -593,7 +632,9 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 			switch( $object[1] ) {
 					// Checks if item is on loan
 					case 'wp_lib_items':
-						if ( wp_lib_on_loan( $object[0] ) )
+						$item = WP_LIB_ITEM::create( $this->wp_librarian, $object[0] );
+						
+						if ( $item->onLoan() )
 							$this->stopAjax( 205 );
 					break;
 					
@@ -632,13 +673,12 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 	 * Can occur if safeguards are disabled or a bug occurs
 	 */
 	private function doCleanDamagedItem() {
-		$item_id = $this->getItemId();
+		$item = $this->getItem();
 		
-		// Strips any loan or member currently attached to item
-		if ( wp_lib_clean_item( $item_id ) )
-			$this->endAction(true, 'Attempted repair of '.get_the_title($item_id).' completed');
-		else
-			$this->stopAjax();
+		$this->endAction(
+			$item->repair(),
+			'Attempted repair of '.get_the_title($item->ID).' completed'
+		);
 	}
 }
 
@@ -722,12 +762,12 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	
 	/**
 	 * Stops Dashboard page loading based on current user circumstances
-	 * @param int			$error_code	OPTIONAL error to generate
-	 * @param string|array	$param		OPTIONAL parameters to pass to error reporter
+	 * @param int|WP_LIB_ERROR	$error		OPTIONAL ID or instance of error that occurred
+	 * @param string|array		$params		OPTIONAL parameters to pass to error reporter
 	 */
-	protected function stopAjax( $error_code = false, $param = false ) {
+	protected function stopAjax( $error = false, $params = false ) {
 		if ( $error_code !== false )
-			wp_lib_error( $error_code, $param );
+			$this->handleError( $error, $params );
 		
 		// If this is the user's first Dash page then, to avoid user being faced with a blank Dash page, load Dashboard
 		// Otherwise allows user to remain on current page and just returns error
@@ -765,22 +805,39 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	}
 	
 	/**
-	 * Prepares a box of details about the given item
-	 * @param	int		$item_id	The post ID of the item
-	 * @return	array				The meta box, as a Dash page element
+	 * Prepares WordPress nonce
+	 * @see 					http://codex.wordpress.org/WordPress_Nonces
+	 * @param	str		$action	Action to create custom nonce
+	 * @return	array			Nonce as Dashboard page element
 	 */
-	private function prepItemMetaBox( $item_id ) {
+	function prepNonce( $action ) {
+		// Creates nonce
+		$nonce = wp_create_nonce( $action );
+		
+		// Builds and returns form field
+		return array(
+			'type'	=> 'nonce',
+			'value'	=> $nonce
+		);
+	}
+	
+	/**
+	 * Prepares a box of details about the given item
+	 * @param	WP_LIB_ITEM	$item	Item to generate meta box for
+	 * @return	array				Meta box, as a Dash page element
+	 */
+	private function prepItemMetaBox( $item ) {
 		// Fetches post meta
-		$meta = get_post_meta( $item_id );
+		$meta = get_post_meta( $item->ID );
 		
 		// Item meta fields to be displayed in management header
 		$meta_fields = array(
-			array( 'Item ID',	$item_id),
+			array( 'Item ID',	$item->ID ),
 			array( 'Condition',	wp_lib_format_item_condition( $meta['wp_lib_item_condition'][0] ) )
 		);
 		
 		// If item has a donor and the ID matches an existing member
-		if ( isset( $meta['wp_lib_item_donor'] ) && wp_lib_sanitize_donor( $meta['wp_lib_item_donor'][0] ) ) {
+		if ( isset( $meta['wp_lib_item_donor'] ) && wp_lib_sanitize_donor( $meta['wp_lib_item_donor'][0] ) !== '' ) {
 			// Adds meta field, displaying donor with a link to manage the member
 			$meta_fields[] = array(
 				'Donor',
@@ -797,7 +854,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		// Iterates through taxonomies, fetching their terms and adding them to the meta field array
 		foreach ( $tax_terms as $tax_name => $tax_key ) {
 			// Fetches terms for given taxonomy
-			$terms = get_the_terms( $item_id, $tax_key );
+			$terms = get_the_terms( $item->ID, $tax_key );
 			
 			// If no terms or an error were returned, skip
 			if ( !$terms || is_wp_error( $terms ) )
@@ -816,7 +873,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		}
 		
 		// Adds item status as last meta field
-		$meta_fields[] = array( 'Status', wp_lib_prep_item_status( $item_id, true ) );
+		$meta_fields[] = array( 'Status', $item->formattedStatus( true ) );
 		
 		// Finalises and returns management header
 		return array(
@@ -829,21 +886,21 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	
 	/**
 	 * Prepares a box of details about the given member
-	 * @param	int		$member_id	The post ID of the member
-	 * @return	array				The meta box, as a Dash page element
+	 * @param	WP_LIB_MEMBER	$member	Member to generate meta box for
+	 * @return	array					Meta box, as a Dash page element
 	 */
-	private function prepMemberMetaBox( $member_id ) {
+	private function prepMemberMetaBox( $member ) {
 		// Fetches member meta
-		$meta = get_post_meta( $member_id );
+		$meta = get_post_meta( $member->ID );
 		
 		// Sets up header's meta fields
 		$meta_fields = array(
-			array( 'Member ID',	$member_id ),
+			array( 'Member ID',	$member->ID ),
 			array( 'Email',		$meta['wp_lib_member_email'][0] ),
 			array( 'Phone',		$meta['wp_lib_member_phone'][0] ),
 			array( 'Mobile',	$meta['wp_lib_member_mobile'][0] ),
-			array( 'Owed',		wp_lib_format_money( wp_lib_fetch_member_owed( $member_id ) ) ),
-			array( 'On Loan',	wp_lib_prep_members_items_out( $member_id ) )
+			array( 'Owed',		wp_lib_format_money( wp_lib_fetch_member_owed( $member->ID ) ) ),
+			array( 'On Loan',	wp_lib_prep_members_items_out( $member->ID ) )
 		);
 		
 		// Finalises and returns management header
@@ -857,22 +914,22 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 
 	/**
 	 * Prepares a box of details about the given loan
-	 * @param	int		$loan_id	The post ID of the loan
-	 * @return	array				The meta box, as a Dash page element
+	 * @param	WP_LIB_LOAN	$loan	Loan to generate meta box for
+	 * @return	array				Meta box, as a Dash page element
 	 */
-	private function prepLoanMetaBox( $loan_id ) {
+	private function prepLoanMetaBox( $loan ) {
 		// Fetches loan meta
-		$meta = get_post_meta( $loan_id );
+		$meta = get_post_meta( $loan->ID );
 		
 		// Formats loan status as natural language
 		$status = wp_lib_format_loan_status( $meta['wp_lib_status'][0] );
 		
 		// Adds basic loan meta fields
 		$meta_fields = array(
-			array( 'Loan ID',			$loan_id ),
+			array( 'Loan ID',			$loan->ID ),
 			array( 'Item',				wp_lib_manage_item_dash_hyperlink( $meta['wp_lib_item'][0] ) ),
 			array( 'Member',			wp_lib_manage_member_dash_hyperlink( $meta['wp_lib_member'][0] ) ),
-			array( 'Creator',			$this->getUserName( get_post_field( 'post_author', $loan_id ) ) ),
+			array( 'Creator',			$this->getUserName( get_post_field( 'post_author', $loan->ID ) ) ),
 			array( 'Expected Start',	wp_lib_format_unix_timestamp( $meta['wp_lib_start_date'][0] ) ),
 			array( 'Expected End',		wp_lib_format_unix_timestamp( $meta['wp_lib_end_date'][0] ) ),
 			array( 'Actual Start',		( isset( $meta['wp_lib_give_date'] ) ? wp_lib_format_unix_timestamp( $meta['wp_lib_give_date'][0] ) : 'N/A' ) ),
@@ -891,12 +948,12 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 
 	/**
 	 * Prepares a box of details about the given fine
-	 * @param	int		$fine_id	The post ID of the fine
-	 * @return	array				The meta box, as a Dash page element
+	 * @param	WP_LIB_FINE	$fine	Fine to generate meta box for
+	 * @return	array				Meta box, as a Dash page element
 	 */
-	private function prepFineMetaBox( $fine_id ) {
+	private function prepFineMetaBox( $fine ) {
 		// Fetches fine meta
-		$meta = get_post_meta( $fine_id );
+		$meta = get_post_meta( $fine->ID );
 		
 		// Creates and returns fine management header
 		return array(
@@ -904,14 +961,14 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			'title'		=> 'Details',
 			'classes'	=> 'fine-man',
 			'fields'	=> array(
-				array( 'Fine ID',	$fine_id ),
+				array( 'Fine ID',	$fine->ID ),
 				array( 'Loan ID',	wp_lib_prep_dash_hyperlink( $meta['wp_lib_loan'][0], wp_lib_prep_manage_loan_params( $meta['wp_lib_loan'][0] ) ) ),
 				array( 'Item',		wp_lib_manage_item_dash_hyperlink( $meta['wp_lib_item'][0] ) ),
 				array( 'Member',	wp_lib_manage_member_dash_hyperlink( $meta['wp_lib_member'][0] ) ),
-				array( 'Creator',	$this->getUserName( get_post_field( 'post_author', $fine_id ) ) ),
+				array( 'Creator',	$this->getUserName( get_post_field( 'post_author', $fine->ID ) ) ),
 				array( 'Amount',	wp_lib_format_money( $meta['wp_lib_fine'][0] ) ),
 				array( 'Status',	wp_lib_format_fine_status( $meta['wp_lib_status'][0] ) ),
-				array( 'Created',	get_the_date( '', $fine_id ) )
+				array( 'Created',	get_the_date( '', $fine->ID ) )
 			)
 		);
 	}
@@ -922,7 +979,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	 * @return	array				Dynatable of loans of given item
 	 */
 	private function prepLoansTable( $item_id ) {
-		wp_lib_load_helper('dynatable');
+		$this->wp_librarian->loadHelper('dynatable');
 		
 		// Queries WP for all loans of item
 		$dynatable = new WP_LIB_DYNATABLE_LOANS( 'wp_lib_item', $item_id );
@@ -945,54 +1002,6 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			),
 			get_the_title( $item_id ) . ' has never been loaned'
 		);
-	}
-	
-	/**
-	 * Creates array of option elements for each member in the library plus an optional default option
-	 * @param	bool	$default_option	Whether to include a default option at the start of the array
-	 */
-	private function prepMemberOptions( $default_option = true ) {
-		// Initialises options
-		$options = array();
-		
-		// Adds default option, if specified
-		if ( $default_option ) {
-			$options[] = array(
-				'value'	=> '',
-				'html'	=> 'Member'
-			);
-		}
-		
-		$args = array(
-			'post_type'		=> 'wp_lib_members',
-			'post_status'	=> 'publish'
-		);
-		
-		// Fetches all, if any, members
-		$query = NEW WP_Query( $args );
-		
-		// Checks for any loans attached to member
-		if ( $query->have_posts() ){
-			// Iterates through loans
-			while ( $query->have_posts() ) {
-				$query->the_post();
-				
-				// Fetches member ID
-				$member_id = get_the_ID();
-				
-				// Skips displaying member if member has been archived
-				if ( get_post_meta( $member_id, 'wp_lib_member_archive', true ) )
-					continue;
-				
-				// Adds member's details to the options array
-				$options[] = array(
-					'value'	=> get_the_ID(),
-					'html'	=> get_the_title()
-				);
-			}
-		}
-		
-		return $options;
 	}
 	
 	/**
@@ -1114,46 +1123,44 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			while ( $query->have_posts() ) {
 				$query->the_post();
 				
-				// Fetches item ID
-				$item_id = get_the_ID();
+				// Creates item object from post ID
+				$item = WP_LIB_ITEM::create( $this->wp_librarian, get_the_ID() );
 				
 				// Sets up basic item parameters
-				$item = array(
-					'title'	=> get_the_title( $item_id ),
-					'link'	=> get_permalink( $item_id )
+				$item_details = array(
+					'title'	=> get_the_title( $item->ID ),
+					'link'	=> get_permalink( $item->ID )
 				);
 				
 				// If item has a cover image, fetch url and add to item array
 				if ( has_post_thumbnail() )
-					$item['cover'] = wp_get_attachment_image_src( get_post_thumbnail_id( $item_id ), array( 300, 160 ) );
+					$item_details['cover'] = wp_get_attachment_image_src( get_post_thumbnail_id( $item->ID ), array( 300, 160 ) );
 				else
-					$item['cover'] = false;
+					$item_details['cover'] = false;
 				
 				// Fetches all authors of item
-				$authors = get_the_terms( $item_id, 'wp_lib_author' );
+				$authors = get_the_terms( $item->ID, 'wp_lib_author' );
 				
 				// If result contains authors
 				if ( $authors && !is_wp_error( $authors ) ) {
 					// Iterates over authors, adding their term names to the item's author meta
 					foreach ( $authors as $author ) {
-						$item['authors'][] = $author->name;
+						$item_details['authors'][] = $author->name;
 					}
 				} else {
-					$item['authors'] = false;
+					$item_details['authors'] = false;
 				}
 				
 				// Fetches various item details
-				$item['status'] = wp_lib_prep_item_status( $item_id, true, true );
-				$item['item_id'] = $item_id;
-				$item['view'] = get_permalink();
+				$item_details['status']		= $item->formattedStatus( true, true );
+				$item_details['item_id']	= $item->ID;
+				$item_details['view']		= get_permalink();
 				
 				// If item is on loan, fetches if item is late
-				if ( wp_lib_on_loan( $item_id ) ) {
-					$item['late'] = wp_lib_item_late( wp_lib_fetch_loan_id( $item_id ) );
-				}
+				$item_details['late'] = $item->onLoan ? $item->getLoan()->isLate() : false;
 				
 				// Adds prepared item to array of all items
-				$items[] = $item;
+				$items[] = $item_details;
 			}
 			// Creates element that will hold all items
 			$page[] = array(
@@ -1175,21 +1182,21 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	 * Displays information about the given item with links to modify the item based on its current state
 	 * @todo Refactor function heavily, it hasn't been reviewed in a very long time
 	 */
-	private function genManageItem() {
-		// Fetches, sanitizes and verifies validity of item ID
-		$item_id = $this->getItemID();
+	private function genManageItem() {		
+		// Fetches item using item ID in AJAX request
+		$item = $this->getItem();
 		
 		// Prepares the meta box
-		$page[] = $this->prepItemMetaBox( $item_id );
+		$page[] = $this->prepItemMetaBox( $item );
 		
 		// Adds page nonce
-		$form[] = wp_lib_prep_nonce( 'Managing Item: ' . $item_id );
+		$form[] = $this->prepNonce( 'Managing Item: ' . $item->ID );
 		
 		// Adds item ID to form
 		$form[] = array(
 			'type'	=> 'hidden',
 			'name'	=> 'item_id',
-			'value'	=> $item_id
+			'value'	=> $item->ID
 		);
 		
 		// If debugging is enabled, add test loan creation button to every loan's page
@@ -1204,14 +1211,14 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		}
 		
 		// Fetches if item is currently on loan
-		$on_loan = wp_lib_on_loan( $item_id );
+		$on_loan = $item->onLoan();
 		
 		if ( $on_loan ) {
 			// Fetches loan ID from Item meta
-			$loan_id = wp_lib_fetch_loan_id( $item_id );
+			$loan = $item->getLoan();
 			
 			// If item can be renewed, provided link to renew item
-			if ( wp_lib_loan_renewable( $loan_id ) ) {
+			if ( $loan->isRenewable ) {
 				$form[] = array(
 					'type'	=> 'button',
 					'link'	=> 'page',
@@ -1230,7 +1237,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			);
 			
 			// If item is late
-			if ( wp_lib_item_late( $loan_id ) ) {
+			if ( $loan->isLate() ) {
 				// Provides link to resolve late item
 				$form[] = array(
 					'type'	=> 'button',
@@ -1251,18 +1258,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 				);
 			}
 		}
-		elseif ( wp_lib_loanable( $item_id ) ) {
-			$options = $this->prepMemberOptions();
-			
-			// Adds dropdown menu using members options created above
-			$form[] = array(
-				'type'			=> 'select',
-				'options'		=> $options,
-				'optionClass'	=> 'member-choice-option',
-				'classes'		=> 'member-select',
-				'name'			=> 'member_id'
-			);
-			
+		elseif ( $item->loanAllowed() ) {
 			// Creates options for loan length
 			$length_options[] = array(
 				'value'	=> '',
@@ -1277,32 +1273,43 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 				);
 			}
 			
-			// Adds dropdown menu for loan length
-			$form[] = array(
-				'type'			=> 'select',
-				'options'		=> $length_options,
-				'optionClass'	=> 'loan-length-option',
-				'classes'		=> array( 'loan-length' ),
-				'name'			=> 'loan_length'
-			);
-			
-			// Button to loan item
-			$form[] = array(
-				'type'	=> 'button',
-				'link'	=> 'action',
-				'value'	=> 'loan',
-				'html'	=> 'Loan Item'
+			$form = array_merge(
+				$form,
+				array(
+					// Dropdown menu of possible members to loan item to
+					array(
+						'type'			=> 'select',
+						'options'		=> wp_lib_prep_member_options(),
+						'optionClass'	=> 'member-choice-option',
+						'classes'		=> 'member-select',
+						'name'			=> 'member_id'
+					),
+					// Dropdown menu of loan lengths
+					array(
+						'type'			=> 'select',
+						'options'		=> $length_options,
+						'optionClass'	=> 'loan-length-option',
+						'classes'		=> array( 'loan-length' ),
+						'name'			=> 'loan_length'
+					),
+					// Button to loan item to selected member for selected number of days
+					array(
+						'type'	=> 'button',
+						'link'	=> 'action',
+						'value'	=> 'loan',
+						'html'	=> 'Loan Item'
+					),
+					// To schedule a loan, where the item is given to the member at a later date
+					array(
+						'type'	=> 'button',
+						'link'	=> 'page',
+						'html'	=> 'Schedule Loan',
+						'value'	=> 'scheduling-page',
+						'title'	=> 'Schedule a loan to be fulfilled later'
+					)
+				)
 			);
 		}
-		
-		// Button to schedule a loan to be fulfilled later
-		$form[] = array(
-			'type'	=> 'button',
-			'link'	=> 'page',
-			'html'	=> 'Schedule Loan',
-			'value'	=> 'scheduling-page',
-			'title'	=> 'Schedule a loan to be fulfilled later'
-		);
 		
 		// Button to edit item
 		$form[] = array(
@@ -1330,13 +1337,13 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		);
 		
 		// Fetches list of loans of item
-		$page[] = $this->prepLoansTable( $item_id );
+		$page[] = $this->prepLoansTable( $item->ID );
 		
 		// Lists additional scripts needed for Dash page
 		$scripts = array( 'admin-dashboard-manage-item' );
 		
 		// Encodes page as an array to be rendered client-side
-		$this->sendPage( 'Managing: ' . get_the_title( $item_id ), 'Managing Item #' . $item_id, $page, $scripts );
+		$this->sendPage( 'Managing: ' . get_the_title( $item->ID ), 'Managing Item #' . $item->ID, $page, $scripts );
 	}
 	
 	/**
@@ -1344,23 +1351,23 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	 */
 	private function genManageMember() {
 		// Fetches and validates member ID
-		$member_id = $this->getMemberId();
+		$member = $this->getMember();
 		
 		// Renders meta box
-		$page[] = $this->prepMemberMetaBox( $member_id );
+		$page[] = $this->prepMemberMetaBox( $member );
 		
 		// Adds nonce to form
-		$form[] = wp_lib_prep_nonce( 'Managing Member ' . $member_id );
+		$form[] = $this->prepNonce( 'Managing Member ' . $member->ID );
 		
 		// Adds member ID to form
 		$form[] = array(
 			'type'	=> 'hidden',
 			'name'	=> 'member_id',
-			'value'	=> $member_id
+			'value'	=> $member->ID
 		);
 		
 		// Fetches amount owed by member to Library
-		$owed = wp_lib_fetch_member_owed( $member_id );
+		$owed = wp_lib_fetch_member_owed( $member->ID );
 		
 		// If money is owed by the member
 		if ( $owed > 0 ) {
@@ -1396,10 +1403,10 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			'content'	=> $form
 		);
 		
-		wp_lib_load_helper( 'dynatable' );
+		$this->wp_librarian->loadHelper( 'dynatable' );
 		
 		// Queries database for loans made by member
-		$dynatable = new WP_LIB_DYNATABLE_LOANS( 'wp_lib_member', $member_id );
+		$dynatable = new WP_LIB_DYNATABLE_LOANS( 'wp_lib_member', $member->ID);
 		
 		// Generates table of query results
 		$page[] = $dynatable->generateTable(
@@ -1417,10 +1424,10 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 					'records'	=> 'loans'
 				)
 			),
-			get_the_title( $member_id ) . ' has never borrowed an item'
+			get_the_title( $member->ID ) . ' has never borrowed an item'
 		);
 		
-		$this->sendPage( 'Managing: ' . get_the_title( $member_id ), 'Managing Member #' . $member_id, $page );
+		$this->sendPage( 'Managing: ' . get_the_title( $member->ID ), 'Managing Member #' . $member->ID, $page );
 	}
 	
 	/**
@@ -1428,13 +1435,13 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	 */
 	private function genManageLoan() {
 		// Fetches loan ID from AJAX request
-		$loan_id = $this->getLoanId();
+		$loan = $this->getLoan();
 		
 		// Fetches loan meta
-		$meta = get_post_meta( $loan_id );
+		$meta = get_post_meta( $loan->ID );
 		
 		// Renders header with useful loan information
-		$page[] = $this->prepLoanMetaBox( $loan_id );
+		$page[] = $this->prepLoanMetaBox( $loan );
 		
 		// Fetches item status
 		$status = $meta['wp_lib_status'][0];
@@ -1444,12 +1451,12 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			array(
 				'type'	=> 'hidden',
 				'name'	=> 'loan_id',
-				'value'	=> $loan_id
+				'value'	=> $loan->ID
 			)
 		);
 		
 		// If item can be renewed, provided link to renew item
-		if ( wp_lib_loan_renewable( $loan_id ) ) {
+		if ( $loan->isRenewable() ) {
 			$form[] = array(
 				'type'	=> 'button',
 				'link'	=> 'page',
@@ -1466,7 +1473,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			// If loan's end date has not passed yet
 			if ( $time <= $meta['wp_lib_end_date'][0] ) {
 				// Adds nonce so dash action will work
-				$form[] = wp_lib_prep_nonce( 'Managing Loan: ' . $loan_id );
+				$form[] = $this->prepNonce( 'Managing Loan: ' . $loan->ID );
 				
 				// Button to give item to member
 				$form[] = array(
@@ -1492,7 +1499,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			$form[] = array(
 				'type'	=> 'hidden',
 				'name'	=> 'item_id',
-				'value'	=> get_post_meta( $loan_id, 'wp_lib_item', true )
+				'value'	=> get_post_meta( $loan->ID, 'wp_lib_item', true )
 			);
 			
 			// Adds button to return item (redirects to item management page)
@@ -1553,7 +1560,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			);
 		}
 		
-		$this->sendPage( 'Managing: Loan #' . $loan_id, 'Managing Loan #' . $loan_id, $page );
+		$this->sendPage( 'Managing: Loan #' . $loan->ID, 'Managing Loan #' . $loan->ID, $page );
 	}
 	
 	/**
@@ -1561,21 +1568,21 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	 */
 	private function genManageFine() {
 		// Fetches and validates Fine ID
-		$fine_id = $this->getFineId();
+		$fine = $this->getFine();
 		
-		$page[] = $this->prepFineMetaBox( $fine_id );
+		$page[] = $this->prepFineMetaBox( $fine );
 		
 		// Fetches fine status
-		$fine_status = get_post_meta( $fine_id, 'wp_lib_status', true );
+		$fine_status = get_post_meta( $fine->ID, 'wp_lib_status', true );
 		
 		// Multiple columns to form
 		$form = array(
-			wp_lib_prep_nonce( 'Managing Fine: ' . $fine_id ),
+			$this->prepNonce( 'Managing Fine: ' . $fine->ID ),
 			// Adds fine ID to form
 			array(
 			'type'	=> 'hidden',
 			'name'	=> 'fine_id',
-			'value'	=> $fine_id
+			'value'	=> $fine->ID
 			),
 			array(
 				'type'		=> 'paras',
@@ -1610,7 +1617,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		);
 		
 		// Sends entire page to be encoded in JSON
-		$this->sendPage( 'Managing: Fine #' . $fine_id, 'Managing Fine #' . $fine_id, $page );
+		$this->sendPage( 'Managing: Fine #' . $fine->ID, 'Managing Fine #' . $fine->ID, $page );
 	}
 	
 	/**
@@ -1622,7 +1629,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 				'type'		=> 'form',
 				'content'	=>
 				array(
-					wp_lib_prep_nonce( 'Lookup Item Barcode' ),
+					$this->prepNonce( 'Lookup Item Barcode' ),
 					array(
 						'type'		=> 'paras',
 						'content'	=> 'Once the barcode is scanned the item will be retried automatically'
@@ -1663,10 +1670,10 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	 */
 	private function genScheduleLoan() {
 		// Fetches and validates Item ID
-		$item_id = $this->getItemId();
+		$item = $this->getItem();
 		
 		// Prepares box of useful information about the current item
-		$page[] = $this->prepItemMetaBox( $item_id );
+		$page[] = $this->prepItemMetaBox( $item );
 		
 		$current_time = current_time( 'timestamp' );
 		
@@ -1674,11 +1681,11 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			'type'		=> 'form',
 			'content'	=>
 			array(
-				wp_lib_prep_nonce( 'Scheduling Item: ' . $item_id ),
+				$this->prepNonce( 'Scheduling Item: ' . $item->ID ),
 				array(
 					'type'	=> 'hidden',
 					'name'	=> 'item_id',
-					'value'	=> $item_id
+					'value'	=> $item->ID
 				),
 				array(
 					'type'		=> 'div',
@@ -1692,7 +1699,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 						array(
 							'type'			=> 'select',
 							'name'			=> 'member_id',
-							'options'		=> $this->prepMemberOptions(),
+							'options'		=> wp_lib_prep_member_options(),
 							'optionClass'	=> 'member-select-option',
 							'classes'		=> 'member-select'
 						)
@@ -1740,35 +1747,35 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		);
 		
 		// Fetches list of loans of item
-		$page[] = $this->prepLoansTable( $item_id );
+		$page[] = $this->prepLoansTable( $item->ID );
 		
 		// Lists additional scripts needed for Dash page
 		$scripts = array( 'admin-dashboard-manage-item' );
 		
-		$this->sendPage( 'Scheduling loan of ' . get_the_title( $item_id ), 'Scheduling loan of #' . $item_id, $page, $scripts );
+		$this->sendPage( 'Scheduling loan of ' . get_the_title( $item->ID ), 'Scheduling loan of #' . $item->ID, $page, $scripts );
 	}
 	
 	/**
 	 * Displays form allowing Librarian to renew item, extending its due date
 	 */
 	private function genRenewItem() {
-		// Fetches loan ID, or uses item ID to fetch loan ID
+		// Creates item and loan instances
 		if ( isset( $_POST['item_id'] ) ) {
-			$item_id = $this->getItemId();
+			$item = $this->getItem();
 			
-			$loan_id = get_post_meta( $item_id, 'wp_lib_loan', true );
+			$loan = WP_LIB_LOAN::create( $this->wp_librarian, get_post_meta( $item->ID, 'wp_lib_loan', true ) );
 			
-			// If item is not currently on loan (and thus loan ID is missing from item meta), call error
-			if ( $loan_id === '' )
-				$this->stopAjax( 208 );
+			// If loan ID was invalid (e.g. if item was not on loan) call error
+			if ( wp_lib_is_error( $loan ) )
+				$this->stopAjax( $loan );
 		} else {
-			$loan_id = $this->getLoanId();
+			$loan = $this->getLoan();
 			
-			$item_id = get_post_meta( $loan_id, 'wp_lib_item', true );
+			$item = WP_LIB_ITEM::create( $this->wp_librarian, get_post_meta( $loan->ID, 'wp_lib_item', true ) );
 		}
 		
 		// Counts number of times item has already been renewed
-		$renewed_count = count(get_post_meta( $loan_id, 'wp_lib_renew' ));
+		$renewed_count = count(get_post_meta( $loan->ID, 'wp_lib_renew' ));
 		
 		// Fetches limit to number of times item can be renewed
 		$limit = (int) get_option( 'wp_lib_renew_limit' )[0];
@@ -1783,7 +1790,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		else
 			$renewals_left = wp_lib_plural( $limit - $renewed_count, 'This item can be renewed \v more time\p' );
 		
-		$page[] = $this->prepItemMetaBox( $item_id );
+		$page[] = $this->prepItemMetaBox( $item );
 		
 		$page[] = array(
 			'type'		=> 'paras',
@@ -1799,7 +1806,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 				array(
 					'type'	=> 'hidden',
 					'name'	=> 'loan_id',
-					'value'	=> $loan_id
+					'value'	=> $loan->ID
 				),
 				array(
 					'type'	=> 'date',
@@ -1816,11 +1823,11 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			)
 		);
 		
-		$page[] = $this->prepLoansTable( $item_id );
+		$page[] = $this->prepLoansTable( $item->ID );
 		
 		$this->sendPage(
-			'Renewing Item: ' . get_the_title( $item_id ),
-			'Renewing Item #' . $item_id,
+			'Renewing Item: ' . get_the_title( $item->ID ),
+			'Renewing Item #' . $item->ID,
 			$page
 		);
 	}
@@ -1830,10 +1837,10 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	 */
 	private function genGiveItemPast() {
 		// Fetches and validates Loan ID
-		$loan_id = $this->getLoanId();
+		$loan = $this->getLoan();
 		
 		// Fetches loan meta
-		$meta = get_post_meta( $loan_id );
+		$meta = get_post_meta( $loan->ID );
 		
 		// Checks if loan has correct status to be allowed to 
 		if ( $meta['wp_lib_status'][0] !== '5' || $meta['wp_lib_start_date'][0] > current_time( 'timestamp' ) ) {
@@ -1841,19 +1848,19 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		}
 		
 		$this->sendPage(
-			'Managing: Loan #' . $loan_id,				// Page title
-			'Managing Loan #' . $loan_id,				// Tab title
+			'Managing: Loan #' . $loan->ID,				// Page title
+			'Managing Loan #' . $loan->ID,				// Tab title
 			array(
-				$this->prepLoanMetaBox( $loan_id ),	// Prepares box with useful information about the loan
+				$this->prepLoanMetaBox( $loan ),	// Prepares box with useful information about the loan
 				array(
 					'type'		=> 'form',
 					'content'	=>
 					array(
-						wp_lib_prep_nonce( 'Give item past. loan ID: ' . $loan_id ),
+						$this->prepNonce( 'Give item past. loan ID: ' . $loan->ID ),
 						array(
 							'type'	=> 'hidden',
 							'name'	=> 'loan_id',
-							'value'	=> $loan_id
+							'value'	=> $loan->ID
 						),
 						array(
 							'type'		=> 'paras',
@@ -1882,26 +1889,26 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	 */
 	private function genReturnItemPast() {
 		// Fetches item ID from AJAX request
-		$item_id = $this->getItemId();
+		$item = $this->getItem();
 
 		// Checks if item is on loan
-		if ( !wp_lib_on_loan( $item_id ) )
+		if ( !$item->onLoan() )
 			$this->stopAjax( 402 );
 		
 		$this->sendPage(
-			'Returning: ' . get_the_title( $item_id ),	// Page Title
-			'Returning item #' . $item_id,				// Tab Title
+			'Returning: ' . get_the_title( $item->ID ),	// Page Title
+			'Returning item #' . $item->ID,				// Tab Title
 			array(
-				$this->prepItemMetaBox( $item_id ),// Prepares box with useful details about the item
+				$this->prepItemMetaBox( $item ),// Prepares box with useful details about the item
 				array(
 					'type'		=> 'form',
 					'content'	=>
 					array(
-						wp_lib_prep_nonce( 'Past returning: ' . $item_id ),
+						$this->prepNonce( 'Past returning: ' . $item->ID ),
 						array(
 							'type'	=> 'hidden',
 							'name'	=> 'item_id',
-							'value'	=> $item_id
+							'value'	=> $item->ID
 						),
 						array(
 							'type'	=> 'div',
@@ -1936,48 +1943,41 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	 */
 	private function genLateItemResolution() {
 		// Fetches loan ID using item ID
-		$item_id = $this->getItemId();
+		$item = $this->getItem();
 		
 		// Fetches item ID from loan meta
-		$loan_id = wp_lib_fetch_loan_id( $item_id );
+		$loan = $item->getLoan();
 		
 		// Ensures item is actually late
-		if ( !wp_lib_item_late( $loan_id ) )
+		if ( !$loan->isLate() )
 			$this->stopAjax( 406 );
 		
 		// Fetches current date
 		$date = current_time( 'timestamp' );
 		
 		// Useful variables:
-		// Formatted string of item lateness
-		$days_late = wp_lib_prep_item_due( $item_id, $date, array( 'late' => '\d day\p' ) );
-		// Item's title
-		$title = get_the_title( $item_id );
-		// Librarian set charge for each day an item is late
-		$fine_per_day = get_option( 'wp_lib_fine_daily', array(0) )[0];
-		// Days item is late
-		$late = -wp_lib_cherry_pie( $loan_id, $date );
-		// Total fine member member is facing, if charged
-		$fine = wp_lib_format_money( $fine_per_day * $late );
-		// Fine per day formatted
-		$fine_per_day_formatted = wp_lib_format_money( $fine_per_day );
-		// Member's name
-		$member_name = get_the_title( get_post_meta( $item_id, 'wp_lib_member', true ) );
+		$days_late				= $loan->formatDueDate( $date, array( 'late' => '\d day\p' ) );			// Formatted string of item lateness
+		$title					= get_the_title( $item->ID );											// Item's title
+		$fine_per_day			= get_option( 'wp_lib_fine_daily', array(0) )[0];						// Librarian set charge for each day an item is late
+		$late					= -$loan->cherryPie( $date );											// Days item is late
+		$fine					= wp_lib_format_money( $fine_per_day * $late );							// Total fine member member is facing, if charged
+		$fine_per_day_formatted	= wp_lib_format_money( $fine_per_day );									// Fine per day formatted
+		$member_name			= get_the_title( get_post_meta( $item->ID, 'wp_lib_member', true ) );	// Member's name
 		
 		$this->sendPage(
 			'Resolving Late Item: ' . $title,
-			'Resolving Item #' . $item_id,
+			'Resolving Item #' . $item->ID,
 			array(
-				$this->prepItemMetaBox( $item_id ),
+				$this->prepItemMetaBox( $item ),
 				array(
 					'type'		=> 'form',
 					'content'	=>
 					array(
-						wp_lib_prep_nonce( 'Resolution of item ' . $item_id . ' for loan '. $loan_id ),
+						$this->prepNonce( 'Resolution of item ' . $item->ID . ' for loan '. $loan->ID ),
 						array(
 							'type'	=> 'hidden',
 							'name'	=> 'item_id',
-							'value'	=> $item_id
+							'value'	=> $item->ID
 						),
 						array(
 							'type'		=> 'paras',
@@ -2006,7 +2006,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 						)
 					)
 				),
-				$this->prepLoansTable( $item_id )
+				$this->prepLoansTable( $item->ID )
 			)
 		);
 	}
@@ -2016,17 +2016,17 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	 */
 	private function genPayMemberFines() {
 		// Fetches and validates Member ID
-		$member_id = $this->getMemberId();
+		$member = $this->getMember();
 		
 		// Checks that there is actually money owed, stopping page load on failure
-		if ( wp_lib_fetch_member_owed( $member_id ) == 0 )
+		if ( wp_lib_fetch_member_owed( $member->ID ) == 0 )
 			$this->stopAjax( 206 );
 		
 		$this->sendPage(
-			'Managing: ' . get_the_title( $member_id ),
-			'Managing Member #' . $member_id,
+			'Managing: ' . get_the_title( $member->ID ),
+			'Managing Member #' . $member->ID,
 			array(
-				$this->prepMemberMetaBox( $member_id ),
+				$this->prepMemberMetaBox( $member ),
 				array(
 					'type'		=> 'form',
 					'content'	=>
@@ -2038,9 +2038,9 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 						array(
 							'type'	=> 'hidden',
 							'name'	=> 'member_id',
-							'value'	=> $member_id
+							'value'	=> $member->ID
 						),
-						wp_lib_prep_nonce( 'Pay Member Fines ' . $member_id ),
+						$this->prepNonce( 'Pay Member Fines ' . $member->ID ),
 						array(
 							'type'			=> 'input',
 							'name'			=> 'fine_payment',
@@ -2067,44 +2067,35 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	 * Also displays all objects connected to the current object
 	 */
 	private function genConfirmObjectDeletion() {
-		// If page is being visited from item/member/etc. management pages, fetch post ID from relevant POST field
-		if ( !isset( $_POST['post_id'] ) ) {
-			foreach( ['item','member','loan','fine'] as $key ) {
-				$key .= '_id';
-				// If field exists, fetch object ID from field
-				if ( isset( $_POST[$key] ) ) {
-					$post_id = $_POST[$key];
-					break;
-				}
+		// Looks for post ID in POST fields. Multiple fields are checked because user can come to page from many different places
+		foreach( ['post_id','item_id','member_id','loan_id','fine_id'] as $key ) {
+			// If field exists, fetch object ID from field
+			if ( isset( $_POST[$key] ) ) {
+				$post_id = $_POST[$key];
+				break;
 			}
-			
-			// If no ID field was set, call error
-			if ( !isset( $post_id ) )
-				$this->stopAjax( 314, 'Object ID' );
-		} else {
-			$post_id = $_POST['post_id'];
 		}
 		
-		// Fetches library object type
-		$object_type = wp_lib_get_object_type( $post_id );
+		// If no ID field was set, call error
+		if ( !isset( $post_id ) )
+			$this->stopAjax( 314, 'Object ID' );
 		
-		// If post ID doesn't belong to a valid library object, don't load page
-		if ( !$object_type )
-			wp_lib_page_dashboard();
-		
-		// Renders relevant page title and information based on object type
-		switch( $object_type ) {
-			case 'item':
+		// Renders page title and details based on if object is item/member/loan/fine
+		switch( get_post_type( $post_id ) ) {
+			case 'wp_lib_items':
+				// Creates item instance from item ID
+				$item = WP_LIB_ITEM::create( $this->wp_librarian, $post_id );
+			
 				// If item is on loan, call error
-				if ( wp_lib_on_loan( $post_id ) )
+				if ( $item->onLoan() )
 					$this->stopAjax( 205 );
 				
 				// Renders meta box, displaying useful information about the item
-				$page[] = $this->prepItemMetaBox( $post_id );
+				$page[] = $this->prepItemMetaBox( $item );
 				
 				// Sets titles of Dash page and browser tab
-				$page_title = 'Deleting: ' . get_the_title( $post_id );
-				$tab_title = 'Deleting Item #' . $post_id;
+				$page_title	= 'Deleting: ' . get_the_title( $post_id );
+				$tab_title	= 'Deleting Item #' . $post_id;
 				
 				// Sets object type for use in button labels
 				$object_type = 'Item';
@@ -2119,17 +2110,20 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 				);
 			break;
 			
-			case 'loan':
+			case 'wp_lib_loans':
+				// Creates loan instance from loan ID
+				$loan = WP_LIB_LOAN::create( $this->wp_librarian, $post_id );
+				
 				// If loan is open (item is outside Library), call error
 				if ( get_post_meta( $post_id, 'wp_lib_status', true ) == 1 )
 					$this->stopAjax( 205 );
 				
 				// Renders meta box, displaying useful information about the loan
-				$page[] = $this->prepLoanMetaBox( $post_id );
+				$page[] = $this->prepLoanMetaBox( $loan );
 				
 				// Sets titles of Dash page and browser tab
-				$page_title = 'Deleting: Loan #' . $post_id;
-				$tab_title = 'Deleting Loan #' . $post_id;
+				$page_title	= 'Deleting: Loan #' . $post_id;
+				$tab_title	= 'Deleting Loan #' . $post_id;
 				
 				// Informs user of implications of deletion
 				$page[] = array(
@@ -2141,13 +2135,16 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 				);
 			break;
 			
-			case 'fine':
+			case 'wp_lib_fines':
+				// Creates fine instance from fine ID
+				$fine = WP_LIB_FINE::create( $this->wp_librarian, $post_id );
+			
 				// Renders meta box, displaying useful information about the fine
-				$page[] = $this->prepFineMetaBox( $post_id );
+				$page[] = $this->prepFineMetaBox( $fine );
 				
 				// Sets titles of Dash page and browser tab
-				$page_title = 'Deleting: Fine #' . $post_id;
-				$tab_title = 'Deleting Fine #' . $post_id;
+				$page_title	= 'Deleting: Fine #' . $post_id;
+				$tab_title	= 'Deleting Fine #' . $post_id;
 				
 				// Informs user of implications of deletion
 				$page[] = array(
@@ -2160,13 +2157,16 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 				);
 			break;
 			
-			case 'member':
+			case 'wp_lib_members':
+				// Creates member instance from member ID
+				$member = WP_LIB_MEMBER::create( $this->wp_librarian, $post_id );
+			
 				// Renders meta box, displaying useful information about the member
-				$page[] = $this->prepMemberMetaBox( $post_id );
+				$page[] = $this->prepMemberMetaBox( $member );
 				
 				// Sets dash page title and tab title
-				$page_title = 'Deleting: ' . get_the_title( $post_id );
-				$tab_title = 'Deleting Member #' . $post_id;
+				$page_title	= 'Deleting: ' . get_the_title( $post_id );
+				$tab_title	= 'Deleting Member #' . $post_id;
 				
 				// Informs user of implications of deletion
 				$page[] = array(
@@ -2184,7 +2184,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			'type'		=> 'form',
 			'content'	=>
 			array(
-				wp_lib_prep_nonce( 'Deleting object: ' . $post_id ),
+				$this->prepNonce( 'Deleting object: ' . $post_id ),
 				array(
 					'type'	=> 'hidden',
 					'name'	=> 'post_id',
@@ -2312,17 +2312,17 @@ class WP_LIB_AJAX_API extends WP_LIB_AJAX {
 	 */
 	private function getMemberMetaBox() {
 		// Fetches member ID from AJAX request
-		$member_id = $this->getMemberId();
+		$member = $this->getMember();
 		
 		// Fetches member meta
-		$meta = get_post_meta( $member_id );
+		$meta = get_post_meta( $member->ID );
 		
 		// Sets up header's meta fields
 		$meta_fields = array(
-			array( 'Name', get_the_title( $member_id ) ),
-			array( 'Email', $meta['wp_lib_member_email'][0] ),
-			array( 'On Loan', wp_lib_prep_members_items_out( $member_id ) ),
-			array( 'Owed', wp_lib_format_money( wp_lib_fetch_member_owed( $member_id ) ) )
+			array( 'Name',		get_the_title( $member->ID ) ),
+			array( 'Email',		$meta['wp_lib_member_email'][0] ),
+			array( 'On Loan',	wp_lib_prep_members_items_out( $member->ID ) ),
+			array( 'Owed',		wp_lib_format_money( wp_lib_fetch_member_owed( $member->ID ) ) )
 		);
 		
 		// Finalises and returns member meta box
@@ -2343,7 +2343,7 @@ class WP_LIB_AJAX_API extends WP_LIB_AJAX {
 		// If setting are invalid, run settings integrity check
 		// Otherwise sends settings to user
 		if ( $settings === false ) {
-			wp_lib_load_helper( 'settings' );
+			$this->wp_librarian->loadHelper( 'settings' );
 			WP_LIB_SETTINGS::checkPluginSettingsIntegrity();
 			
 			$this->stopAjax();

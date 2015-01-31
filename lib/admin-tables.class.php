@@ -8,12 +8,19 @@ defined( 'ABSPATH' ) OR die('No');
  */
 class WP_LIB_ADMIN_TABLES {
 	// Instance of core plugin class WP_LIBRARIAN
-	protected $wp_librarian;
+	private $wp_librarian;
+	
+	/**
+	 * Buffer of current table row's post object
+	 * @var array Array containing current row's post item and a WP_LIB_ITEM|WP_LIB_MEMBER|WP_LIB_LOAN|WP_LIB_FINE instance
+	 */
+	protected $row_buffer = array();
+	
 	
 	/**
 	 * Adds WordPress hooks to add custom columns, remove unneeded default columns and add content to the custom columns
 	 */
-	function __construct( $wp_librarian ) {
+	function __construct( WP_LIBRARIAN $wp_librarian ) {
 		$this->wp_librarian = $wp_librarian;
 		
 		// Adds custom columns, removes unneeded columns and changes the order of columns
@@ -22,6 +29,8 @@ class WP_LIB_ADMIN_TABLES {
 		add_filter( 'manage_wp_lib_loans_posts_columns',		array( $this, 'manageLoansTableColumns' ),	10, 1 );
 		add_filter( 'manage_wp_lib_fines_posts_columns',		array( $this, 'manageFinesTableColumns' ),	10, 1 );
 		add_filter( 'manage_users_columns',						array( $this, 'manageUsersTableColumns' ),	10, 1 );
+		
+		add_action( 'load-edit.php',							array( $wp_librarian, 'loadObjectClasses' ) );
 		
 		// Adds content to custom post table columns
 		add_action( 'manage_wp_lib_items_posts_custom_column',	array( $this, 'fillItemsTableColumns' ),	10, 2 );
@@ -41,7 +50,7 @@ class WP_LIB_ADMIN_TABLES {
 	 * @return	array				Modified WordPress post table columns
 	 * @see							http://codex.wordpress.org/Plugin_API/Filter_Reference/manage_posts_columns
 	 */
-	public function manageItemsTableColumns( $columns ) {
+	public function manageItemsTableColumns( $columns ) {	
 		// Adds item status and item condition columns
 		$new_columns = array(
 			'item_status'		=> 'Loan Status',
@@ -126,10 +135,17 @@ class WP_LIB_ADMIN_TABLES {
 	 * @see							http://codex.wordpress.org/Plugin_API/Action_Reference/manage_posts_custom_column
 	 */
 	public function fillItemsTableColumns( $column, $item_id ) {
+		if ( $this->row_buffer[0] !== $item_id ) {
+			$this->row_buffer = array(
+				$item_id,
+				WP_LIB_ITEM::create( $this->wp_librarian, $item_id )
+			);
+		}
+		
 		switch ( $column ) {
 			// Displays the current status of the item (On Loan/Available/Late)
 			case 'item_status':
-				echo wp_lib_prep_item_status( $item_id, false, true );
+				echo $this->row_buffer[1]->formattedStatus( false, true );
 			break;
 			
 			// Fetches and formats the condition the item is in, using a placeholder if the condition is unspecified
@@ -203,7 +219,7 @@ class WP_LIB_ADMIN_TABLES {
 			// Displays member that item has been loaned to
 			case 'loan_member':
 				// Renders member's name as a link to manage that member
-				echo wp_lib_fetch_member_name( $loan_id, true );
+				echo wp_lib_manage_member_hyperlink( get_post_meta( $loan_id, 'wp_lib_member', true ) );
 			break;
 			
 			// Displays loan status (Open/Closed)
@@ -258,19 +274,14 @@ class WP_LIB_ADMIN_TABLES {
 				echo wp_lib_hyperlink( wp_lib_manage_fine_url( $fine_id ), '#' . $fine_id );
 			break;
 			
-			// Displays title of item fine is for with link to view item
+			// Displays item that caused fine creation with link to manage item
 			case 'fine_item':
-				// Fetches item ID from loan meta
-				$item_id = get_post_meta( $fine_id, 'wp_lib_item', true );
-				
-				// Renders item title with hyperlink to manage item
-				echo wp_lib_manage_item_hyperlink( $item_id );
+				echo wp_lib_manage_item_hyperlink( get_post_meta( $fine_id, 'wp_lib_item', true ) );
 			break;
 			
-			// Displays member that has been fined
+			// Displays member that has been fined as link to manage member
 			case 'fine_member':
-				// Renders member's name with link to manage said member
-				echo wp_lib_fetch_member_name( $fine_id, true );
+				echo wp_lib_manage_member_hyperlink( get_post_meta( $fine_id, 'wp_lib_member', true ) );
 			break;
 			
 			// Displays status of fine (whether it is unpaid/paid/cancelled)

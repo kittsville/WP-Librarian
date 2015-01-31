@@ -7,14 +7,24 @@
 // No direct loading
 defined( 'ABSPATH' ) OR die('No');
 
-	/* -- File Management -- */
+	/* -- Exception Handling -- */
 
 /**
- * Loads helper file from /helper directory
- * @param	string	$helper	Name of helper file excluding .class.php
+ * Generates error based on given error code and, if not an AJAX request, kills thread
+ * @param int			$error_id	Error that has occurred
+ * @param string|array	$param		OPTIONAL Relevant parameters to error to enhance error message (not optional for certain error messages)
  */
-function wp_lib_load_helper( $helper ) {
-	require_once( dirname( __FILE__ ) . '/helpers/' . $helper . '.class.php' );
+function wp_lib_error( $error_id, $param = null ) {
+	return new WP_LIB_ERROR( $error_id, $param );
+}
+
+/*
+ * Determines whether given data is an instance of a library error
+ * @param	mixed	$object	Data to be checked
+ * @return	bool			Whether given data is a library error
+ */
+function wp_lib_is_error( $object ) {
+	return ($object instanceof WP_LIB_ERROR);
 }
 
 	/* -- Permissions -- */
@@ -127,52 +137,7 @@ function wp_lib_valid_isbn( $isbn ) {
 
 // If member exists, return member ID, otherwise return empty string
 function wp_lib_sanitize_donor( $member_id ) {
-	return ( get_post_type( $member_id ) === 'wp_lib_members' ) ? $member_id : '';
-}
-
-	/* -- Data Validation Functions -- */
-
-// Checks if ID belongs to valid Library item, returns object type if true
-function wp_lib_get_object_type( $post_id ) {
-	// Checks if item ID exists
-	if ( !$post_id ) {
-		wp_lib_error( 314, 'ID of library object' );
-		return false;
-	}
-
-	// Checks if ID is a number
-	if ( !is_numeric( $post_id ) ) {
-		wp_lib_error( 301, 'ID of library object' );
-		return false;
-	}
-	
-	// Gets object's post type
-	$post_type = get_post_type( $post_id );
-	
-	// Returns Library object type
-	switch ( get_post_type( $post_id ) ) {
-		case 'wp_lib_items':
-			return 'item';
-		break;
-		
-		case 'wp_lib_members':
-			return 'member';
-		break;
-		
-		case 'wp_lib_loans':
-			return 'loan';
-		break;
-		
-		case 'wp_lib_fines':
-			return 'fine';
-		break;
-		
-		default:
-			// Otherwise object does not belong to the Library
-			wp_lib_error( 317 );
-			return false;
-		break;
-	}
+	return ( get_post_type( (int)$member_id ) === 'wp_lib_members' ) ? $member_id : '';
 }
 
 	/* -- URLs and Slugs -- */
@@ -425,6 +390,28 @@ function wp_lib_var_dump() {
 	echo '</div>';
 }
 
+// Calculates time taken to calculate a number of given functions
+function wp_lib_test_functions() {
+	$functions = func_get_args();
+	$times_ran = 10000;
+	echo 'Each function was run ' . $times_ran . ' times<br/>';
+	foreach ( $functions as $key => $function ) {
+		$time_start = microtime(true);
+		
+		$i = 0;
+		
+		while ( $i++ < $times_ran ) {
+			$function();
+		}
+		
+		$time_end = microtime(true);
+		
+		echo '<strong>Function #' . $key . ' </strong> took: ' . ( ($time_end - $time_start)/$times_ran * 1000 ) . ' milliseconds';
+	}
+	
+	
+}
+
 	/* -- Statuses -- */
 
 // Turns numeric loan status into readable string e.g. 1 -> 'On Loan'
@@ -441,8 +428,7 @@ function wp_lib_format_loan_status( $status ) {
 	
 	// If given number refers to a status that doesn't exist, throw error
 	if ( empty( $strings[$status] ) ) {
-		wp_lib_error( 201, 'Loan' );
-		return false;
+		return wp_lib_error( 201, 'Loan' );
 	}
 	
 	// State is looked up in the array and returned
@@ -460,8 +446,7 @@ function wp_lib_format_fine_status( $status ) {
 	
 	// If given number refers to a status that doesn't exist, throw error
 	if ( empty( $strings[$status] ) ) {
-		wp_lib_error( 201, 'Fine' );
-		return false;
+		return wp_lib_error( 201, 'Fine' );
 	}
 	
 	// State is looked up in the array and returned
@@ -475,8 +460,7 @@ function wp_lib_format_user_permission_status( $status ) {
 	
 	// If given number refers to a status that doesn't exist, throw error
 	if ( !array_key_exists( $status, $strings ) ) {
-		wp_lib_error( 201, 'User' );
-		return false;
+		return wp_lib_error( 201, 'User' );
 	}
 	
 	// State is looked up in the array and returned
@@ -495,7 +479,7 @@ function wp_lib_fetch_user_permission_status( $user_id ) {
 }
 
 // Returns formatted item condition given item number
-function wp_lib_format_item_condition( $number, $full = true ) {
+function wp_lib_format_item_condition( $number ) {
 	// All possible conditions item can be in
 	$states = array(
 		4 => 'Excellent',
@@ -508,14 +492,91 @@ function wp_lib_format_item_condition( $number, $full = true ) {
 	// If item has not been given a state, return placeholder
 	if ( !array_key_exists( $number, $states ) )
 		return '-';
-	
-	if ( $full )
-		return $number . ' - ' . $states[$number];
 	else
-		return $states[$number];	
+		return $number . ' - ' . $states[$number];
 }
 
 	/* -- Miscellaneous -- */
+
+/**
+ * Given an array of loans, checks if a proposed loan would be viable
+ * Use create_loan_index to generate and sort the ordered loan index necessary for the function
+ * @param	int		$proposed_start	Proposed start of new loan as a UNIX timestamp
+ * @param	int		$proposed_end	Proposed end of new loan as a UNIX timestamp
+ * @param	array	$loans			List of existing loans, ordered chronologically. Can't be empty array
+ * @param	int		$current		Current position in array being checked by recursive_scheduling_engine()
+ * @return	bool					Whether the proposed loan would be viable
+ * @todo							Move to dedicated class or create wrapper than handles empty $loans cases
+ */
+function wp_lib_recursive_scheduling_engine( $proposed_start, $proposed_end, $loans, $current = 0 ) {
+	// Creates key for previous and next loans, regardless of if they exist
+	$previous = $current - 1;
+	$next = $current + 1;
+	
+	// Checks if a loan exists before current loan, if so then there is a gap to be checked for suitability
+	if ( isset($loans[$previous]) ) {
+		// If the proposed loan starts after the $previous loan ends and ends before the $current loan starts, then the proposed loan would work
+		if ( $proposed_start > $loans[$previous]['end'] && $proposed_end < $loans[$current]['start'] )
+			return true;
+	}
+	// Otherwise $current loan is earliest loan, so if proposed loan ends before $current loan starts, proposed loan would work
+	elseif ( $proposed_end < $loans[$current]['start'] )
+		return true;
+	
+	// Checks if a loan exists after the $current loan, if so then function calls itself on the next loan
+	if ( isset($loans[$next]) )
+		return wp_lib_recursive_scheduling_engine( $proposed_start, $proposed_end, $loans, $next );
+	
+	// Otherwise $current loan is last loan, so if proposed loan starts after $current loan ends, proposed loan would work
+	elseif ( $proposed_start > $loans[$current]['end'] )
+		return true;
+	
+	// If this statement is reached, all loans have been checked and no viable gap has been found, so proposed loan will not work
+	return false;
+}
+
+function wp_lib_prep_member_options( $default_option = true ) {
+	// Initialises options
+	$option = array();
+	
+	// Adds default option, if specified
+	if ( $default_option ) {
+		$options[] = array(
+			'value'	=> '',
+			'html'	=> 'Member'
+		);
+	}
+	
+	$args = array(
+		'post_type'		=> 'wp_lib_members',
+		'post_status'	=> 'publish'
+	);
+	
+	// Fetches all, if any, members
+	$query = NEW WP_Query( $args );
+	
+	// Checks for any loans attached to member
+	if ( $query->have_posts() ){
+		// Iterates through loans
+		while ( $query->have_posts() ) {
+			$query->the_post();
+			
+			// Fetches member ID
+			$member_id = get_the_ID();
+			
+			// Skips displaying member if member has been archived
+			if ( get_post_meta( $member_id, 'wp_lib_member_archive', true ) )
+				continue;
+			
+			// Adds member's details to the options array
+			$options[] = array(
+				'value'	=> get_the_ID(),
+				'html'	=> get_the_title()
+			);
+		}
+	}
+	return $options;
+}
 
 // Returns the number of items currently on loan by the member
 function wp_lib_prep_members_items_out( $member_id ) {
@@ -539,34 +600,6 @@ function wp_lib_prep_members_items_out( $member_id ) {
 	return $query->post_count;
 }
 
-/**
- * Checks if item can be renewed
- * @param	int 	$loan_id	Post ID of current item's loan
- * @return	bool	If item is eligible for renewal
- */
-function wp_lib_loan_renewable( $loan_id ) {
-	// Checks if loan is currently open (item is with member)
-	if ( get_post_meta( $loan_id, 'wp_lib_status', true ) !== '1' )
-		return false;
-	
-	// Counts number of times item has already been renewed
-	$renewed = count(get_post_meta($loan_id, 'wp_lib_renew'));
-	
-	// If item hasn't been renewed on this loan yet, it will be able to be renewed at least once
-	if ( $renewed === 0 )
-		return true;
-	
-	// Fetches limit to number of times an item can be renewed
-	$limit = (int) get_option( 'wp_lib_renew_limit' )[0];
-	
-	// If no limit is set (infinite), item can be renewed
-	if ( $limit === 0 )
-		return true;
-	// If number of times left that item can be renewed is positive, item can be renewed
-	else
-		return ( ( $limit - $renewed ) > 0 );
-}
-
 // Fetches amount member owes Library in fines
 function wp_lib_fetch_member_owed( $member_id ) {
 	// Fetches total money owed by member to Library
@@ -577,45 +610,6 @@ function wp_lib_fetch_member_owed( $member_id ) {
 		$owed = 0;
 	
 	return $owed;
-}
-
-// Fetches member's name given a connected Library object (item/loan/fine)
-function wp_lib_fetch_member_name( $post_id, $hyperlink = false ) {
-	// Fetches member ID from given object's meta
-	$member_id = get_post_meta( $post_id, 'wp_lib_member', true );
-	
-	// Fetches Member's name
-	$member_name = get_the_title( $member_id );
-	
-	if ( $hyperlink ) {
-		return wp_lib_hyperlink( wp_lib_manage_member_url( $member_id ), $member_name );
-	} else {
-		return $member_name;
-	}
-}
-
-// Cancels loan of item that has a since corrupted loan attached to it
-// This function should not be called under regular operation and should definitely not used to return an item
-function wp_lib_clean_item( $item_id ){
-	// Checks if given ID is valid
-	wp_lib_check_item_id( $item_id );
-	
-	$loan_id = get_post_meta( $item_id, 'wp_lib_loan', true );
-	$member_id = get_post_meta( $item_id, 'wp_lib_member', true );
-
-	// Deletes loan related meta from item's meta
-	delete_post_meta( $item_id, 'wp_lib_loan' );
-	
-	if ( $member_id ) {
-		delete_post_meta( $item_id, 'wp_lib_member' );
-		wp_lib_add_notification( 'Member ' . get_the_title( $member_id ) . ' has been removed from item' );
-	}
-	
-	if ( $loan_id ) {
-		wp_lib_add_notification( 'Loan ' . $loan_id . ' has been removed from item' );
-	}
-	
-	return true;
 }
 
 // Updates multiple meta values of a post
@@ -649,145 +643,6 @@ function wp_lib_prep_admin_meta( $post_id, $formatting ) {
 	
 	// Returns prepared meta
 	return $meta;
-}
-
-// Returns "Available" or "Unavailable" string depending on if item if available to loan
-function wp_lib_prep_item_status( $item_id, $no_url = false, $short = false ) {
-	// Checks if the current user was the permissions of a Librarian
-	$is_librarian = wp_lib_is_librarian();
-	
-	// Fetches if item is currently on loan
-	$on_loan = wp_lib_on_loan( $item_id );
-	
-	// If item can be loaned and is available, url is made to take user to loans Dashboard to loan item
-	if ( wp_lib_loan_allowed( $item_id ) && !$on_loan )
-		$status = 'Available';
-	
-	// If item is on loan link is composed to return item
-	elseif ( $on_loan ) {
-		// Sets item status accordingly
-		$status = 'On Loan';
-		
-		// Checks if user has permission to see full details of current loan
-		if ( $is_librarian ) {
-			// If user wants full item status, member that item is loaned to is fetched
-			if ( !$short ) {
-				$status .= ' to ' . wp_lib_fetch_member_name( $item_id );
-			}
-			$args = array(
-			'due'	=> 'due in \d day\p',
-			'today'	=> 'due today',
-			'late'	=> '\d day\p late',
-			);
-			$status .= ' (' . wp_lib_prep_item_due( $item_id, false, $args ) . ')';
-		}
-	}
-	
-	// If item isn't allowed to be loaned item is marked as unavailable
-	else {
-		$use_url = false;
-		$status = 'Unavailable';
-	}
-	
-	// If user has the relevant permissions, availability will contain link to manage item
-	if ( $is_librarian && !$no_url ) {
-		return wp_lib_hyperlink( wp_lib_manage_item_url( $item_id ), $status );
-	}
-	
-	// String is concatenated and returned
-	return $status;
-}
-
-// Renders item's tax terms and public meta to the page
-function wp_lib_display_item_meta( $item_id, $item_permalink = true ) {
-	// Fetches default taxonomy spacer
-	$spacer = get_option( 'wp_lib_taxonomy_spacer', array(', ') )[0];
-	
-	// If user is librarian (or higher), or if the donor is set to be displayed, fetches item donor
-	// If user isn't a librarian, or there is no listed donor, returns false
-	$donor_id = ( wp_lib_is_librarian() || get_post_meta( $item_id, 'wp_lib_display_donor', true ) ? get_post_meta( $item_id, 'wp_lib_item_donor', true ) : false );
-	
-	// If donor ID belongs to a valid donor, fetch donor's name
-	$donor = ( is_numeric( $donor_id ) ? get_the_title( $donor_id ) : false );
-	
-	// Creates array of raw item meta
-	$raw_meta = array(
-		array( 'Title',			get_the_title( $item_id )),
-		array( 'Media Type',	get_the_terms( $item_id, 'wp_lib_media_type' )),
-		array( 'Author',		get_the_terms( $item_id, 'wp_lib_author' )),
-		array( 'Donor',			$donor ),
-		array( 'ISBN',			get_post_meta( $item_id, 'wp_lib_item_isbn', true )),
-		array( 'Status',		wp_lib_prep_item_status( $item_id ))
-	);
-	
-	// If item title should be a link to manage the item
-	if ( $item_permalink )
-		$raw_meta[0][2] = get_permalink( $item_id );
-	
-	// Initialises formatted meta output
-	$meta_output = array();
-	
-	// Iterates over raw taxonomy 
-	foreach ( $raw_meta as $key => $meta ) {
-		// If meta value is a tax term
-		if ( is_array( $meta[1] ) ) {
-			// Initilises output for tax terms
-			$tax_terms_output = array();
-			
-			// Iterates through tax terms
-			foreach ( $meta[1] as $tax_key => $tax_term ) {
-				// Gets tax term's URL
-				$tax_url = get_term_link( $tax_term );
-				
-				// Deletes term if error occurred
-				if ( is_wp_error( $tax_url ) )
-					continue;
-				
-				// Formats tax item as link
-				$tax_terms_output[] = '<a href="' . esc_url( $tax_url ) . '">' . $tax_term->name . '</a>';
-			}
-			
-			// Overwrites tax term objects with formatted tax terms
-			$meta[1] = $tax_terms_output;
-			
-			// Counts number of valid tax terms
-			$count = count( $meta[1] );
-			
-			// If all tax terms were invalid, remove meta value
-			if ( $count === 0 ) {
-				unset( $tax_array[$key] );
-				continue;
-			// If there is one than one of a taxonomy item it makes the term plural (Author -> Authors)
-			} elseif ( $count > 1 ) {
-				$meta[0] .= 's';
-			}
-			
-			// Implodes array into string separated by users preferred spacer
-			$meta[1] = implode( $spacer, $meta[1] );
-		}
-		
-		// If output is a string with a URL, create hyperlink
-		if ( isset( $meta[2] ) )
-			$meta[1] = '<a href="' . $meta[2] . '">' . $meta[1] . '</a>';
-		
-		// If meta output is valid, add to output
-		if ( $meta[1] !== false && $meta[1] !== '' )
-			$meta_output[] = $meta;
-	}
-	
-	// If there are any remaining valid meta fields
-	if ( count( $meta_output ) > 0 ) {
-		// Renders description list
-		echo '<table class="item-metabox"><tbody>';
-		
-		// Iterates over meta fields, rendering them to details list
-		foreach ( $meta_output as $meta_field ) {
-			echo '<tr class="meta-row"><th>' . $meta_field[0] . ':</th><td>' . $meta_field[1] . '</td></tr>';
-		}
-		
-		// Ends Description list
-		echo '</tbody></table>';
-	}
 }
 
 // Recursively searches for any Library objects connected directly or indirectly to a given object. Uses depth first searching
@@ -857,17 +712,5 @@ function wp_lib_fetch_dependant_objects( $post_id, $post_type = false, $connecte
 	}
 	
 	return $connected_posts;
-}
-
-// Creates a nonce for use on Dashboard pages
-function wp_lib_prep_nonce( $action ) {
-	// Creates nonce
-	$nonce = wp_create_nonce( $action );
-	
-	// Builds and returns form field
-	return array(
-		'type'	=> 'nonce',
-		'value'	=> $nonce
-	);
 }
 ?>

@@ -18,12 +18,15 @@ class WP_LIBRARIAN {
 		$this->plugin_path	= dirname( dirname(__FILE__) );
 		$this->plugin_url	= plugins_url( '', dirname(__FILE__) );
 		
+		// Registers functions to WordPress hooks
 		$this->registerHooks();
 		
+		// Automatically loads error class
+		$this->loadHelper( 'error' );
+		
 		// Loads various necessary libraries
-		require_once ($this->plugin_path . '/wp-librarian-functions.php');
 		require_once ($this->plugin_path . '/wp-librarian-helpers.php');
-		require_once ($this->plugin_path . '/lib/admin-tables.class.php');
+		$this->loadClass( 'admin-tables' );
 	}
 
 	/**
@@ -88,6 +91,29 @@ class WP_LIBRARIAN {
 	}
 	
 	/**
+	 * Loads helper file from /helper directory
+	 * @param	string	$helper	Name of helper file, excluding .class.php
+	 */
+	public function loadHelper( $helper ) {
+		require_once( $this->plugin_path . '/helpers/' . $helper . '.class.php' );
+	}
+	
+	/**
+	 * Loads library class from /lib directory
+	 * @param	string	$helper	Name of library to be loaded, excluding .class.php
+	 */
+	public function loadClass( $library ) {
+		require_once( $this->plugin_path . '/lib/' . $library . '.class.php' );
+	}
+	
+	/**
+	 * Loads classes that handle library's objects (items, loans, etc.)
+	 */
+	public function loadObjectClasses() {
+		foreach ( ['library-object', 'item', 'member', 'loan', 'fine'] as $object_class ) $this->loadClass( $object_class );
+	}
+	
+	/**
 	 * Given the name of an admin template file, loads
 	 * @param	string	$name	File name, e.g. 'settings'
 	 */
@@ -111,7 +137,7 @@ class WP_LIBRARIAN {
 			wp_lib_update_user_meta( get_current_user_id(), 10 );
 			
 			// Creates all settings plugin needs to run
-			wp_lib_load_helper( 'settings' );
+			$this->loadHelper( 'settings' );
 			WP_LIB_SETTINGS::addPluginSettings();
 			
 			// Registers default media types
@@ -676,7 +702,7 @@ class WP_LIBRARIAN {
 	 */
 	public function registerSettings() {
 		// Loads file with settings classes
-		wp_lib_load_helper( 'settings' );
+		$this->loadHelper( 'settings' );
 	
 		/* -- General Library Settings -- */
 		
@@ -978,7 +1004,7 @@ class WP_LIBRARIAN {
 				// If settings have been updated (or failed to do so)
 				if ( isset( $_GET['settings-updated'] ) ) {
 					// Loads helper to manage settings sections
-					wp_lib_load_helper( 'settings' );
+					$this->loadHelper( 'settings' );
 					
 					// Checks that all plugin settings are valid, resets any settings that aren't
 					WP_LIB_SETTINGS::checkPluginSettingsIntegrity();
@@ -999,7 +1025,7 @@ class WP_LIBRARIAN {
 	 * Generates a Dashboard page, dynamically loaded onto the Library Dashboard
 	 */
 	public function ajaxLoadPage() {
-		wp_lib_load_helper('ajax');
+		$this->loadHelper('ajax');
 		new WP_LIB_AJAX_PAGE( $this );
 		die(0);
 	}
@@ -1008,7 +1034,7 @@ class WP_LIBRARIAN {
 	 * Performs a Dashboard action, modifying the Library in some way (such as loaning an item)
 	 */
 	public function ajaxDoAction() {
-		wp_lib_load_helper('ajax');
+		$this->loadHelper('ajax');
 		new WP_LIB_AJAX_ACTION( $this );
 		die(0);
 	}
@@ -1017,7 +1043,7 @@ class WP_LIBRARIAN {
 	 * Performs an API request, fetching information for an already loaded Dashboard page
 	 */
 	public function ajaxDoApiRequest() {
-		wp_lib_load_helper('ajax');
+		$this->loadHelper('ajax');
 		new WP_LIB_AJAX_API( $this );
 		die(0);
 	}
@@ -1106,6 +1132,37 @@ class WP_LIBRARIAN {
 	 */
 	public function getTemplateDir( $name ) {
 		return $this->plugin_path . '/templates/' . $name . '.php';
+	}
+	
+	/*
+	 * If given ID belongs to a valid library object, returns formatted object type
+	 * @param	int					$post_id	Post ID of library object (item/member/etc.)
+	 * @return	string|WP_LIB_ERROR				Formatted object type or instance of error
+	 */
+	public function getObjectType( $post_id ) {
+		// Returns Library object type
+		switch ( get_post_type( $post_id ) ) {
+			case 'wp_lib_items':
+				return 'item';
+			break;
+			
+			case 'wp_lib_members':
+				return 'member';
+			break;
+			
+			case 'wp_lib_loans':
+				return 'loan';
+			break;
+			
+			case 'wp_lib_fines':
+				return 'fine';
+			break;
+			
+			default:
+				// Otherwise object does not belong to the Library
+				return wp_lib_error( 317 );
+			break;
+		}
 	}
 	
 	/**
@@ -1218,7 +1275,11 @@ class WP_LIBRARIAN {
 		if ( get_post_type() === 'wp_lib_items' ) {
 			// Name of archive/single post templates
 			$archive_name	= 'archive-wp_lib_items';
-			$single_name		= 'single-wp_lib_items';
+			$single_name	= 'single-wp_lib_items';
+			
+			// Loads template hook class
+			$this->loadClass( 'template-hooks' );
+			new WP_LIB_TEMPLATE_HOOKS( $this );
 			
 			// If page is archive of multiple items
 			if ( is_archive() ) {
