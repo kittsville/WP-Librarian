@@ -2382,18 +2382,15 @@ class WP_LIB_AJAX_API extends WP_LIB_AJAX {
 				'compare'	=> 'IN'
 			);
 		}
-			
-		// Sets up meta query arguments
-		$args = array(
+
+		// Looks for post(s) with barcode
+		$query = new WP_Query(array(
 			'post_type'		=> 'wp_lib_items',
 			'post_status'	=> 'publish',
 			'meta_query'	=> array(
 				$meta_query
 			)
-		);
-		
-		// Looks for post(s) with barcode
-		$query = new WP_Query( $args );
+		));
 		
 		// Checks number of posts found
 		$posts_found = $query->found_posts;

@@ -580,8 +580,8 @@ function wp_lib_prep_member_options( $default_option = true ) {
 
 // Returns the number of items currently on loan by the member
 function wp_lib_prep_members_items_out( $member_id ) {
-	// Sets up meta query arguments
-	$args = array(
+	// Queries post table for all items marked as currently in member's possession
+	$query = NEW WP_Query(array(
 		'post_type'		=> 'wp_lib_items',
 		'post_status'	=> 'publish',
 		'meta_query'	=> array(
@@ -591,10 +591,7 @@ function wp_lib_prep_members_items_out( $member_id ) {
 				'compare'	=> 'IN'
 			)
 		)
-	);
-	
-	// Queries post table for all items marked as currently in member's possession
-	$query = NEW WP_Query( $args );
+	));
 
 	// Returns number of items to post table
 	return $query->post_count;
