@@ -2110,6 +2110,27 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 				);
 			break;
 			
+			case 'wp_lib_members':
+				// Creates member instance from member ID
+				$member = WP_LIB_MEMBER::create( $this->wp_librarian, $post_id );
+			
+				// Renders meta box, displaying useful information about the member
+				$page[] = $this->prepMemberMetaBox( $member );
+				
+				// Sets dash page title and tab title
+				$page_title	= 'Deleting: ' . get_the_title( $post_id );
+				$tab_title	= 'Deleting Member #' . $post_id;
+				
+				// Informs user of implications of deletion
+				$page[] = array(
+					'type'		=> 'paras',
+					'content'	=> array(
+						'Deleting a member is a permanent action. You can choose to also delete all loans/fines dependant on this member',
+						'If you want to delete members in bulk, without this prompt, allow bulk deletion via WP-Librarian\'s settings'
+					)
+				);
+			break;
+			
 			case 'wp_lib_loans':
 				// Creates loan instance from loan ID
 				$loan = WP_LIB_LOAN::create( $this->wp_librarian, $post_id );
@@ -2153,27 +2174,6 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 						'Deleting a fine is a permanent action and will result in the deletion of any loan dependant on this fine',
 						'To remove any money owed by the member because of this fine, cancel the fine first',
 						'If you want to delete fines in bulk, without this prompt, allow bulk deletion via WP-Librarian\'s settings'
-					)
-				);
-			break;
-			
-			case 'wp_lib_members':
-				// Creates member instance from member ID
-				$member = WP_LIB_MEMBER::create( $this->wp_librarian, $post_id );
-			
-				// Renders meta box, displaying useful information about the member
-				$page[] = $this->prepMemberMetaBox( $member );
-				
-				// Sets dash page title and tab title
-				$page_title	= 'Deleting: ' . get_the_title( $post_id );
-				$tab_title	= 'Deleting Member #' . $post_id;
-				
-				// Informs user of implications of deletion
-				$page[] = array(
-					'type'		=> 'paras',
-					'content'	=> array(
-						'Deleting a member is a permanent action. You can choose to also delete all loans/fines dependant on this member',
-						'If you want to delete members in bulk, without this prompt, allow bulk deletion via WP-Librarian\'s settings'
 					)
 				);
 			break;
