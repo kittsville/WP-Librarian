@@ -29,7 +29,7 @@ class WP_LIB_FINE extends WP_LIB_OBJECT {
 			return wp_lib_error( 313 );
 		
 		// Fetches member from fine meta
-		$member = WP_LIB_MEMBER::create( get_post_meta( $this->ID, 'wp_lib_member', true ), 'derp' );
+		$member = WP_LIB_MEMBER::create( $this->wp_librarian, get_post_meta( $this->ID, 'wp_lib_member', true ) );
 		
 		if ( wp_lib_is_error( $member ) )
 			return $member;

@@ -208,7 +208,7 @@ class WP_LIB_LOAN extends WP_LIB_OBJECT {
 		}
 		
 		// Creates item object from item ID in loan meta
-		$item = WP_LIB_ITEM::create( $meta['wp_lib_item'][0] );
+		$item = WP_LIB_ITEM::create( $this->wp_librarian, $meta['wp_lib_item'][0] );
 		
 		// Creates list of all loans of item, including future scheduled loans
 		$loans = $item::createLoanIndex();
@@ -308,7 +308,7 @@ class WP_LIB_LOAN extends WP_LIB_OBJECT {
 					add_post_meta( $this->ID, 'wp_lib_fine', $fine_id );
 					
 					// Creates member object to access member methods
-					$member = WP_LIB_MEMBER::create( $wp_librarian, $member_id );
+					$member = WP_LIB_MEMBER::create( $this->wp_librarian, $member_id );
 					
 					// Fetches member's current fine total and adds fine to it
 					$fine_total = wp_lib_fetch_member_owed( $member_id ) + $fine;
