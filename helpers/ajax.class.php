@@ -563,24 +563,18 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 		// Validates Nonce
 		$this->checkNonce( 'Pay Member Fines ' . $member->ID );
 		
-		// Fetches member's current amount owed in fines
-		$owed = wp_lib_fetch_member_owed( $member->ID );
+		// Attempts to pay fine
+		$success = $member->payMoneyOwed( $fine_payment );
 		
-		// If fine payment is negative or failed to validate (resulting in 0), call error
-		if ( $fine_payment <= 0 )
-			$this->stopAjax( 320 );
-		// If proposed amount is greater than the amount that needs to be paid, call error
-		elseif ( $fine_payment > $owed )
-			$this->stopAjax( 321 );
-		
-		// Subtracts proposed amount from amount owed by member
-		$owed = $owed - $fine_payment;
-		
-		// Updates member's amount owed
-		update_post_meta( $member->ID, 'wp_lib_owed', $owed );
+		// If payment failed, send error to user
+		if ( wp_lib_is_error( $success ) )
+			$this->stopAjax( $success );
 		
 		// Sets up notification for successful fine reduction
 		$notification = wp_lib_format_money( $fine_payment ) . ' in fines has been paid by ' . get_the_title( $member->ID ) . '.';
+		
+		// Fetches new amount owed by member
+		$owed = $member->getMoneyOwed();
 		
 		// If money is still owed by the member, inform librarian
 		if ( $owed != 0 )
@@ -905,7 +899,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			array( 'Email',		$meta['wp_lib_member_email'][0] ),
 			array( 'Phone',		$meta['wp_lib_member_phone'][0] ),
 			array( 'Mobile',	$meta['wp_lib_member_mobile'][0] ),
-			array( 'Owed',		wp_lib_format_money( wp_lib_fetch_member_owed( $member->ID ) ) ),
+			array( 'Owed',		wp_lib_format_money( $member->getMoneyOwed() ) ),
 			array( 'On Loan',	wp_lib_prep_members_items_out( $member->ID ) )
 		);
 		
@@ -972,7 +966,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 				array( 'Item',		wp_lib_manage_item_dash_hyperlink( $meta['wp_lib_item'][0] ) ),
 				array( 'Member',	wp_lib_manage_member_dash_hyperlink( $meta['wp_lib_member'][0] ) ),
 				array( 'Creator',	$this->getUserName( get_post_field( 'post_author', $fine->ID ) ) ),
-				array( 'Amount',	wp_lib_format_money( $meta['wp_lib_fine'][0] ) ),
+				array( 'Amount',	wp_lib_format_money( $meta['wp_lib_owed'][0] ) ),
 				array( 'Status',	wp_lib_format_fine_status( $meta['wp_lib_status'][0] ) ),
 				array( 'Created',	get_the_date( '', $fine->ID ) )
 			)
@@ -1373,7 +1367,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		);
 		
 		// Fetches amount owed by member to Library
-		$owed = wp_lib_fetch_member_owed( $member->ID );
+		$owed = $member->getMoneyOwed();
 		
 		// If money is owed by the member
 		if ( $owed > 0 ) {
@@ -2029,7 +2023,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		$member = $this->getMember();
 		
 		// Checks that there is actually money owed, stopping page load on failure
-		if ( wp_lib_fetch_member_owed( $member->ID ) == 0 )
+		if ( $member->getMoneyOwed() <= 0 )
 			$this->stopAjax( 206 );
 		
 		$this->sendPage(

@@ -602,18 +602,6 @@ function wp_lib_prep_members_items_out( $member_id ) {
 	return $query->post_count;
 }
 
-// Fetches amount member owes Library in fines
-function wp_lib_fetch_member_owed( $member_id ) {
-	// Fetches total money owed by member to Library
-	$owed = get_post_meta( $member_id, 'wp_lib_owed', true );
-	
-	// If blank, assumes nothing is owed
-	if ( $owed == '' )
-		$owed = 0;
-	
-	return $owed;
-}
-
 // Updates multiple meta values of a post
 function wp_lib_update_meta( $post_id, $meta_array ) {
 	foreach ( $meta_array as $key => $value ) {

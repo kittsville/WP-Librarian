@@ -165,6 +165,13 @@ class WP_LIB_ADMIN_TABLES {
 	 * @see							http://codex.wordpress.org/Plugin_API/Action_Reference/manage_posts_custom_column
 	 */
 	public function fillMembersTableColumns( $column, $member_id ) {
+		if ( $this->row_buffer[0] !== $member_id ) {
+			$this->row_buffer = array(
+				$member_id,
+				WP_LIB_MEMBER::create( $this->wp_librarian, $member_id )
+			);
+		}
+		
 		switch ( $column ) {
 			// Displays the current status of the item (On Loan/Available/Late)
 			case 'member_name':
@@ -178,7 +185,7 @@ class WP_LIB_ADMIN_TABLES {
 			
 			// Displays total amount currently owed to the Library in late item fines
 			case 'member_fines':
-				echo wp_lib_format_money( wp_lib_fetch_member_owed( $member_id ) );
+				echo wp_lib_format_money( $this->row_buffer[1]->getMoneyOwed() );
 			break;
 			
 			// Displays total number of items donated by the member to the Library
@@ -299,7 +306,7 @@ class WP_LIB_ADMIN_TABLES {
 			// Displays total charge to member
 			case 'fine_amount':
 				// Fetches fine amount from fine's post meta
-				$fine = get_post_meta( $fine_id, 'wp_lib_fine', true );
+				$fine = get_post_meta( $fine_id, 'wp_lib_owed', true );
 				
 				// Formats fine with local currency and displays it
 				echo wp_lib_format_money( $fine );

@@ -300,7 +300,7 @@ class WP_LIB_LOAN extends WP_LIB_OBJECT {
 							'wp_lib_loan'	=> $this->ID,
 							'wp_lib_member'	=> $member_id,
 							'wp_lib_status'	=> 1,
-							'wp_lib_fine'	=> $fine_amount
+							'wp_lib_owed'	=> $fine_amount
 						)
 					);
 					

@@ -135,13 +135,52 @@ class WP_LIBRARIAN {
 	 */
 	public function runOnActivation() {
 		$version = get_option( 'wp_lib_version', false );
-		
+		// GGGG add thing to remove meta 'wp_lib_owed' from all members
 		// If plugin has been previously installed
 		if ( is_array( $version ) ) {
 			// If previous plugin version is version 0.1 or older, remove depreciated data
-			if ( version_compare( $version['version'], '0.1', '<=' ) )
+			if ( version_compare( $version['version'], '0.1', '<=' ) ) {
 				delete_option( 'wp_lib_default_media_types' );
 				delete_option( 'wp_lib_taxonomy_spacer' );
+				
+				// Deletes member post meta 'wp_lib_owed'
+				$members_query = new WP_Query(array(
+					'post_type' 		=> 'wp_lib_members',
+					'meta_query'		=> array(
+						array(
+							'key'			=> 'wp_lib_owed',
+							'compare'		=> 'EXISTS'
+						)
+					)
+				));
+				
+				if ( $members_query->have_posts() ){
+					while ( $members_query->have_posts() ) {
+						$members_query->the_post();
+						
+						delete_post_meta( get_the_ID(), 'wp_lib_owed' );
+					}
+				}
+				
+				// Renames fine post meta 'wp_lib_fine' to 'wp_lib_owed'
+				$fines_query = new WP_Query(array(
+					'post_type' 		=> 'wp_lib_fines',
+				));
+				
+				if ( $fines_query->have_posts() ){
+					while ( $fines_query->have_posts() ) {
+						$fines_query->the_post();
+						
+						$fine_id = get_the_ID();
+						
+						$fine_amount = get_post_meta( $fine_id, 'wp_lib_fine', true );
+						
+						delete_post_meta( $fine_id, 'wp_lib_fine' );
+						
+						update_post_meta( $fine_id, 'wp_lib_owed', $fine_amount );
+					}
+				}
+			}
 		} else {
 			// Sets current user as a Library Admin
 			wp_lib_update_user_meta( get_current_user_id(), 10 );

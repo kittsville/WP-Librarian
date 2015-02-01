@@ -65,7 +65,6 @@ class WP_LIB_ERROR {
 		318	=> 'Given barcode invalid',
 		319	=> 'No item found with that barcode',
 		320	=> 'Fine payment amount is invalid',
-		321	=> 'Proposed fine payment is greater than amount owed by member',
 		322	=> 'Loan must be scheduled and the start date must have passed to give item to member',
 		323 => 'Item renewal date must be after item\'s current due date',
 		324 => 'Proposed return date is before item was loaned',

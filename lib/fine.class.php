@@ -27,29 +27,6 @@ class WP_LIB_FINE extends WP_LIB_OBJECT {
 		// If fine is not active (has been cancelled), call error
 		if ( $fine_status !== '1' )
 			return wp_lib_error( 313 );
-		
-		// Fetches member from fine meta
-		$member = WP_LIB_MEMBER::create( $this->wp_librarian, get_post_meta( $this->ID, 'wp_lib_member', true ) );
-		
-		if ( wp_lib_is_error( $member ) )
-			return $member;
-		
-		// Fetches current amount owed by member
-		$owed = $member->getOwed();
-		
-		// Fetches fine total
-		$fine_total = get_post_meta( $this->ID, 'wp_lib_fine', true );
-		
-		// If cancelling fine would leave member with negative money owed, call error
-		if ( $owed - $fine_total < 0 ) {
-			return wp_lib_error( 207 );
-		}
-		
-		// Removes fine from member's debt
-		$owed -= $fine_total;
-		
-		// Updates member debt
-		update_post_meta( $member->ID, 'wp_lib_owed', $owed );
 
 		// Changes fine status to Cancelled
 		update_post_meta( $this->ID, 'wp_lib_status', 2 );
