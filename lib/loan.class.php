@@ -183,6 +183,8 @@ class WP_LIB_LOAN extends WP_LIB_OBJECT {
 				return $display_errors ? wp_lib_error( 209 ) : false;
 			}
 		}
+		
+		return true;
 	}
 	
 	/**
