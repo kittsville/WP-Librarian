@@ -2326,7 +2326,7 @@ class WP_LIB_AJAX_API extends WP_LIB_AJAX {
 			array( 'Name',		get_the_title( $member->ID ) ),
 			array( 'Email',		$meta['wp_lib_member_email'][0] ),
 			array( 'On Loan',	wp_lib_prep_members_items_out( $member->ID ) ),
-			array( 'Owed',		wp_lib_format_money( wp_lib_fetch_member_owed( $member->ID ) ) )
+			array( 'Owed',		wp_lib_format_money( $member->getMoneyOwed() ) )
 		);
 		
 		// Finalises and returns member meta box

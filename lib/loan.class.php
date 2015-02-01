@@ -306,15 +306,6 @@ class WP_LIB_LOAN extends WP_LIB_OBJECT {
 					
 					// Saves fine ID to loan meta
 					add_post_meta( $this->ID, 'wp_lib_fine', $fine_id );
-					
-					// Creates member object to access member methods
-					$member = WP_LIB_MEMBER::create( $this->wp_librarian, $member_id );
-					
-					// Fetches member's current fine total and adds fine to it
-					$fine_total = wp_lib_fetch_member_owed( $member_id ) + $fine;
-					
-					// Saves new total to member meta
-					update_post_meta( $member_id, 'wp_lib_owed', $fine_total );
 				break;
 				
 				// If fine has been wavered, allow late return with no fine
