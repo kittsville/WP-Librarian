@@ -989,7 +989,7 @@ jQuery(function($){
 	});
 	
 	// Adds listener for Item thumbnail being clicked
-	jQuery('#wp-lib-workspace').on('click', 'img.item-thumbnail', function ( e ){
+	jQuery('#wp-lib-workspace').on('click', 'img.item-thumbnail, div.item-no-thumbnail', function ( e ){
 		// Fetches form parameters that have been set
 		var params = wp_lib_collect_form_params(e.target);
 		
