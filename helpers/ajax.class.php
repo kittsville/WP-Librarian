@@ -1951,6 +1951,10 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		// Fetches loan ID using item ID
 		$item = $this->getItem();
 		
+		// Checks if item is actually on loan
+		if ( !$item->onLoan() )
+			$this->stopAjax( 214 );
+		
 		// Fetches item ID from loan meta
 		$loan = $item->getLoan();
 		

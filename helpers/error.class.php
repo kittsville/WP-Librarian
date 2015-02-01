@@ -50,6 +50,7 @@ class WP_LIB_ERROR {
 		211 => 'Loan cannot be fulfilled unless it is currently scheduled',
 		212 => 'Loan lateness calculator encountered an unexpected error',
 		213 => 'Item cannot leave the library as it has been manually marked as unavailable',
+		214 => 'Item is not currently on loan',
 		301 => '\p ID given is not a number',
 		302 => 'No loans found for that item ID',
 		303	=> 'No \p with given ID exists',
