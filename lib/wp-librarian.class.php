@@ -135,7 +135,7 @@ class WP_LIBRARIAN {
 	 */
 	public function runOnActivation() {
 		$version = get_option( 'wp_lib_version', false );
-		// GGGG add thing to remove meta 'wp_lib_owed' from all members
+		
 		// If plugin has been previously installed
 		if ( is_array( $version ) ) {
 			// If previous plugin version is version 0.1 or older, remove depreciated data
