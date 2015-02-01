@@ -338,10 +338,15 @@ function wp_lib_format_money( $value, $html_ent = true ) {
 	$value = number_format( $value, 2 );
 	
 	// Formats $value with currency symbol at preferred position
-	if ( $position )
-		return $value . $symbol; // 0.40EUR
-	else
-		return $symbol . $value; // £0.40
+	if ( $position ) {
+		return $value . $symbol;						// 0.40EUR
+	} else {
+		// If currency is negative, display negation symbol before currency symbol
+		if ( $value < 0 )
+			return '-' . $symbol . substr( $value, 1 );	// -£0.40
+		else
+			return $symbol . $value;					// £0.40
+	}
 }
 
 	/* -- Debugging -- */
