@@ -116,7 +116,7 @@ class WP_LIB_TEMPLATE_HOOKS {
 		}
 		
 		// Allows users to modify item meta output
-		$meta_output = apply_filter( 'wp_lib_display_item_meta', $meta_output, $post, $item );
+		$meta_output = apply_filters( 'wp_lib_display_item_meta', $meta_output, $post, $item );
 		
 		// If there are any remaining valid meta fields
 		if ( count( $meta_output ) > 0 ) {
