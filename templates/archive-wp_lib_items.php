@@ -1,7 +1,10 @@
 <?php
-/*
+/**
  * Template Name: Library Item Archive
  */
+
+// No direct loading
+defined( 'ABSPATH' ) OR die('No');
 
 get_header();
 
@@ -19,7 +22,7 @@ get_header();
 			</div>
 			<!-- Item title, taxonomy terms and meta -->
 			<div class="item-meta-wrap">
-				<?php wp_lib_display_item_meta( get_the_ID() ); ?>
+				<?php do_action( 'wp_lib_display_item_meta' ); ?>
 			</div>
 			<!-- Item description -->
 			<div class="wp-lib-item-description entry-content">

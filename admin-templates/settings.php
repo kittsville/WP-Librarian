@@ -1,8 +1,11 @@
 <?php
-/*
+/**
  * WP-LIBRARIAN SETTINGS
  * Utilises WordPress Settings API to render settings fields for this plugin
  */
+
+// No direct loading
+defined( 'ABSPATH' ) OR die('No');
 
 // If user isn't allowed to modify site's settings, settings fields aren't rendered and error is called
 if ( !current_user_can( 'manage_options' ) ) {

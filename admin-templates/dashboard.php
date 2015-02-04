@@ -1,9 +1,12 @@
 <?php
-/* 
+/**
  * WP-LIBRARIAN DASHBOARD TEMPLATE
  * This file renders the template for the Dashboard.
  * The template is then populated and modified dynamically by JavaScript
  */
+
+// No direct loading
+defined( 'ABSPATH' ) OR die('No');
 ?>
 <div class="wrap">
 	<?php wp_lib_render_plugin_version(); ?>

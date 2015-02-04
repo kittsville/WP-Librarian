@@ -1,9 +1,21 @@
 <?php
-/*
+// No direct loading
+defined( 'ABSPATH' ) OR die('No');
+
+/**
  * Holds basic properties/functions relating the plugin's settings
  */
 class WP_LIB_SETTINGS {
-	// All settings WP-Librarian is responsible for
+	/**
+	 * Single instance of core plugin class
+	 * @var WP_LIBRARIAN
+	 */
+	protected $wp_librarian;
+	
+	/**
+	 * All settings WP-Librarian is responsible for
+	 * @var array
+	 */
 	private static $plugin_settings = array(
 		/* -- Library Options -- */
 		/* Settings relating to loaning/returning systems */
@@ -41,18 +53,6 @@ class WP_LIB_SETTINGS {
 		/* -- Formatting -- */
 		/* Settings relating to plugin presentation */
 		
-		// Whether to create the default media types (Books, DVDs etc. )
-		array(
-			'key' 		=> 'wp_lib_default_media_types',
-			'default'	=> array(3)
-		),
-		
-		// The separator for item taxonomies (the comma between authors)
-		array(
-			'key' 		=> 'wp_lib_taxonomy_spacer',
-			'default'	=> array(', ')
-		),
-		
 		// Currency Symbol and position relative to the numerical value (2 - Before: £20, 3 - After: 20£)
 		array(
 			'key' 		=> 'wp_lib_currency',
@@ -72,23 +72,36 @@ class WP_LIB_SETTINGS {
 		)
 	);
 	
-	// Iterates over array of settings controlled by WP-Librarian and adds them to the settings database
+	/**
+	 * Adds instance of core plugin class to settings classes' properties
+	 * @param WP_LIBRARIAN $wp_librarian Single instance of core plugin class
+	 */
+	function __construct( WP_LIBRARIAN $wp_librarian ) {
+		$this->wp_librarian = $wp_librarian;
+	}
+	
+	/**
+	 * Adds all plugin default options. If a setting already exists it is ignored
+	 */
 	public function addPluginSettings() {
 		foreach ( self::$plugin_settings as $setting ) {
 			add_option( $setting['key'], $setting['default'] );
 		}
 	}
 	
-	// Iterates over array of settings controlled by WP-Librarian and deletes them
-	// Calling this outside of a situation where the plugin is subsequently deactivated would be unwise
+	/**
+	 * Deletes all plugin options, as specified in $plugin_settings
+	 * As the plugin relies on these options to function, be wary when using this function
+	 */
 	public function purgePluginSettings() {
 		foreach ( self::$plugin_settings as $setting ) {
 			delete_option( $setting['key'], $setting['default'] );
 		}
 	}
 	
-	// Iterates over array of settings controlled by WP-Librarian and ensures they exist and are valid
-	// Used after settings have been updated
+	/**
+	 * Checks if all options controlled by plugin exist. Creates option if one does not
+	 */
 	public function checkPluginSettingsIntegrity() {
 		foreach ( self::$plugin_settings as $setting ) {
 			$setting_value = get_option( $setting['key'], false );
@@ -100,9 +113,10 @@ class WP_LIB_SETTINGS {
 		}
 	}
 	
-	/* 
-	 * Checks if given key is a valid WP-Librarian settings key
-	 * @param string $settings_key WordPress settings key
+	/**
+	 * Checks if given options key is one controlled by this plugin
+	 * @param	string	$settings_key	WordPress settings key
+	 * @return	bool					If the option key matched a plugin key
 	 */
 	public function isValidSettingKey( $settings_key ) {
 		foreach ( self::$plugin_settings as $setting ) {
@@ -114,12 +128,19 @@ class WP_LIB_SETTINGS {
 	}
 }
 
-/*
+/**
  * A helper class for registering settings, generating settings sections and rendering settings fields
  */
 class WP_LIB_SETTINGS_SECTION extends WP_LIB_SETTINGS {
-	// Registers settings section, all settings belonging to that section and all fields belonging to those sections
-	function __construct( $section ) {
+	/**
+	 * Registers settings section and all child settings and their child settings fields
+	 * @param WP_LIBRARIAN	$wp_librarian	Single instance of core plugin class
+	 * @param array			$section		Settings section to be registered
+	 */
+	function __construct( WP_LIBRARIAN $wp_librarian, array $section ) {
+		// Sets core plugin class as function property
+		parent::__construct( $wp_librarian );
+		
 		// If header to render section description is not provided, passes dummy callback
 		if ( !isset( $section['callback'] ) )
 			$section['callback'] = false;
@@ -183,15 +204,22 @@ class WP_LIB_SETTINGS_SECTION extends WP_LIB_SETTINGS {
 		}
 	}
 	
-	// Adds field description to settings field's output
-	// e.g. Set symbol used to denote currency
-	private function addDescription( &$output, $args ) {
+	/**
+	 * If settings field has a description field specified, formats as paragraph
+	 * @param	array	$output	An array of strings of HTML
+	 * @param	array	$args	Settings field arguments
+	 */
+	private function addDescription( array &$output, array $args ) {
 		if ( isset( $args['alt'] ) )
 			$output[] = '<p class="tooltip description">' . $args['alt'] . '</p>';
 	}
 	
-	// Fetches option and applies any given filters to it
-	private function getOption( $args ) {
+	/**
+	 * Gets WordPress option, selects settings field then applies any given filters to it
+	 * @param	array $args	Settings field arguments
+	 * @return	mixed		Settings field's value
+	 */
+	private function getOption( array $args ) {
 		// Fetches option value from database. Uses false if option does not exist
 		$option = get_option( $args['setting_name'], false );
 		
@@ -214,8 +242,13 @@ class WP_LIB_SETTINGS_SECTION extends WP_LIB_SETTINGS {
 		return $option;
 	}
 	
-	// Sets up field's element's properties
-	private function setupFieldProperties( $args, $add_prop ) {
+	/**
+	 * Combines given properties with default settings field properties and formats as HTML element properties
+	 * @param	array	$args		Settings field arguments
+	 * @param	array	$add_prop	Additional properties for the settings field input/select element
+	 * @return	string				Settings field HTML element properties
+	 */
+	private function setupFieldProperties( array $args, array $add_prop ) {
 		// Merges given field classes with default field classes
 		$classes = array_merge(
 			$args['classes'],
@@ -245,9 +278,11 @@ class WP_LIB_SETTINGS_SECTION extends WP_LIB_SETTINGS {
 		return $properties;
 	}
 	
-	// A type of settings field
-	// Renders an HTML text input (a single line text field)
-	public function textInput( $args ) {
+	/**
+	 * Renders an HTML text input field
+	 * @param	array	$args	Settings field arguments
+	 */
+	public function textInput( array $args ) {
 		$properties = array(
 			'type' => 'text',
 			'value'=> $this->getOption( $args )
@@ -269,9 +304,11 @@ class WP_LIB_SETTINGS_SECTION extends WP_LIB_SETTINGS {
 		$this->outputLines( $output );
 	}
 	
-	// A type of settings field
-	// Renders an HTML checkbox
-	public function checkboxInput( $args ) {
+	/**
+	 * Renders an HTML checkbox input
+	 * @param	array	$args	Settings field arguments
+	 */
+	public function checkboxInput( array $args ) {
 		$properties = array(
 			'type'	=> 'checkbox',
 			'value'	=> 3
@@ -296,9 +333,11 @@ class WP_LIB_SETTINGS_SECTION extends WP_LIB_SETTINGS {
 		$this->outputLines( $output );
 	}
 	
-	// Renders field's HTML
-	// @param array $lines Strings of HTML to be echoed
-	private function outputLines( $lines ) {
+	/**
+	 * Echoes an array of strings of HTML
+	 * @param	array	$lines	An array of strings of HTML
+	 */
+	private function outputLines( array $lines ) {
 		foreach ( $lines as $line ) {
 			echo $line;
 		}

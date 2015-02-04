@@ -1,9 +1,12 @@
 <?php
-/* 
+/**
  * WP-LIBRARIAN ITEM META BOX
  * This renders the meta box that displays below the item description on the item editing page.
  * These vales are saved with the post in wp-librarian.php
  */
+
+// No direct loading
+defined( 'ABSPATH' ) OR die('No');
 
 // Loads meta box css
 wp_enqueue_style( 'wp_lib_admin_item_meta' );
@@ -143,6 +146,10 @@ $meta = wp_lib_prep_admin_meta( $item->ID, $meta_formatting );
 
 // Adds media type meta to meta array
 $meta['wp_lib_media_type'] = wp_get_object_terms($item->ID, 'wp_lib_media_type', array("fields" => "slugs") )[0];
+
+// If item is a new item, set item to be allowed to be loaned by default
+if ( $GLOBALS['hook_suffix'] === 'post-new.php' )
+	$meta['wp_lib_item_loanable'] = '1';
 ?>
 <div id="meta-dropzone">
 	<div id="meta-formatting">
