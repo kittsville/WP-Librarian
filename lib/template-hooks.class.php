@@ -21,6 +21,7 @@ class WP_LIB_TEMPLATE_HOOKS {
 		
 		$wp_librarian->loadClass( 'library-object' );
 		$wp_librarian->loadClass( 'item' );
+		$wp_librarian->loadClass( 'loan' );
 		
 		$this->registerHooks();
 	}
