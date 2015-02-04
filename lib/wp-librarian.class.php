@@ -1138,7 +1138,7 @@ class WP_LIBRARIAN {
 		return array(
 			'channel'	=> 'Alpha',
 			'version'	=> '0.2',
-			'subversion'	=> '007',
+			'subversion'	=> '008',
 			'nickname'	=> 'Wolf Tail'
 		);
 	}
