@@ -1137,9 +1137,9 @@ class WP_LIBRARIAN {
 	public function getPluginVersion() {
 		return array(
 			'channel'	=> 'Alpha',
-			'version'	=> '0.1',
-			'subversion'=> '003',
-			'nickname'	=> 'Fox Paw'
+			'version'	=> '0.2',
+			'subversion'	=> '008',
+			'nickname'	=> 'Wolf Tail'
 		);
 	}
 	
