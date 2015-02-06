@@ -272,19 +272,6 @@ function wp_lib_convert_date( &$date ) {
 	$date = strtotime( $date );
 }
 
-// Fetches date from post meta and, if it exists, formats it
-function wp_lib_prep_date_column( $post_id, $key ) {
-	// Fetches date from post meta using given key
-	$date = get_post_meta( $post_id, $key, true );
-	
-	// If date is valid returns formatted date
-	if ( is_numeric( $date ) )
-		return wp_lib_format_unix_timestamp( $date );
-	// Otherwise return dash to indicate missing/unknown information
-	else
-		return '-';
-}
-
 function wp_lib_format_unix_timestamp( $timestamp ) {
 	// If date is valid returns formatted date
 	if ( (int) $timestamp !== 0 )

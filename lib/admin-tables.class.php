@@ -48,6 +48,23 @@ class WP_LIB_ADMIN_TABLES {
 	}
 	
 	/**
+	 * Fetches UNIX timestamp from post meta and, if timestamp exists, formats
+	 * @param	int		$item_id		Post ID to get post meta from
+	 * @param	string	$meta_key		Post meta key where timestamp is located
+	 */
+	private function dateColumn( $post_id, $meta_key ) {
+		// Fetches date from post meta using given key
+		$date = get_post_meta( $post_id, $meta_key, true );
+		
+		// If date is valid returns formatted date
+		if ( is_numeric( $date ) )
+			echo wp_lib_format_unix_timestamp( $date );
+		// Otherwise return dash to indicate missing/unknown information
+		else
+			echo '-';
+	}
+	
+	/**
 	 * Adds custom columns to admin post table for items
 	 * @param	array	$columns	Existing WordPress post table columns
 	 * @return	array				Modified WordPress post table columns
@@ -256,17 +273,17 @@ class WP_LIB_ADMIN_TABLES {
 			
 			// Displays date item was loaned
 			case 'loan_start':
-				echo wp_lib_prep_date_column( $loan_id, 'wp_lib_start_date' );
+				$this->dateColumn( $loan_id, 'wp_lib_start_date' );
 			break;
 			
 			// Displays date item should be returned by
 			case 'loan_end':
-				echo wp_lib_prep_date_column( $loan_id, 'wp_lib_end_date' );
+				$this->dateColumn( $loan_id, 'wp_lib_end_date' );
 			break;
 			
 			// Displays date item was actually returned
 			case 'loan_returned':
-				echo wp_lib_prep_date_column( $loan_id, 'wp_lib_return_date' );
+				$this->dateColumn( $loan_id, 'wp_lib_return_date' );
 			break;
 		}
 	}
