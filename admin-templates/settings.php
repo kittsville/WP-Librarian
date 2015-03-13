@@ -8,7 +8,7 @@
 defined( 'ABSPATH' ) OR die('No');
 
 // If user isn't allowed to modify site's settings, settings fields aren't rendered and error is called
-if ( !current_user_can( 'manage_options' ) ) {
+if ( !current_user_can( 'wp_lib_change_settings' ) ) {
 	wp_lib_error( 112, true );
 }
 
