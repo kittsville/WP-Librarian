@@ -27,20 +27,20 @@ class WP_LIB_ADMIN_TABLES {
 		$this->wp_librarian = $wp_librarian;
 		
 		// Adds custom columns, removes unneeded columns and changes the order of columns
-		add_filter( 'manage_wp_lib_items_posts_columns',		array( $this, 'manageItemsTableColumns' ),	10, 1 );
-		add_filter( 'manage_wp_lib_members_posts_columns',		array( $this, 'manageMembersTableColumns' ),10, 1 );
-		add_filter( 'manage_wp_lib_loans_posts_columns',		array( $this, 'manageLoansTableColumns' ),	10, 1 );
-		add_filter( 'manage_wp_lib_fines_posts_columns',		array( $this, 'manageFinesTableColumns' ),	10, 1 );
-		add_filter( 'manage_users_columns',						array( $this, 'manageUsersTableColumns' ),	10, 1 );
+		add_filter( 'manage_wp_lib_items_posts_columns',		array( $this,			'manageItemsTableColumns' ),	10, 1 );
+		add_filter( 'manage_wp_lib_members_posts_columns',		array( $this,			'manageMembersTableColumns' ),	10, 1 );
+		add_filter( 'manage_wp_lib_loans_posts_columns',		array( $this,			'manageLoansTableColumns' ),	10, 1 );
+		add_filter( 'manage_wp_lib_fines_posts_columns',		array( $this,			'manageFinesTableColumns' ),	10, 1 );
+		add_filter( 'manage_users_columns',						array( $this,			'manageUsersTableColumns' ),	10, 1 );
 		
-		add_action( 'load-edit.php',							array( $wp_librarian, 'loadObjectClasses' ) );
+		add_action( 'load-edit.php',							array( $wp_librarian,	'loadObjectClasses' ) );
 		
 		// Adds content to custom post table columns
-		add_action( 'manage_wp_lib_items_posts_custom_column',	array( $this, 'fillItemsTableColumns' ),	10, 2 );
-		add_action( 'manage_wp_lib_members_posts_custom_column',array( $this, 'fillMembersTableColumns' ),	10, 2 );
-		add_action( 'manage_wp_lib_loans_posts_custom_column',	array( $this, 'fillLoansTableColumns' ),	10, 2 );
-		add_action( 'manage_wp_lib_fines_posts_custom_column',	array( $this, 'fillFinesTableColumns' ),	10, 2 );
-		add_action( 'manage_users_custom_column',				array( $this, 'fillUsersTableColumns' ),	10, 3 );
+		add_action( 'manage_wp_lib_items_posts_custom_column',	array( $this,			'fillItemsTableColumns' ),		10, 2 );
+		add_action( 'manage_wp_lib_members_posts_custom_column',array( $this,			'fillMembersTableColumns' ),	10, 2 );
+		add_action( 'manage_wp_lib_loans_posts_custom_column',	array( $this,			'fillLoansTableColumns' ),		10, 2 );
+		add_action( 'manage_wp_lib_fines_posts_custom_column',	array( $this,			'fillFinesTableColumns' ),		10, 2 );
+		add_action( 'manage_users_custom_column',				array( $this,			'fillUsersTableColumns' ),		10, 3 );
 		
 		// Removes bulk actions actions from loans and fines post tables
 		add_filter('bulk_actions-edit-wp_lib_loans',			function(){ return array(); });
