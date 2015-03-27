@@ -1157,7 +1157,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 				$item_details['view']		= get_permalink();
 				
 				// If item is on loan, fetches if item is late
-				$item_details['late'] = $item->onLoan ? $item->getLoan()->isLate() : false;
+				$item_details['late'] = $item->onLoan() ? $item->getLoan()->isLate() : false;
 				
 				// Adds prepared item to array of all items
 				$items[] = $item_details;
