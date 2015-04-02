@@ -27,20 +27,26 @@ class WP_LIB_ADMIN_TABLES {
 		$this->wp_librarian = $wp_librarian;
 		
 		// Adds custom columns, removes unneeded columns and changes the order of columns
-		add_filter( 'manage_wp_lib_items_posts_columns',		array( $this,			'manageItemsTableColumns' ),	10, 1 );
-		add_filter( 'manage_wp_lib_members_posts_columns',		array( $this,			'manageMembersTableColumns' ),	10, 1 );
-		add_filter( 'manage_wp_lib_loans_posts_columns',		array( $this,			'manageLoansTableColumns' ),	10, 1 );
-		add_filter( 'manage_wp_lib_fines_posts_columns',		array( $this,			'manageFinesTableColumns' ),	10, 1 );
-		add_filter( 'manage_users_columns',						array( $this,			'manageUsersTableColumns' ),	10, 1 );
+		add_filter( 'manage_wp_lib_items_posts_columns',			array( $this,			'manageItemsTableColumns' ),		10, 1 );
+		add_filter( 'manage_wp_lib_members_posts_columns',			array( $this,			'manageMembersTableColumns' ),		10, 1 );
+		add_filter( 'manage_wp_lib_loans_posts_columns',			array( $this,			'manageLoansTableColumns' ),		10, 1 );
+		add_filter( 'manage_wp_lib_fines_posts_columns',			array( $this,			'manageFinesTableColumns' ),		10, 1 );
+		add_filter( 'manage_users_columns',							array( $this,			'manageUsersTableColumns' ),		10, 1 );
 		
-		add_action( 'load-edit.php',							array( $wp_librarian,	'loadObjectClasses' ) );
+		add_action( 'load-edit.php',								array( $wp_librarian,	'loadObjectClasses' ) );
 		
 		// Adds content to custom post table columns
-		add_action( 'manage_wp_lib_items_posts_custom_column',	array( $this,			'fillItemsTableColumns' ),		10, 2 );
-		add_action( 'manage_wp_lib_members_posts_custom_column',array( $this,			'fillMembersTableColumns' ),	10, 2 );
-		add_action( 'manage_wp_lib_loans_posts_custom_column',	array( $this,			'fillLoansTableColumns' ),		10, 2 );
-		add_action( 'manage_wp_lib_fines_posts_custom_column',	array( $this,			'fillFinesTableColumns' ),		10, 2 );
-		add_action( 'manage_users_custom_column',				array( $this,			'fillUsersTableColumns' ),		10, 3 );
+		add_action( 'manage_wp_lib_items_posts_custom_column',		array( $this,			'fillItemsTableColumns' ),			10, 2 );
+		add_action( 'manage_wp_lib_members_posts_custom_column',	array( $this,			'fillMembersTableColumns' ),		10, 2 );
+		add_action( 'manage_wp_lib_loans_posts_custom_column',		array( $this,			'fillLoansTableColumns' ),			10, 2 );
+		add_action( 'manage_wp_lib_fines_posts_custom_column',		array( $this,			'fillFinesTableColumns' ),			10, 2 );
+		add_action( 'manage_users_custom_column',					array( $this,			'fillUsersTableColumns' ),			10, 3 );
+		
+		// Makes relevant custom columns sortable
+		add_filter('manage_edit-wp_lib_items_sortable_columns',		array( $this,			'setSortableItemsTableColumns' ),	10, 1 );
+		add_filter('manage_edit-wp_lib_members_sortable_columns',	array( $this,			'setSortableMembersTableColumns' ),	10, 1 );
+		add_filter('manage_edit-wp_lib_loans_sortable_columns',		array( $this,			'setSortableLoansTableColumns' ),	10, 1 );
+		add_filter('manage_edit-wp_lib_fines_sortable_columns',		array( $this,			'setSortableFinesTableColumns' ),	10, 1 );
 		
 		// Removes bulk actions actions from loans and fines post tables
 		add_filter('bulk_actions-edit-wp_lib_loans',			function(){ return array(); });
@@ -342,6 +348,58 @@ class WP_LIB_ADMIN_TABLES {
 				return wp_lib_fetch_user_permission_status( $user_id );
 			break;
 		}
+	}
+	
+	/**
+	 * Allows items table to be sorted by appropriate custom columns
+	 * @param	Array	$columns	Array of sortable item table columns
+	 * @return	Array				Modified array of sortable table columns
+	 */
+	public function setSortableItemsTableColumns( Array $columns ) {
+		// Makes array of columns sortable
+			$columns[$sortable] = $columns;
+		}
+		
+		return $columns;
+	}
+	
+	/**
+	 * Allows members table to be sorted by appropriate custom columns
+	 * @param	Array	$columns	Array of sortable member table columns
+	 * @return	Array				Modified array of sortable table columns
+	 */
+	public function setSortableMembersTableColumns( Array $columns ) {
+		// Makes array of columns sortable
+			$columns[$sortable] = $columns;
+		}
+		
+		return $columns;
+	}
+	
+	/**
+	 * Allows loans table to be sorted by appropriate custom columns
+	 * @param	Array	$columns	Array of sortable loan table columns
+	 * @return	Array				Modified array of sortable table columns
+	 */
+	public function setSortableLoansTableColumns( Array $columns ) {
+		// Makes array of columns sortable
+			$columns[$sortable] = $columns;
+		}
+		
+		return $columns;
+	}
+	
+	/**
+	 * Allows fines table to be sorted by appropriate custom columns
+	 * @param	Array	$columns	Array of sortable fine table columns
+	 * @return	Array				Modified array of sortable table columns
+	 */
+	public function setSortableFinesTableColumns( Array $columns ) {
+		// Makes array of columns sortable
+			$columns[$sortable] = $columns;
+		}
+		
+		return $columns;
 	}
 }
 
