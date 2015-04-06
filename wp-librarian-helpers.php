@@ -321,6 +321,9 @@ function wp_lib_format_money( $value, $html_ent = true ) {
 		$symbol = html_entity_decode( $symbol );
 	}
 	
+	// For the silly event that a fine of nothing managed to get charged
+	$value = $value == '' ? 0 : $value;
+	
 	// Ensures number has correct number of decimal places
 	$value = number_format( $value, 2 );
 	
