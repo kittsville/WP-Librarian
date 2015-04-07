@@ -23,7 +23,6 @@ jQuery(function($){
 		},
 		change: function(){
 			if (!duplicate) {
-				console.log('triggered!');
 				// Updates displayed meta box if member ID has changed
 				currentMemberID = update_displayed_member(parseInt(memberSelect.val()), currentMemberID);
 			}
