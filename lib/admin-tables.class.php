@@ -43,14 +43,20 @@ class WP_LIB_ADMIN_TABLES {
 		add_action( 'manage_users_custom_column',					array( $this,			'fillUsersTableColumns' ),			10, 3 );
 		
 		// Makes relevant custom columns sortable
-		add_filter('manage_edit-wp_lib_items_sortable_columns',		array( $this,			'setSortableItemsTableColumns' ),	10, 1 );
-		add_filter('manage_edit-wp_lib_members_sortable_columns',	array( $this,			'setSortableMembersTableColumns' ),	10, 1 );
-		add_filter('manage_edit-wp_lib_loans_sortable_columns',		array( $this,			'setSortableLoansTableColumns' ),	10, 1 );
-		add_filter('manage_edit-wp_lib_fines_sortable_columns',		array( $this,			'setSortableFinesTableColumns' ),	10, 1 );
+		add_filter( 'manage_edit-wp_lib_items_sortable_columns',	array( $this,			'setSortableItemsTableColumns' ),	10, 1 );
+		add_filter( 'manage_edit-wp_lib_members_sortable_columns',	array( $this,			'setSortableMembersTableColumns' ),	10, 1 );
+		add_filter( 'manage_edit-wp_lib_loans_sortable_columns',	array( $this,			'setSortableLoansTableColumns' ),	10, 1 );
+		add_filter( 'manage_edit-wp_lib_fines_sortable_columns',	array( $this,			'setSortableFinesTableColumns' ),	10, 1 );
+		
+		// Adds custom sorting logic to custom taxonomy columns
+		add_filter( 'posts_clauses',								array($this,			'sortCustomTaxColumns'),			10, 2);
+		
+		// Adds custom sorting logic to custom post meta columns
+		add_action( 'pre_get_posts',								array($this,			'sortCustomMetaColumns'),			10, 1);
 		
 		// Removes bulk actions actions from loans and fines post tables
-		add_filter('bulk_actions-edit-wp_lib_loans',			function(){ return array(); });
-		add_filter('bulk_actions-edit-wp_lib_fines',			function(){ return array(); });
+		add_filter( 'bulk_actions-edit-wp_lib_loans',				function(){ return array(); });
+		add_filter( 'bulk_actions-edit-wp_lib_fines',				function(){ return array(); });
 	}
 	
 	/**
@@ -208,7 +214,7 @@ class WP_LIB_ADMIN_TABLES {
 			
 			// Displays total amount currently owed to the Library in late item fines
 			case 'member_fines':
-				echo wp_lib_format_money( $this->row_buffer[1]->getMoneyOwed() );
+				echo wp_lib_format_money( (float) $this->row_buffer[1]->getMoneyOwed() );
 			break;
 			
 			// Displays total number of items donated by the member to the Library
@@ -357,8 +363,8 @@ class WP_LIB_ADMIN_TABLES {
 	 */
 	public function setSortableItemsTableColumns( Array $columns ) {
 		// Makes array of columns sortable
-		foreach(['taxonomy-wp_lib_media_type','taxonomy-wp_lib_author','item_status','item_condition'] as $sortable ) {
-			$columns[$sortable] = $columns;
+		foreach(['taxonomy-wp_lib_media_type','taxonomy-wp_lib_author','item_condition'] as $sortable ) {
+			$columns[$sortable] = $sortable;
 		}
 		
 		return $columns;
@@ -371,8 +377,8 @@ class WP_LIB_ADMIN_TABLES {
 	 */
 	public function setSortableMembersTableColumns( Array $columns ) {
 		// Makes array of columns sortable
-		foreach(['member_name','member_loans','member_fines','member_donated'] as $sortable ) {
-			$columns[$sortable] = $columns;
+		foreach(['member_name'] as $sortable ) {
+			$columns[$sortable] = $sortable;
 		}
 		
 		return $columns;
@@ -386,7 +392,7 @@ class WP_LIB_ADMIN_TABLES {
 	public function setSortableLoansTableColumns( Array $columns ) {
 		// Makes array of columns sortable
 		foreach(['loan_loan','loan_item','loan_member','loan_status','loan_start','loan_end','loan_returned'] as $sortable ) {
-			$columns[$sortable] = $columns;
+			$columns[$sortable] = $sortable;
 		}
 		
 		return $columns;
@@ -399,11 +405,106 @@ class WP_LIB_ADMIN_TABLES {
 	 */
 	public function setSortableFinesTableColumns( Array $columns ) {
 		// Makes array of columns sortable
-		foreach(['fine_fine','fine_item','fine_member','fine_status','fine_amount'] as $sortable ) {
-			$columns[$sortable] = $columns;
+		foreach(['fine_fine','fine_status','fine_amount'] as $sortable ) {
+			$columns[$sortable] = $sortable;
 		}
 		
 		return $columns;
+	}
+	
+	/**
+	 * Defines custom logic for sorting the Items table's custom taxonomy columns
+	 * Adapted from Mike Schinkel's comment on Scribu's post: 
+	 * @link	http://scribu.net/wordpress/sortable-taxonomy-columns.html#direct-joins
+	 * @param	Array		$clauses	
+	 * @param	WP_Query	$wp_query	A request to WordPress for posts
+	 */
+	public function sortCustomTaxColumns( Array $clauses, WP_Query $wp_query ) {
+		global $wpdb;
+		
+		if ( !isset($wp_query->query['orderby']) )
+			return $clauses;
+		
+		switch( $wp_query->query['orderby'] ) {
+			case 'taxonomy-wp_lib_author':
+				$taxonomy = 'wp_lib_author';
+			break;
+			
+			case 'taxonomy-wp_lib_media_type':
+				$taxonomy = 'wp_lib_media_type';
+			break;
+		}
+		
+		$clauses['join'] .= <<<SQL
+LEFT OUTER JOIN {$wpdb->term_relationships} ON {$wpdb->posts}.ID={$wpdb->term_relationships}.object_id
+LEFT OUTER JOIN {$wpdb->term_taxonomy} USING (term_taxonomy_id)
+LEFT OUTER JOIN {$wpdb->terms} USING (term_id)
+SQL;
+		
+		$clauses['where'] .= " AND (taxonomy = '".$taxonomy."' OR taxonomy IS NULL)";
+		$clauses['groupby'] = "object_id";
+		$clauses['orderby']  = "GROUP_CONCAT({$wpdb->terms}.name ORDER BY name ASC) ";
+		$clauses['orderby'] .= ( 'ASC' === strtoupper( $wp_query->get('order') ) ) ? 'ASC' : 'DESC';
+
+		return $clauses;
+	}
+	
+	/**
+	 * Tells WordPress how to sort the Items table's custom post meta columns
+	 * @param	Array		$vars		Query variables passed to default main SQL query
+	 */
+	public function sortCustomMetaColumns( WP_Query $query ) {
+		if( !is_admin() )  
+			return;
+		
+		// Adds sorting logic based on column being sorted
+		switch( $query->get( 'orderby') ) {
+			case 'item_condition':
+				$query->set('meta_key',	'wp_lib_item_condition');
+				$query->set('orderby',	'meta_value_num');
+			break;
+			
+			case 'member_name':
+				$query->set('orderby',	'title');	// Member's names are stored as the title of their post
+			break;
+			
+			case 'loan_status':
+				$query->set('meta_key',	'wp_lib_status');
+				$query->set('orderby',	'meta_value_num');
+			break;
+			
+			case 'loan_start':
+				$query->set('meta_key',	'wp_lib_start_date');
+				$query->set('orderby',	'meta_value_num');
+				$query->set('meta_type','NUMERIC');
+			break;
+			
+			case 'loan_end':
+				$query->set('meta_key',	'wp_lib_end_date');
+				$query->set('orderby',	'meta_value_num');
+				$query->set('meta_type','NUMERIC');
+			break;
+			
+			case 'loan_returned':
+				$query->set('meta_key',	'wp_lib_return_date');
+				$query->set('orderby',	'meta_value_num');
+				$query->set('meta_type','NUMERIC');
+			break;
+			
+			case 'fine_fine':
+				$query->set('orderby',	'ID');
+			break;
+			
+			case 'fine_status':
+				$query->set('meta_key',	'wp_lib_status');
+				$query->set('orderby',	'meta_value_num');
+			break;
+			
+			case 'fine_amount':
+				$query->set('meta_key',	'wp_lib_owed');
+				$query->set('orderby',	'meta_value_num');
+			break;
+		}
 	}
 }
 
