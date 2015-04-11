@@ -83,7 +83,7 @@ class WP_LIB_AJAX {
 	protected function getItem() {
 		// If item ID was not given, call error
 		if ( !isset( $_POST['item_id'] ) )
-			return wp_lib_error( 314, 'Item ID' );
+			$this->stopAjax(wp_lib_error(314, 'Item ID'));
 		
 		// Attempts to create item instance from item ID
 		$item = WP_LIB_ITEM::create( $this->wp_librarian, (int) $_POST['item_id'] );
@@ -103,7 +103,7 @@ class WP_LIB_AJAX {
 	protected function getMember() {
 		// If member ID was not given, call error
 		if ( !isset( $_POST['member_id'] ) )
-			return wp_lib_error( 314, 'Member ID' );
+			$this->stopAjax(wp_lib_error(314, 'Member ID'));
 		
 		// Attempts to create member instance from member ID
 		$member = WP_LIB_MEMBER::create( $this->wp_librarian, (int) $_POST['member_id'] );
@@ -123,7 +123,7 @@ class WP_LIB_AJAX {
 	protected function getLoan() {
 		// If loan ID was not given, call error
 		if ( !isset( $_POST['loan_id'] ) )
-			return wp_lib_error( 314, 'Loan ID' );
+			$this->stopAjax(wp_lib_error(314, 'Loan ID'));
 		
 		// Attempts to create loan instance from loan ID
 		$loan = WP_LIB_LOAN::create( $this->wp_librarian, (int) $_POST['loan_id'] );
@@ -143,7 +143,7 @@ class WP_LIB_AJAX {
 	protected function getFine() {
 		// If fine ID was not given, call error
 		if ( !isset( $_POST['fine_id'] ) )
-			return wp_lib_error( 314, 'Fine ID' );
+			$this->stopAjax(wp_lib_error(314, 'Fine ID'));
 		
 		// Attempts to create fine instance from fine ID
 		$fine = WP_LIB_FINE::create( $this->wp_librarian, (int) $_POST['fine_id'] );
