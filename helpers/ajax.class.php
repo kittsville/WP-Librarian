@@ -2101,9 +2101,6 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 				$page_title	= 'Deleting: ' . get_the_title( $post_id );
 				$tab_title	= 'Deleting Item #' . $post_id;
 				
-				// Sets object type for use in button labels
-				$object_type = 'Item';
-				
 				// Informs user of implications of deletion
 				$page[] = array(
 					'type'		=> 'paras',
@@ -2195,10 +2192,11 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 					'value'	=> $post_id
 				),
 				array(
-					'type'	=> 'button',
-					'link'	=> 'action',
-					'value'	=> 'delete-object',
-					'html'	=> 'Delete ' . ucwords( $object_type )
+					'type'		=> 'button',
+					'link'		=> 'action',
+					'value'		=> 'delete-object',
+					'classes'	=> 'dash-button-danger',
+					'html'		=> 'Delete'
 				),
 				array(
 					'type'	=> 'button',

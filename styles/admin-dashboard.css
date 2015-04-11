@@ -96,6 +96,11 @@ table.lib-metabox td {
 	height: 28px;
 }
 
+/* For hazardous actions like deleting stuff */
+.dash-button-danger {
+	background-color: #D00;
+}
+
 /* Dash Home Buttons */
 
 div.dash-button-wrapper {
