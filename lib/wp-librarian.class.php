@@ -1162,7 +1162,10 @@ class WP_LIBRARIAN {
 	 * @return	string			Full file URL e.g. '.../styles/front-end-core.css'
 	 */
 	public function getStyleUrl( $name ) {
-		return $this->plugin_url . '/styles/' . $name . '.css';
+		// Uses minified assets in production, full assets for debugging
+		$suffix = (( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) || WP_LIB_DEBUG_MODE ) ? '' : '.min';
+		
+		return $this->plugin_url . '/styles/' . $name . $suffix . '.css';
 	}
 	
 	/**
@@ -1171,7 +1174,10 @@ class WP_LIBRARIAN {
 	 * @return	string			Full file URL e.g. '.../scripts/admin.js'
 	 */
 	public function getScriptUrl( $name ) {
-		return $this->plugin_url . '/scripts/' . $name . '.js';
+		// Uses minified assets in production, full assets for debugging
+		$suffix = (( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) || WP_LIB_DEBUG_MODE ) ? '' : '.min';
+		
+		return $this->plugin_url . '/scripts/' . $name . $suffix . '.js';
 	}
 	
 	/**
