@@ -1408,7 +1408,7 @@ class WP_LIBRARIAN {
 	 * @param	WP_Query	$query	Current posts query, passed by reference
 	 */
 	public function hideDelistedItems( WP_Query $query ) {
-		if ( $query->is_post_type_archive('wp_lib_items') && $query->is_main_query() ) {
+		if ( $query->is_post_type_archive('wp_lib_items') && $query->is_main_query() && !is_admin() ) {
 			$query->set( 'meta_query',
 				array(
 					'relation'		=> 'OR',
