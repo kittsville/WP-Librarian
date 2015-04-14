@@ -1405,9 +1405,9 @@ class WP_LIBRARIAN {
 	 * Hides items marked as 'delisted' from public item archive
 	 * Note that this does not hide them from being viewed via their direct URL
 	 * For greater control of who can see what, use a permissions plugin like Page Security by Contexture
-	 * @param WP_Query $query Current posts query, passed by reference
+	 * @param	WP_Query	$query	Current posts query, passed by reference
 	 */
-	public function hideDelistedItems( $query ) {
+	public function hideDelistedItems( WP_Query $query ) {
 		if ( $query->is_post_type_archive('wp_lib_items') && $query->is_main_query() ) {
 			$query->set( 'meta_query',
 				array(
