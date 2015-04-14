@@ -30,7 +30,7 @@ function wp_lib_is_error( $object ) {
 	/* -- Permissions -- */
 
 /**
-* Checks if user is a librarian
+* Checks if user is a librarian (or higher)
 * A librarian can view and modify items, members, loans and fines, where appropriate
 * @link		https://github.com/kittsville/WP-Librarian/wiki/Librarians
 * @param	int|null	$user_id	OPTIONAL ID of user to be checked. Defaults to current user's ID
@@ -45,6 +45,7 @@ function wp_lib_is_librarian( $user_id = null ) {
 
 /**
 * Checks if user is a library admin
+* Admins have the permissions of librarians plus they can modify library settings
 * @link		https://github.com/kittsville/WP-Librarian/wiki/Library-Admins
 * @param	int|null	$user_id	OPTIONAL ID of user to be checked. Defaults to current user's ID
 * @return	bool					Whether user is a librarian admin
