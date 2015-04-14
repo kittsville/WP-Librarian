@@ -35,6 +35,9 @@ function wp_lib_is_error( $object ) {
 * @return bool Whether user is a librarian
 */
 function wp_lib_is_librarian( $user_id = null ) {
+	if ($user_id === null and !is_user_logged_in())
+		return false;
+	
 	return ( get_user_meta( ( is_int($user_id)? $user_id : get_current_user_id() ), 'wp_lib_role', true ) >= 5 ) ? true : false;
 }
 
@@ -44,6 +47,9 @@ function wp_lib_is_librarian( $user_id = null ) {
 * @return bool Whether the user is a library admin
 */
 function wp_lib_is_library_admin( $user_id = null ) {
+	if ($user_id === null and !is_user_logged_in())
+		return false;
+	
 	return ( get_user_meta( ( is_int($user_id)? $user_id : get_current_user_id() ), 'wp_lib_role', true ) >= 10 ) ? true : false;
 }
 
