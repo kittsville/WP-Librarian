@@ -32,7 +32,9 @@ function wp_lib_is_error( $object ) {
 /**
 * Checks if user is a librarian
 * A librarian can view and modify items, members, loans and fines, where appropriate
-* @return bool Whether user is a librarian
+* @link		https://github.com/kittsville/WP-Librarian/wiki/Librarians
+* @param	int|null	$user_id	OPTIONAL ID of user to be checked. Defaults to current user's ID
+* @return	bool					Whether user is a librarian
 */
 function wp_lib_is_librarian( $user_id = null ) {
 	if ($user_id === null and !is_user_logged_in())
@@ -43,8 +45,9 @@ function wp_lib_is_librarian( $user_id = null ) {
 
 /**
 * Checks if user is a library admin
-* A library admin has the permissions of a librarian, plus the ability to modify Library settings
-* @return bool Whether the user is a library admin
+* @link		https://github.com/kittsville/WP-Librarian/wiki/Library-Admins
+* @param	int|null	$user_id	OPTIONAL ID of user to be checked. Defaults to current user's ID
+* @return	bool					Whether user is a librarian admin
 */
 function wp_lib_is_library_admin( $user_id = null ) {
 	if ($user_id === null and !is_user_logged_in())
