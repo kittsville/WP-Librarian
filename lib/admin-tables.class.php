@@ -54,6 +54,9 @@ class WP_LIB_ADMIN_TABLES {
 		// Adds custom sorting logic to columns that rely on meta-based foreign keys
 		add_filter( 'posts_clauses',								array($this,			'sortCustomForeignMetaColumns'),	10, 2);
 		
+		// Adds logic to sort the members table by the 'Items Donated' column
+		add_filter(	'post_clauses',									array($this,			'sortCustomItemsDonatedColumn'),	10, 2);
+		
 		// Adds custom sorting logic to custom post meta columns
 		add_action( 'pre_get_posts',								array($this,			'sortCustomMetaColumns'),			10, 1);
 		
@@ -509,6 +512,27 @@ SQL;
 	}
 	
 	/**
+	 * Sorts the 'Items Donated' column in the Members table
+	 * @param	Array		$clauses	SQL clauses for fetching posts
+	 * @param	WP_Query	$wp_query	A request to WordPress for posts
+	 * @return	Array					Modified SQL clauses
+	 */
+	public function sortCustomItemsDonatedColumn( Array $clauses, WP_Query $wp_query ) {
+		if (!isset($wp_query->query['orderby']) || $wp_query->query['orderby'] !== 'member_donated')
+			return $clauses;
+		
+		global $wpdb;
+		
+		$clauses['select'] .= ", COUNT(meta_value) AS NumberOfDonatedItems";
+		
+		$clauses['join'] .= "LEFT OUTER JOIN {$wpdb->postmeta} ON {$wpdb->posts}.ID={$wpdb->postmeta}.meta_value AND {$wpdb->postmeta}.meta_key='wp_lib_item_donor'";
+		$clauses['groupby'] = "ID";
+		$clauses['orderby'] = "NumberOfDonatedItems";
+		
+		return $clauses;
+	}
+	
+	/**
 	 * Tells WordPress how to sort the Items table's custom post meta columns
 	 * @param	Array		$vars		Query variables passed to default main SQL query
 	 */
@@ -536,10 +560,6 @@ SQL;
 			break;
 			
 			case 'member_fines':
-				// Requires special logic
-			break;
-			
-			case 'member_donated':
 				// Requires special logic
 			break;
 			
