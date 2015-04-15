@@ -51,6 +51,9 @@ class WP_LIB_ADMIN_TABLES {
 		// Adds custom sorting logic to custom taxonomy columns
 		add_filter( 'posts_clauses',								array($this,			'sortCustomTaxColumns'),			10, 2);
 		
+		// Adds custom sorting logic to columns that rely on meta-based foreign keys
+		add_filter( 'posts_clauses',								array($this,			'sortCustomForeignMetaColumns'),	10, 2);
+		
 		// Adds custom sorting logic to custom post meta columns
 		add_action( 'pre_get_posts',								array($this,			'sortCustomMetaColumns'),			10, 1);
 		
@@ -363,7 +366,7 @@ class WP_LIB_ADMIN_TABLES {
 	 */
 	public function setSortableItemsTableColumns( Array $columns ) {
 		// Makes array of columns sortable
-		foreach(['taxonomy-wp_lib_media_type','taxonomy-wp_lib_author','item_condition'] as $sortable ) {
+		foreach(['taxonomy-wp_lib_media_type','taxonomy-wp_lib_author','item_status','item_condition'] as $sortable ) {
 			$columns[$sortable] = $sortable;
 		}
 		
@@ -377,7 +380,7 @@ class WP_LIB_ADMIN_TABLES {
 	 */
 	public function setSortableMembersTableColumns( Array $columns ) {
 		// Makes array of columns sortable
-		foreach(['member_name'] as $sortable ) {
+		foreach(['member_name','member_loans','member_fines','member_donated'] as $sortable ) {
 			$columns[$sortable] = $sortable;
 		}
 		
@@ -405,7 +408,7 @@ class WP_LIB_ADMIN_TABLES {
 	 */
 	public function setSortableFinesTableColumns( Array $columns ) {
 		// Makes array of columns sortable
-		foreach(['fine_fine','fine_status','fine_amount'] as $sortable ) {
+		foreach(['fine_fine','fine_item','fine_member','fine_status','fine_amount'] as $sortable ) {
 			$columns[$sortable] = $sortable;
 		}
 		
@@ -416,12 +419,11 @@ class WP_LIB_ADMIN_TABLES {
 	 * Defines custom logic for sorting the Items table's custom taxonomy columns
 	 * Adapted from Mike Schinkel's comment on Scribu's post: 
 	 * @link	http://scribu.net/wordpress/sortable-taxonomy-columns.html#direct-joins
-	 * @param	Array		$clauses	
+	 * @param	Array		$clauses	SQL clauses for fetching posts
 	 * @param	WP_Query	$wp_query	A request to WordPress for posts
+	 * @return	Array					Modified SQL clauses
 	 */
 	public function sortCustomTaxColumns( Array $clauses, WP_Query $wp_query ) {
-		global $wpdb;
-		
 		if ( !isset($wp_query->query['orderby']) )
 			return $clauses;
 		
@@ -433,7 +435,13 @@ class WP_LIB_ADMIN_TABLES {
 			case 'taxonomy-wp_lib_media_type':
 				$taxonomy = 'wp_lib_media_type';
 			break;
+			
+			default:
+				return $clauses;
+			break;
 		}
+		
+		global $wpdb;
 		
 		$clauses['join'] .= <<<SQL
 LEFT OUTER JOIN {$wpdb->term_relationships} ON {$wpdb->posts}.ID={$wpdb->term_relationships}.object_id
@@ -450,6 +458,57 @@ SQL;
 	}
 	
 	/**
+	 * Sorts a custom column by its value, where that value comes a different post type's title
+	 * @todo							Give this function a better name
+	 * @param	Array		$clauses	SQL clauses for fetching posts
+	 * @param	WP_Query	$wp_query	A request to WordPress for posts
+	 * @return	Array					Modified SQL clauses
+	 */
+	public function sortCustomForeignMetaColumns( Array $clauses, WP_Query $wp_query ) {
+		if (!isset($wp_query->query['orderby']))
+			return $clauses;
+		
+		switch( $wp_query->query['orderby'] ) {
+			// The item title column of the loans table
+			case 'loan_item':
+				$meta_key	= 'wp_lib_item';
+			break;
+			
+			// The member name column of the loans table
+			case 'loan_member':
+				$meta_key	= 'wp_lib_member';
+			break;
+			
+			// The item title column of the fines table
+			case 'fine_item':
+				$meta_key	= 'wp_lib_item';
+			break;
+			
+			// The member name column of the fines table
+			case 'fine_member':
+				$meta_key	= 'wp_lib_member';
+			break;
+			
+			default:
+				return $clauses;
+			break;
+		}
+		
+		global $wpdb;
+		
+		// Posts table -> Foreign Keys in Meta Table -> Posts table posts that match f. key
+		$clauses['join'] .= <<<SQL
+LEFT OUTER JOIN {$wpdb->postmeta} ON {$wpdb->posts}.ID={$wpdb->postmeta}.post_id AND {$wpdb->postmeta}.meta_key='{$meta_key}'
+LEFT OUTER JOIN {$wpdb->posts} AS wp_lib_cpt ON meta_value=wp_lib_cpt.ID
+SQL;
+		
+		$clauses['orderby'] = "wp_lib_cpt.post_title ";
+		$clauses['orderby'] .= ( 'ASC' === strtoupper( $wp_query->get('order') ) ) ? 'ASC' : 'DESC';
+		
+		return $clauses;
+	}
+	
+	/**
 	 * Tells WordPress how to sort the Items table's custom post meta columns
 	 * @param	Array		$vars		Query variables passed to default main SQL query
 	 */
@@ -459,6 +518,10 @@ SQL;
 		
 		// Adds sorting logic based on column being sorted
 		switch( $query->get( 'orderby') ) {
+			case 'item_status':
+				// Requires special logic
+			break;
+			
 			case 'item_condition':
 				$query->set('meta_key',	'wp_lib_item_condition');
 				$query->set('orderby',	'meta_value_num');
@@ -466,6 +529,22 @@ SQL;
 			
 			case 'member_name':
 				$query->set('orderby',	'title');	// Member's names are stored as the title of their post
+			break;
+			
+			case 'member_loans':
+				// Requires special logic
+			break;
+			
+			case 'member_fines':
+				// Requires special logic
+			break;
+			
+			case 'member_donated':
+				// Requires special logic
+			break;
+			
+			case 'loan_loan':
+				$query->set('orderby',	'ID');
 			break;
 			
 			case 'loan_status':
