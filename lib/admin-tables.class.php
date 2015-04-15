@@ -384,7 +384,7 @@ class WP_LIB_ADMIN_TABLES {
 	 * @return	Array				Modified array of sortable table columns
 	 */
 	public function setSortableMembersTableColumns(Array $columns) {
-		foreach(['member_name','member_loans','member_fines','member_donated'] as $sortable) {
+		foreach(['member_name','member_loans','member_donated'] as $sortable) {
 			$columns[$sortable] = $sortable;
 		}
 		
@@ -589,10 +589,6 @@ SQL;
 			
 			case 'member_name':
 				$query->set('orderby',	'title');	// Member's names are stored as the title of their post
-			break;
-			
-			case 'member_fines':
-				// Requires special logic
 			break;
 			
 			case 'loan_loan':
