@@ -371,7 +371,6 @@ class WP_LIB_ADMIN_TABLES {
 	 * @return	Array				Modified array of sortable table columns
 	 */
 	public function setSortableItemsTableColumns(Array $columns) {
-		// Makes array of columns sortable
 		foreach(['taxonomy-wp_lib_media_type','taxonomy-wp_lib_author','item_status','item_condition'] as $sortable) {
 			$columns[$sortable] = $sortable;
 		}
@@ -385,7 +384,6 @@ class WP_LIB_ADMIN_TABLES {
 	 * @return	Array				Modified array of sortable table columns
 	 */
 	public function setSortableMembersTableColumns(Array $columns) {
-		// Makes array of columns sortable
 		foreach(['member_name','member_loans','member_fines','member_donated'] as $sortable) {
 			$columns[$sortable] = $sortable;
 		}
@@ -399,7 +397,6 @@ class WP_LIB_ADMIN_TABLES {
 	 * @return	Array				Modified array of sortable table columns
 	 */
 	public function setSortableLoansTableColumns(Array $columns) {
-		// Makes array of columns sortable
 		foreach(['loan_loan','loan_item','loan_member','loan_status','loan_start','loan_end','loan_returned'] as $sortable) {
 			$columns[$sortable] = $sortable;
 		}
@@ -413,7 +410,6 @@ class WP_LIB_ADMIN_TABLES {
 	 * @return	Array				Modified array of sortable table columns
 	 */
 	public function setSortableFinesTableColumns(Array $columns) {
-		// Makes array of columns sortable
 		foreach(['fine_fine','fine_item','fine_member','fine_status','fine_amount'] as $sortable) {
 			$columns[$sortable] = $sortable;
 		}
