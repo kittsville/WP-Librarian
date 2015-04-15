@@ -55,7 +55,10 @@ class WP_LIB_ADMIN_TABLES {
 		add_filter( 'posts_clauses',								array($this,			'sortCustomForeignMetaColumns'),	10, 2);
 		
 		// Adds logic to sort the members table by the 'Items Donated' column
-		add_filter(	'post_clauses',									array($this,			'sortCustomItemsDonatedColumn'),	10, 2);
+		add_filter(	'posts_clauses',								array($this,			'sortCustomItemsDonatedColumn'),	10, 2);
+		
+		// Adds logic to sort the members table by the 'Items on Loan' column
+		add_filter( 'posts_clauses',								array($this,			'sortCustomItemsOnLoanColumn'),		10, 2);
 		
 		// Adds custom sorting logic to custom post meta columns
 		add_action( 'pre_get_posts',								array($this,			'sortCustomMetaColumns'),			10, 1);
@@ -523,11 +526,48 @@ SQL;
 		
 		global $wpdb;
 		
-		$clauses['select'] .= ", COUNT(meta_value) AS NumberOfDonatedItems";
-		
 		$clauses['join'] .= "LEFT OUTER JOIN {$wpdb->postmeta} ON {$wpdb->posts}.ID={$wpdb->postmeta}.meta_value AND {$wpdb->postmeta}.meta_key='wp_lib_item_donor'";
 		$clauses['groupby'] = "ID";
-		$clauses['orderby'] = "NumberOfDonatedItems";
+		$clauses['orderby'] = "COUNT(meta_value) ";
+		$clauses['orderby'] .= ( 'ASC' === strtoupper( $wp_query->get('order') ) ) ? 'ASC' : 'DESC';
+		
+		return $clauses;
+	}
+	
+	/**
+	 * Sorts the 'Items on Loan' column in the Members table
+	 * First creates a table of items currently on loan then joins them to the relevant members and counts how many items each member has
+	 * @todo Find out if this can be done without a nested query
+	 * @param	Array		$clauses	SQL clauses for fetching posts
+	 * @param	WP_Query	$wp_query	A request to WordPress for posts
+	 * @return	Array					Modified SQL clauses
+	 */
+	public function sortCustomItemsOnLoanColumn( Array $clauses, WP_Query $wp_query ) {
+		if (!isset($wp_query->query['orderby']) || $wp_query->query['orderby'] !== 'member_loans')
+			return $clauses;
+		
+		global $wpdb;
+		
+		$clauses['join'] .= <<<SQL
+LEFT OUTER JOIN (
+SELECT {$wpdb->postmeta}.meta_value AS member_id
+FROM {$wpdb->posts}
+INNER JOIN {$wpdb->postmeta}
+ON {$wpdb->postmeta}.post_id = {$wpdb->posts}.ID
+AND {$wpdb->postmeta}.meta_key = 'wp_lib_member'
+WHERE {$wpdb->posts}.post_type = 'wp_lib_items'
+AND ({$wpdb->posts}.post_status = 'publish'
+OR {$wpdb->posts}.post_status = 'future'
+OR {$wpdb->posts}.post_status = 'draft'
+OR {$wpdb->posts}.post_status = 'pending'
+OR {$wpdb->posts}.post_status = 'private')
+) AS loans
+ON {$wpdb->posts}.ID = loans.member_id
+SQL;
+		
+		$clauses['groupby'] = "{$wpdb->posts}.ID";
+		$clauses['orderby']  = "COUNT(loans.member_id) ";
+		$clauses['orderby'] .= ( 'ASC' === strtoupper( $wp_query->get('order') ) ) ? 'ASC' : 'DESC';
 		
 		return $clauses;
 	}
@@ -553,10 +593,6 @@ SQL;
 			
 			case 'member_name':
 				$query->set('orderby',	'title');	// Member's names are stored as the title of their post
-			break;
-			
-			case 'member_loans':
-				// Requires special logic
 			break;
 			
 			case 'member_fines':
