@@ -91,7 +91,7 @@ class WP_LIB_ADMIN_TABLES {
 	 * @return	array				Modified WordPress post table columns
 	 * @see							http://codex.wordpress.org/Plugin_API/Filter_Reference/manage_posts_columns
 	 */
-	public function manageItemsTableColumns($columns) {	
+	public function manageItemsTableColumns(Array $columns) {	
 		// Adds item status and item condition columns
 		$new_columns = array(
 			'item_status'		=> 'Loan Status',
@@ -110,7 +110,7 @@ class WP_LIB_ADMIN_TABLES {
 	 * @return	array				Modified WordPress post table columns
 	 * @see							http://codex.wordpress.org/Plugin_API/Filter_Reference/manage_posts_columns
 	 */
-	public function manageMembersTableColumns($columns) {
+	public function manageMembersTableColumns(Array $columns) {
 		// Initialises new columns
 		$new_columns = array(
 			'member_name'		=> 'Name',
@@ -130,7 +130,7 @@ class WP_LIB_ADMIN_TABLES {
 	 * @see							http://codex.wordpress.org/Plugin_API/Filter_Reference/manage_posts_columns
 	 * @todo						Test function without accepting $columns as an argument and setting the filter params to 0
 	 */
-	public function manageLoansTableColumns($columns) {
+	public function manageLoansTableColumns(Array $columns) {
 		return array(
 			'loan_loan'			=> 'Loan',
 			'loan_item'			=> 'Item',
@@ -149,7 +149,7 @@ class WP_LIB_ADMIN_TABLES {
 	 * @see							http://codex.wordpress.org/Plugin_API/Filter_Reference/manage_posts_columns
 	 * @todo						Test function without accepting $columns as an argument and setting the filter params to 0
 	 */
-	public function manageFinesTableColumns($columns) {
+	public function manageFinesTableColumns(Array $columns) {
 		return array(
 			'fine_fine'			=> 'Fine',
 			'fine_item'			=> 'Item',
@@ -165,7 +165,7 @@ class WP_LIB_ADMIN_TABLES {
 	 * @return	array				Modified WordPress user table columns
 	 * @see							http://codex.wordpress.org/Plugin_API/Filter_Reference/manage_users_columns
 	 */
-	public function manageUsersTableColumns($columns) {
+	public function manageUsersTableColumns(Array $columns) {
 		return array_slice($columns, 0, 5, true) + array('library-role' => 'Library Role') + array_slice($columns, 5, NULL, true);
 	}
 	
