@@ -624,42 +624,42 @@ SQL;
 	 * Tells WordPress how to sort the Items table's custom post meta columns
 	 * @param	Array	$vars	A paginated query for a library custom post type
 	 */
-	public function sortByMetaColumn(WP_Query $query) {
+	public function sortByMetaColumn(WP_Query $wp_query) {
 		if(!is_admin())
 			return;
 		
 		// Adds sorting logic based on column being sorted
-		switch($query->get( 'orderby')) {
+		switch($wp_query->get( 'orderby')) {
 			case 'item_status':
 				// Requires special logic
 			break;
 			
 			case 'item_condition':
-				$query->set('meta_key',	'wp_lib_item_condition');
-				$query->set('orderby',	'meta_value_num');
+				$wp_query->set('meta_key',	'wp_lib_item_condition');
+				$wp_query->set('orderby',	'meta_value_num');
 			break;
 			
 			case 'member_name':
-				$query->set('orderby',	'title');	// Member's names are stored as the title of their post
+				$wp_query->set('orderby',	'title');	// Member's names are stored as the title of their post
 			break;
 			
 			case 'loan_loan':
-				$query->set('orderby',	'ID');
+				$wp_query->set('orderby',	'ID');
 			break;
 			
 			case 'loan_status':
-				$query->set('meta_key',	'wp_lib_status');
-				$query->set('orderby',	'meta_value_num');
+				$wp_query->set('meta_key',	'wp_lib_status');
+				$wp_query->set('orderby',	'meta_value_num');
 			break;
 			
 			case 'loan_end':
-				$query->set('meta_key',	'wp_lib_end_date');
-				$query->set('orderby',	'meta_value_num');
-				$query->set('meta_type','NUMERIC');
+				$wp_query->set('meta_key',	'wp_lib_end_date');
+				$wp_query->set('orderby',	'meta_value_num');
+				$wp_query->set('meta_type','NUMERIC');
 			break;
 			
 			case 'loan_returned':
-				$query->set('meta_query',array(
+				$wp_query->set('meta_query',array(
 					'relation'	=> 'OR',
 					array(
 						'key'		=> 'wp_lib_return_date',
@@ -671,22 +671,22 @@ SQL;
 						'value'		=> 'bug #23268'	// Allows WP-Librarian to run on pre-3.9 WP installs (bug was fixed for 3.9, text is arbitrary)
 					)
 				));
-				$query->set('orderby',	'meta_value_num');
-				$query->set('meta_type','NUMERIC');
+				$wp_query->set('orderby',	'meta_value_num');
+				$wp_query->set('meta_type','NUMERIC');
 			break;
 			
 			case 'fine_fine':
-				$query->set('orderby',	'ID');
+				$wp_query->set('orderby',	'ID');
 			break;
 			
 			case 'fine_status':
-				$query->set('meta_key',	'wp_lib_status');
-				$query->set('orderby',	'meta_value_num');
+				$wp_query->set('meta_key',	'wp_lib_status');
+				$wp_query->set('orderby',	'meta_value_num');
 			break;
 			
 			case 'fine_amount':
-				$query->set('meta_key',	'wp_lib_owed');
-				$query->set('orderby',	'meta_value_num');
+				$wp_query->set('meta_key',	'wp_lib_owed');
+				$wp_query->set('orderby',	'meta_value_num');
 			break;
 		}
 	}
