@@ -134,4 +134,3 @@ class WP_LIB_TEMPLATE_HOOKS {
 		}
 	}
 }
-?>

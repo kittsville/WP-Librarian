@@ -1435,4 +1435,5 @@ class WP_LIBRARIAN {
 		remove_meta_box( 'wp_lib_media_typediv', 'wp_lib_items', 'side' );
 	}
 }
+
 ?>
