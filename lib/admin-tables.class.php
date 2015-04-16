@@ -573,7 +573,7 @@ SQL;
 	 * @param	Array		$vars		Query variables passed to default main SQL query
 	 */
 	public function sortCustomMetaColumns(WP_Query $query) {
-		if(!is_admin())  
+		if(!is_admin())
 			return;
 		
 		// Adds sorting logic based on column being sorted
