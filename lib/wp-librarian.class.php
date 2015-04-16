@@ -991,8 +991,8 @@ class WP_LIBRARIAN {
 		// Registers admin-core, a file of core CSS rules for WP-Librarian's admin-end
 		wp_register_style('wp_lib_admin_core_styles', $this->getStyleUrl('admin-core'), array(), '0.2');
 
-		// Sets up array of variables to be passed to JavaScript
-		$vars = array(
+		// Sends array of useful variables to client-side (JavaScript)
+		wp_localize_script('wp_lib_core', 'wp_lib_vars', array(
 				'siteUrl' 		=> site_url(),
 				'adminUrl'		=> admin_url(),
 				'pluginsUrl'	=> $this->plugin_url,
@@ -1000,10 +1000,7 @@ class WP_LIBRARIAN {
 				'siteName'		=> get_bloginfo('name'),
 				'getParams'		=> $_GET,
 				'debugMode'		=> WP_LIB_DEBUG_MODE
-		);
-		
-		// Sends variables to user
-		wp_localize_script('wp_lib_core', 'wp_lib_vars', $vars);
+		));
 		
 		if ($hook == 'post-new.php' || $hook == 'post.php') {
 			switch ($GLOBALS['post_type']) {
