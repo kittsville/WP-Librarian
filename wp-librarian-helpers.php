@@ -703,4 +703,3 @@ function wp_lib_fetch_dependant_objects( $post_id, $post_type = false, $connecte
 	
 	return $connected_posts;
 }
-?>

@@ -320,4 +320,3 @@ class WP_LIB_ITEM extends WP_LIB_OBJECT {
 		delete_post_meta( $this->ID, 'wp_lib_member' );
 	}
 }
-?>

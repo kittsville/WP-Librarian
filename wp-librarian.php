@@ -37,4 +37,3 @@ $plugin = new WP_LIBRARIAN;
 register_activation_hook(__FILE__, array($plugin, 'runOnActivation'));
 
 register_deactivation_hook(__FILE__, 'flush_rewrite_rules');
-?>

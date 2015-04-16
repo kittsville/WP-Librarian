@@ -343,4 +343,3 @@ class WP_LIB_SETTINGS_SECTION extends WP_LIB_SETTINGS {
 		}
 	}
 }
-?>

@@ -112,4 +112,3 @@ class WP_LIB_ERROR {
 		}
 	}
 }
-?>

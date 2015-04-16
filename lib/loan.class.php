@@ -348,4 +348,3 @@ class WP_LIB_LOAN extends WP_LIB_OBJECT {
 		return isset( $fine_id )?: true;
 	}
 }
-?>

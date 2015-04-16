@@ -87,4 +87,3 @@ class WP_LIB_MEMBER extends WP_LIB_OBJECT {
 		));
 	}
 }
-?>

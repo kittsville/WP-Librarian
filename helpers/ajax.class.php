@@ -2412,4 +2412,3 @@ class WP_LIB_AJAX_API extends WP_LIB_AJAX {
 		}
 	}
 }
-?>

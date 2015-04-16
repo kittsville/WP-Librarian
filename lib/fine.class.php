@@ -34,4 +34,3 @@ class WP_LIB_FINE extends WP_LIB_OBJECT {
 		return true;
 	}
 }
-?>

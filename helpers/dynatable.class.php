@@ -174,4 +174,3 @@ class WP_LIB_DYNATABLE_LOANS extends WP_LIB_DYNATABLE {
 		return wp_lib_format_unix_timestamp( $this->row_meta['wp_lib_return_date'][0] );
 	}
 }
-?>
