@@ -660,7 +660,18 @@ SQL;
 			break;
 			
 			case 'loan_returned':
-				$query->set('meta_key',	'wp_lib_return_date');
+				$query->set('meta_query',array(
+					'relation'	=> 'OR',
+					array(
+						'key'		=> 'wp_lib_return_date',
+						'compare'	=> 'EXISTS'
+					),
+					array(
+						'key'		=> 'wp_lib_return_date',
+						'compare'	=> 'NOT EXISTS',
+						'value'		=> 'bug #23268'	// Allows WP-Librarian to run on pre-3.9 WP installs (bug was fixed for 3.9, text is arbitrary)
+					)
+				));
 				$query->set('orderby',	'meta_value_num');
 				$query->set('meta_type','NUMERIC');
 			break;
