@@ -1,6 +1,6 @@
 <?php
 // No direct loading
-defined( 'ABSPATH' ) OR die('No');
+defined('ABSPATH') OR die('No');
 
 /**
  * Represents a member of the library
@@ -14,8 +14,8 @@ class WP_LIB_MEMBER extends WP_LIB_OBJECT {
 	 * @param	int							$member_id		Post ID of a member
 	 * @return	WP_LIB_MEMBER|WP_LIB_ERROR					Instance of class or, if error occurred, error class
 	 */
-	public static function create( WP_LIBRARIAN $wp_librarian, $member_id ) {
-		return parent::initObject( $wp_librarian, $member_id, __class__, 'wp_lib_members', 'Member' );
+	public static function create(WP_LIBRARIAN $wp_librarian, $member_id) {
+		return parent::initObject($wp_librarian, $member_id, __class__, 'wp_lib_members', 'Member');
 	}
 	
 	/**
@@ -43,24 +43,24 @@ class WP_LIB_MEMBER extends WP_LIB_OBJECT {
 		// Initialises amount owed by member in fines
 		$owed = 0;
 		
-		if ( $query->have_posts() ){
-			while ( $query->have_posts() ) {
+		if ($query->have_posts()){
+			while ($query->have_posts()) {
 				$query->the_post();
 				
 				// Fetches fine ID from loan post meta
-				$fine_id = get_post_meta( get_the_ID(), 'wp_lib_fine', true );
+				$fine_id = get_post_meta(get_the_ID(), 'wp_lib_fine', true);
 				
 				// If fine isn't active (fine was cancelled), skip adding to amount owed
-				if ( get_post_meta( $fine_id, 'wp_lib_status', true ) !== '1' )
+				if (get_post_meta($fine_id, 'wp_lib_status', true) !== '1')
 					continue;
 				
 				// Adds fine amount for current loan to total amount owed
-				$owed += get_post_meta( $fine_id, 'wp_lib_owed', true );
+				$owed += get_post_meta($fine_id, 'wp_lib_owed', true);
 			}
 		}
 		
 		// Fetches all times member has paid off their late fines
-		foreach ( get_post_meta( $this->ID, 'wp_lib_payments' ) as $fine_payment ) {
+		foreach (get_post_meta($this->ID, 'wp_lib_payments') as $fine_payment) {
 			// Subtracts fine payment from amount member owes
 			$owed -= $fine_payment[1];
 		}
@@ -74,13 +74,13 @@ class WP_LIB_MEMBER extends WP_LIB_OBJECT {
 	 * @param	float|int			$payment	Amount to be paid
 	 * @return	bool|WP_LIB_ERROR				True on success, error on failure
 	 */
-	public function payMoneyOwed( $payment ) {
+	public function payMoneyOwed($payment) {
 		// If fine payment is negative or failed to validate (resulting in 0), call error
-		if ( $payment <= 0 )
-			return wp_lib_error( 320 );
+		if ($payment <= 0)
+			return wp_lib_error(320);
 		
 		// Creates record of fine payment
-		add_post_meta( $this->ID, 'wp_lib_payments', array(
+		add_post_meta($this->ID, 'wp_lib_payments', array(
 			current_time('timestamp'),	// Date of fine payment
 			$payment,					// Amount paid of member fines
 			get_current_user_id()		// Librarian to authorise fine payment

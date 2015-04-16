@@ -1,6 +1,6 @@
 <?php
 // No direct loading
-defined( 'ABSPATH' ) OR die('No');
+defined('ABSPATH') OR die('No');
 
 /**
  * Contains basic logic relating a library object (item/loan/fine)
@@ -25,17 +25,17 @@ abstract class WP_LIB_OBJECT {
 	 * Adds instance of main plugin class to class properties
 	 * @param WP_LIBRARIAN $wp_librarian Instance of core plugin class
 	 */
-	private function __construct( WP_LIBRARIAN $wp_librarian, $post_id ) {
+	private function __construct(WP_LIBRARIAN $wp_librarian, $post_id) {
 		$this->wp_librarian = $wp_librarian;
 		$this->ID			= $post_id;
 	}
 	
-	protected static function initObject( $wp_librarian, $post_id, $class, $post_type, $object_name ) {
+	protected static function initObject($wp_librarian, $post_id, $class, $post_type, $object_name) {
 		// If given post ID isn't valid, calls error
-		if ( get_post_type( $post_id ) !== $post_type )
-			return wp_lib_error( 303, $object_name );
+		if (get_post_type($post_id) !== $post_type)
+			return wp_lib_error(303, $object_name);
 		else
 			// Sets up basic class properties: post ID and instance of core plugin class
-			return new $class( $wp_librarian, $post_id );
+			return new $class($wp_librarian, $post_id);
 	}
 }

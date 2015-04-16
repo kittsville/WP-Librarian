@@ -1,6 +1,6 @@
 <?php
 // No direct loading
-defined( 'ABSPATH' ) OR die('No');
+defined('ABSPATH') OR die('No');
 
 /**
  * Creates, removes and manages the columns of admin post tables for WP-Librarian's post types
