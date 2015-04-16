@@ -1013,8 +1013,8 @@ class WP_LIBRARIAN {
 				break;
 				
 				case 'wp_lib_members':
-					wp_register_style( 'wp_lib_admin_member_meta', $this->getStyleUrl( 'admin-member-meta-box' ), array( 'wp_lib_meta_core_styles' ), '0.1' );
-					wp_enqueue_script( 'wp_lib_edit_member', $this->getScriptUrl( 'admin-edit-member' ), array( 'wp_lib_meta_core' ), '0.2' );
+					wp_enqueue_style( 'wp_lib_meta_core_styles' );
+					wp_enqueue_script( 'wp_lib_meta_core' );
 				break;
 			}
 		} elseif ( $hook == 'edit.php' && in_array( $GLOBALS['post_type'], array( 'wp_lib_items', 'wp_lib_members', 'wp_lib_loans', 'wp_lib_fines' ), true ) ) {

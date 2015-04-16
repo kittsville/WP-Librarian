@@ -8,9 +8,6 @@
 // No direct loading
 defined( 'ABSPATH' ) OR die('No');
 
-// Loads meta box css
-wp_enqueue_style( 'wp_lib_admin_member_meta' );
-
 // Nonce, to verify user authenticity
 wp_nonce_field( "Updating member {$member->ID} meta", 'wp_lib_member_meta_nonce' );
 
