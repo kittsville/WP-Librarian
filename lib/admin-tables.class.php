@@ -434,6 +434,15 @@ class WP_LIB_ADMIN_TABLES {
 	}
 	
 	/**
+	 * Sets whether sorting will be ascending or descending based on input
+	 * @param	WP_Query	$wp_query	Query for a library post type
+	 * @return	string					ASC/DESC prefixed with a single space
+	 */
+	private function getColumnSortDirection(WP_Query $wp_query) {
+		return ' ' . (('ASC' == strtoupper($wp_query->get('order'))) ? 'ASC' : 'DESC');
+	}
+	
+	/**
 	 * Defines custom logic for sorting the Items table's custom taxonomy columns
 	 * Adapted from Mike Schinkel's comment on Scribu's post: 
 	 * @link	http://scribu.net/wordpress/sortable-taxonomy-columns.html#direct-joins
@@ -469,8 +478,8 @@ SQL;
 		
 		$clauses['where']	.=	" AND (taxonomy = '".$taxonomy."' OR taxonomy IS NULL)";
 		$clauses['groupby']	=	"object_id";
-		$clauses['orderby']	=	"GROUP_CONCAT({$wpdb->terms}.name ORDER BY name ASC) ";
-		$clauses['orderby']	.=	('ASC' === strtoupper($wp_query->get('order'))) ? 'ASC' : 'DESC';
+		$clauses['orderby']	=	"GROUP_CONCAT({$wpdb->terms}.name ORDER BY name ASC)";
+		$clauses['orderby']	.=	$this->getColumnSortDirection($wp_query);
 
 		return $clauses;
 	}
@@ -520,8 +529,8 @@ LEFT OUTER JOIN {$wpdb->postmeta} ON {$wpdb->posts}.ID={$wpdb->postmeta}.post_id
 LEFT OUTER JOIN {$wpdb->posts} AS wp_lib_cpt ON meta_value=wp_lib_cpt.ID
 SQL;
 		
-		$clauses['orderby']	=	"wp_lib_cpt.post_title ";
-		$clauses['orderby']	.=	('ASC' === strtoupper($wp_query->get('order'))) ? 'ASC' : 'DESC';
+		$clauses['orderby']	=	"wp_lib_cpt.post_title";
+		$clauses['orderby']	.=	$this->getColumnSortDirection($wp_query);
 		
 		return $clauses;
 	}
@@ -540,8 +549,8 @@ SQL;
 		
 		$clauses['join']	.=	"LEFT OUTER JOIN {$wpdb->postmeta} ON {$wpdb->posts}.ID={$wpdb->postmeta}.meta_value AND {$wpdb->postmeta}.meta_key='wp_lib_item_donor'";
 		$clauses['groupby']	=	"ID";
-		$clauses['orderby']	=	"COUNT(meta_value) ";
-		$clauses['orderby']	.=	('ASC' === strtoupper($wp_query->get('order'))) ? 'ASC' : 'DESC';
+		$clauses['orderby']	=	"COUNT(meta_value)";
+		$clauses['orderby']	.=	$this->getColumnSortDirection($wp_query);
 		
 		return $clauses;
 	}
@@ -578,8 +587,8 @@ ON {$wpdb->posts}.ID = loans.member_id
 SQL;
 		
 		$clauses['groupby']	=	"{$wpdb->posts}.ID";
-		$clauses['orderby'] =	"COUNT(loans.member_id) ";
-		$clauses['orderby']	.=	('ASC' === strtoupper($wp_query->get('order'))) ? 'ASC' : 'DESC';
+		$clauses['orderby'] =	"COUNT(loans.member_id)";
+		$clauses['orderby']	.=	$this->getColumnSortDirection($wp_query);
 		
 		return $clauses;
 	}
@@ -606,8 +615,8 @@ ON {$wpdb->posts}.ID=start_meta.post_id
 AND start_meta.meta_key='wp_lib_start_date'
 SQL;
 		
-		$clauses['orderby'] =	"IFNULL(give_meta.meta_value, start_meta.meta_value) ";
-		$clauses['orderby']	.=	('ASC' === strtoupper($wp_query->get('order'))) ? 'ASC' : 'DESC';
+		$clauses['orderby'] =	"IFNULL(give_meta.meta_value, start_meta.meta_value)";
+		$clauses['orderby']	.=	$this->getColumnSortDirection($wp_query);
 		
 		return $clauses;
 	}
