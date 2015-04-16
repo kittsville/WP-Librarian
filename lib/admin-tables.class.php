@@ -60,6 +60,9 @@ class WP_LIB_ADMIN_TABLES {
 		// Adds logic to sort the members table by the 'Items on Loan' column
 		add_filter('posts_clauses',									array($this,			'sortCustomItemsOnLoanColumn'),		10, 2);
 		
+		// Adds logic to sort the loans table by the 'Start Date' column
+		add_filter('posts_clauses',									array($this,			'sortCustomStartDateColumn'),		10, 2);
+		
 		// Adds custom sorting logic to custom post meta columns
 		add_action('pre_get_posts',									array($this,			'sortCustomMetaColumns'),			10, 1);
 		
@@ -582,6 +585,34 @@ SQL;
 	}
 	
 	/**
+	 * Sorts the 'Start Date' column in the Loans table
+	 * Combines start date/give date of loan, choosing give date over start date, then sorts
+	 * @param	Array		$clauses	SQL clauses for fetching posts
+	 * @param	WP_Query	$wp_query	A request to WordPress for posts
+	 * @return	Array					Modified SQL clauses
+	 */
+	public function sortCustomStartDateColumn(Array $clauses, WP_Query $wp_query) {
+		if (!isset($wp_query->query['orderby']) || $wp_query->query['orderby'] !== 'loan_start')
+			return $clauses;
+		
+		global $wpdb;
+		
+		$clauses['join'] .= <<<SQL
+LEFT OUTER JOIN {$wpdb->postmeta} as give_meta
+ON {$wpdb->posts}.ID=give_meta.post_id
+AND give_meta.meta_key='wp_lib_give_date'
+LEFT OUTER JOIN {$wpdb->postmeta} as start_meta
+ON {$wpdb->posts}.ID=start_meta.post_id
+AND start_meta.meta_key='wp_lib_start_date'
+SQL;
+		
+		$clauses['orderby'] =	"IFNULL(give_meta.meta_value, start_meta.meta_value) ";
+		$clauses['orderby']	.=	('ASC' === strtoupper($wp_query->get('order'))) ? 'ASC' : 'DESC';
+		
+		return $clauses;
+	}
+	
+	/**
 	 * Tells WordPress how to sort the Items table's custom post meta columns
 	 * @param	Array		$vars		Query variables passed to default main SQL query
 	 */
@@ -611,12 +642,6 @@ SQL;
 			case 'loan_status':
 				$query->set('meta_key',	'wp_lib_status');
 				$query->set('orderby',	'meta_value_num');
-			break;
-			
-			case 'loan_start':
-				$query->set('meta_key',	'wp_lib_start_date');
-				$query->set('orderby',	'meta_value_num');
-				$query->set('meta_type','NUMERIC');
 			break;
 			
 			case 'loan_end':
