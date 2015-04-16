@@ -49,22 +49,22 @@ class WP_LIB_ADMIN_TABLES {
 		add_filter('manage_edit-wp_lib_fines_sortable_columns',		array($this,			'setSortableFinesTableColumns'),	10, 1);
 		
 		// Adds custom sorting logic to custom taxonomy columns
-		add_filter('posts_clauses',									array($this,			'sortCustomTaxColumns'),			10, 2);
+		add_filter('posts_clauses',									array($this,			'sortByTaxColumn'),					10, 2);
 		
 		// Adds custom sorting logic to columns that rely on meta-based foreign keys
-		add_filter('posts_clauses',									array($this,			'sortCustomForeignMetaColumns'),	10, 2);
+		add_filter('posts_clauses',									array($this,			'sortByForeignMetaColumn'),			10, 2);
 		
 		// Adds logic to sort the members table by the 'Items Donated' column
-		add_filter('posts_clauses',									array($this,			'sortCustomItemsDonatedColumn'),	10, 2);
+		add_filter('posts_clauses',									array($this,			'sortByItemsDonatedColumn'),		10, 2);
 		
 		// Adds logic to sort the members table by the 'Items on Loan' column
-		add_filter('posts_clauses',									array($this,			'sortCustomItemsOnLoanColumn'),		10, 2);
+		add_filter('posts_clauses',									array($this,			'sortByItemsOnLoanColumn'),			10, 2);
 		
 		// Adds logic to sort the loans table by the 'Start Date' column
-		add_filter('posts_clauses',									array($this,			'sortCustomStartDateColumn'),		10, 2);
+		add_filter('posts_clauses',									array($this,			'sortByStartDateColumn'),			10, 2);
 		
 		// Adds custom sorting logic to custom post meta columns
-		add_action('pre_get_posts',									array($this,			'sortCustomMetaColumns'),			10, 1);
+		add_action('pre_get_posts',									array($this,			'sortByMetaColumn'),				10, 1);
 		
 		// Removes bulk actions actions from loans and fines post tables
 		add_filter('bulk_actions-edit-wp_lib_loans',				function(){ return array(); });
@@ -450,7 +450,7 @@ class WP_LIB_ADMIN_TABLES {
 	 * @param	WP_Query	$wp_query	A request to WordPress for posts
 	 * @return	Array					Modified SQL clauses
 	 */
-	public function sortCustomTaxColumns(Array $clauses, WP_Query $wp_query) {
+	public function sortByTaxColumn(Array $clauses, WP_Query $wp_query) {
 		if (!isset($wp_query->query['orderby']))
 			return $clauses;
 		
@@ -491,7 +491,7 @@ SQL;
 	 * @param	WP_Query	$wp_query	A request to WordPress for posts
 	 * @return	Array					Modified SQL clauses
 	 */
-	public function sortCustomForeignMetaColumns(Array $clauses, WP_Query $wp_query) {
+	public function sortByForeignMetaColumn(Array $clauses, WP_Query $wp_query) {
 		if (!isset($wp_query->query['orderby']))
 			return $clauses;
 		
@@ -541,7 +541,7 @@ SQL;
 	 * @param	WP_Query	$wp_query	A request to WordPress for posts
 	 * @return	Array					Modified SQL clauses
 	 */
-	public function sortCustomItemsDonatedColumn(Array $clauses, WP_Query $wp_query) {
+	public function sortByItemsDonatedColumn(Array $clauses, WP_Query $wp_query) {
 		if (!isset($wp_query->query['orderby']) || $wp_query->query['orderby'] !== 'member_donated')
 			return $clauses;
 		
@@ -563,7 +563,7 @@ SQL;
 	 * @param	WP_Query	$wp_query	A request to WordPress for posts
 	 * @return	Array					Modified SQL clauses
 	 */
-	public function sortCustomItemsOnLoanColumn(Array $clauses, WP_Query $wp_query) {
+	public function sortByItemsOnLoanColumn(Array $clauses, WP_Query $wp_query) {
 		if (!isset($wp_query->query['orderby']) || $wp_query->query['orderby'] !== 'member_loans')
 			return $clauses;
 		
@@ -600,7 +600,7 @@ SQL;
 	 * @param	WP_Query	$wp_query	A request to WordPress for posts
 	 * @return	Array					Modified SQL clauses
 	 */
-	public function sortCustomStartDateColumn(Array $clauses, WP_Query $wp_query) {
+	public function sortByStartDateColumn(Array $clauses, WP_Query $wp_query) {
 		if (!isset($wp_query->query['orderby']) || $wp_query->query['orderby'] !== 'loan_start')
 			return $clauses;
 		
@@ -625,7 +625,7 @@ SQL;
 	 * Tells WordPress how to sort the Items table's custom post meta columns
 	 * @param	Array		$vars		Query variables passed to default main SQL query
 	 */
-	public function sortCustomMetaColumns(WP_Query $query) {
+	public function sortByMetaColumn(WP_Query $query) {
 		if(!is_admin())
 			return;
 		
