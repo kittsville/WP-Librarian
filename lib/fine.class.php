@@ -13,7 +13,7 @@ class WP_LIB_FINE extends WP_LIB_OBJECT {
 	 * @param	int				$fine_id		Post ID of a fine
 	 */
 	public static function create( WP_LIBRARIAN $wp_librarian, $fine_id ) {
-		return parent::create( $wp_librarian, $fine_id, __class__, 'wp_lib_fines', 'Fine' );
+		return parent::initObject( $wp_librarian, $fine_id, __class__, 'wp_lib_fines', 'Fine' );
 	}
 	
 	/**

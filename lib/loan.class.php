@@ -14,7 +14,7 @@ class WP_LIB_LOAN extends WP_LIB_OBJECT {
 	 * @return	WP_LIB_LOAN||WP_LIB_ERROR					Instance of class or, if error occurred, error class
 	 */
 	public static function create( WP_LIBRARIAN $wp_librarian, $loan_id ) {
-		return parent::create( $wp_librarian, $loan_id, __class__, 'wp_lib_loans', 'Loan' );
+		return parent::initObject( $wp_librarian, $loan_id, __class__, 'wp_lib_loans', 'Loan' );
 	}
 	
 	/**

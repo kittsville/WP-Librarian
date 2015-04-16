@@ -15,7 +15,7 @@ class WP_LIB_MEMBER extends WP_LIB_OBJECT {
 	 * @return	WP_LIB_MEMBER|WP_LIB_ERROR					Instance of class or, if error occurred, error class
 	 */
 	public static function create( WP_LIBRARIAN $wp_librarian, $member_id ) {
-		return parent::create( $wp_librarian, $member_id, __class__, 'wp_lib_members', 'Member' );
+		return parent::initObject( $wp_librarian, $member_id, __class__, 'wp_lib_members', 'Member' );
 	}
 	
 	/**
