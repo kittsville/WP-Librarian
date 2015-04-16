@@ -443,11 +443,11 @@ class WP_LIB_ADMIN_TABLES {
 	}
 	
 	/**
-	 * Defines custom logic for sorting the Items table's custom taxonomy columns
+	 * Defines custom logic for sorting the Items table by its custom taxonomy columns
 	 * Adapted from Mike Schinkel's comment on Scribu's post: 
 	 * @link	http://scribu.net/wordpress/sortable-taxonomy-columns.html#direct-joins
 	 * @param	Array		$clauses	SQL clauses for fetching posts
-	 * @param	WP_Query	$wp_query	A request to WordPress for posts
+	 * @param	WP_Query	$wp_query	A paginated query for items
 	 * @return	Array					Modified SQL clauses
 	 */
 	public function sortByTaxColumn(Array $clauses, WP_Query $wp_query) {
@@ -486,9 +486,8 @@ SQL;
 	
 	/**
 	 * Sorts a custom column by its value, where that value comes a different post type's title
-	 * @todo							Give this function a better name
 	 * @param	Array		$clauses	SQL clauses for fetching posts
-	 * @param	WP_Query	$wp_query	A request to WordPress for posts
+	 * @param	WP_Query	$wp_query	A paginated query for a library post type
 	 * @return	Array					Modified SQL clauses
 	 */
 	public function sortByForeignMetaColumn(Array $clauses, WP_Query $wp_query) {
@@ -536,9 +535,9 @@ SQL;
 	}
 	
 	/**
-	 * Sorts the 'Items Donated' column in the Members table
+	 * Sorts the members table by its 'Items Donated' column
 	 * @param	Array		$clauses	SQL clauses for fetching posts
-	 * @param	WP_Query	$wp_query	A request to WordPress for posts
+	 * @param	WP_Query	$wp_query	A paginated query for members
 	 * @return	Array					Modified SQL clauses
 	 */
 	public function sortByItemsDonatedColumn(Array $clauses, WP_Query $wp_query) {
@@ -560,7 +559,7 @@ SQL;
 	 * First creates a table of items currently on loan then joins them to the relevant members and counts how many items each member has
 	 * @todo Find out if this can be done without a nested query
 	 * @param	Array		$clauses	SQL clauses for fetching posts
-	 * @param	WP_Query	$wp_query	A request to WordPress for posts
+	 * @param	WP_Query	$wp_query	A paginated query for members
 	 * @return	Array					Modified SQL clauses
 	 */
 	public function sortByItemsOnLoanColumn(Array $clauses, WP_Query $wp_query) {
@@ -597,7 +596,7 @@ SQL;
 	 * Sorts the 'Start Date' column in the Loans table
 	 * Combines start date/give date of loan, choosing give date over start date, then sorts
 	 * @param	Array		$clauses	SQL clauses for fetching posts
-	 * @param	WP_Query	$wp_query	A request to WordPress for posts
+	 * @param	WP_Query	$wp_query	A paginated query for loans
 	 * @return	Array					Modified SQL clauses
 	 */
 	public function sortByStartDateColumn(Array $clauses, WP_Query $wp_query) {
@@ -623,7 +622,7 @@ SQL;
 	
 	/**
 	 * Tells WordPress how to sort the Items table's custom post meta columns
-	 * @param	Array		$vars		Query variables passed to default main SQL query
+	 * @param	Array	$vars	A paginated query for a library custom post type
 	 */
 	public function sortByMetaColumn(WP_Query $query) {
 		if(!is_admin())
