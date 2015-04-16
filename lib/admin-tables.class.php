@@ -70,12 +70,25 @@ class WP_LIB_ADMIN_TABLES {
 	
 	/**
 	 * Fetches UNIX timestamp from post meta and, if timestamp exists, formats
-	 * @param	int		$item_id		Post ID to get post meta from
-	 * @param	string	$meta_key		Post meta key where timestamp is located
+	 * @param	int				$item_id		Post ID to get post meta from
+	 * @param	string|array	$meta_key		Post meta key(s) where timestamp is located
 	 */
 	private function dateColumn($post_id, $meta_key) {
-		// Fetches date from post meta using given key
-		$date = get_post_meta($post_id, $meta_key, true);
+		// If there are multiple dates to choose from, chooses last given date that exists
+		if (is_array($meta_key)) {
+			$values = [];
+			
+			foreach ($meta_key as $key) {
+				$values[] = get_post_meta($post_id, $key, true);
+			}
+			
+			$values = array_filter($values);
+			
+			$date = end($values);
+		} else {
+			// Fetches date from post meta using given key
+			$date = get_post_meta($post_id, $meta_key, true);
+		}
 		
 		// If date is valid returns formatted date
 		if (is_numeric($date))
@@ -294,7 +307,7 @@ class WP_LIB_ADMIN_TABLES {
 			
 			// Displays date item was loaned
 			case 'loan_start':
-				$this->dateColumn($loan_id, 'wp_lib_start_date');
+				$this->dateColumn($loan_id, array('wp_lib_start_date', 'wp_lib_give_date'));
 			break;
 			
 			// Displays date item should be returned by
