@@ -18,12 +18,6 @@ class WP_LIB_DYNATABLE {
 	public $WP_Query;
 	
 	/**
-	 * ID of post from which table is being generated
-	 * @var int
-	 */
-	public $post_id;
-	
-	/**
 	 * ID of post in row being generated
 	 * @var int
 	 */
@@ -37,7 +31,6 @@ class WP_LIB_DYNATABLE {
 	
 	/**
 	 * Generates WP_Query instance
-	 * @param int			$post_id	Post ID of item
 	 * @param Array|String	$args		WP_Query Arguments
 	 */
 	function __construct( $args ) {
@@ -47,9 +40,6 @@ class WP_LIB_DYNATABLE {
 		
 		// Runs query, generating object containing matching posts
 		$this->WP_Query = new WP_Query( $args );
-		
-		// Sets up post_id property for use when generating tables
-		$this->post_id = $post_id;
 	}
 	
 	/**
