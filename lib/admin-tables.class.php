@@ -192,7 +192,7 @@ class WP_LIB_ADMIN_TABLES {
 	 * @see							http://codex.wordpress.org/Plugin_API/Action_Reference/manage_posts_custom_column
 	 */
 	public function fillItemsTableColumns($column, $item_id) {
-		if ($this->row_buffer[0] !== $item_id) {
+		if (!isset($this->row_buffer[0]) || $this->row_buffer[0] !== $item_id) {
 			$this->row_buffer = array(
 				$item_id,
 				WP_LIB_ITEM::create($this->wp_librarian, $item_id)
@@ -219,7 +219,7 @@ class WP_LIB_ADMIN_TABLES {
 	 * @see							http://codex.wordpress.org/Plugin_API/Action_Reference/manage_posts_custom_column
 	 */
 	public function fillMembersTableColumns($column, $member_id) {
-		if ($this->row_buffer[0] !== $member_id) {
+		if (!isset($this->row_buffer[0]) || $this->row_buffer[0] !== $member_id) {
 			$this->row_buffer = array(
 				$member_id,
 				WP_LIB_MEMBER::create($this->wp_librarian, $member_id)
