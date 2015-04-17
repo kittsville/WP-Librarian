@@ -831,7 +831,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	 * @param	str		$action	Action to create custom nonce
 	 * @return	array			Nonce as Dashboard page element
 	 */
-	function prepNonce( $action ) {
+	private function prepNonce( $action ) {
 		// Creates nonce
 		$nonce = wp_create_nonce( $action );
 		
