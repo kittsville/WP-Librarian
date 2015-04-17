@@ -594,19 +594,19 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 		// Fetches object type and capitalises first letter
 		switch (get_post_type($post_id)){
 			case 'wp_lib_items':
-				$object_type = 'Items';
+				$object_type = 'Item';
 			break;
 			
 			case 'wp_lib_members':
-				$object_type = 'Members';
+				$object_type = 'Member';
 			break;
 			
 			case 'wp_lib_loans':
-				$object_type = 'Loans';
+				$object_type = 'Loan';
 			break;
 			
 			case 'wp_lib_fines':
-				$object_type = 'Fines';
+				$object_type = 'Fine';
 			break;
 			
 			default:
