@@ -1868,10 +1868,10 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		}
 		
 		$this->sendPage(
-			'Managing: Loan #' . $loan->ID,				// Page title
-			'Managing Loan #' . $loan->ID,				// Tab title
+			'Managing: Loan #' . $loan->ID,		// Page title
+			'Managing Loan #' . $loan->ID,		// Tab title
 			array(
-				$this->prepLoanMetaBox( $loan ),	// Prepares box with useful information about the loan
+				$this->prepLoanMetaBox( $loan ),// Prepares box with useful information about the loan
 				array(
 					'type'		=> 'form',
 					'content'	=>
