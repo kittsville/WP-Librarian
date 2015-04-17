@@ -192,6 +192,7 @@ class WP_LIB_ADMIN_TABLES {
 	 * @see							http://codex.wordpress.org/Plugin_API/Action_Reference/manage_posts_custom_column
 	 */
 	public function fillItemsTableColumns($column, $item_id) {
+		// If the row buffer's item doesn't match the current item, re-generates row buffer
 		if (!isset($this->row_buffer[0]) || $this->row_buffer[0] !== $item_id) {
 			$this->row_buffer = array(
 				$item_id,
@@ -219,6 +220,7 @@ class WP_LIB_ADMIN_TABLES {
 	 * @see							http://codex.wordpress.org/Plugin_API/Action_Reference/manage_posts_custom_column
 	 */
 	public function fillMembersTableColumns($column, $member_id) {
+		// If the row buffer's member doesn't match the current member, re-generates row buffer
 		if (!isset($this->row_buffer[0]) || $this->row_buffer[0] !== $member_id) {
 			$this->row_buffer = array(
 				$member_id,
