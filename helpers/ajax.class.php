@@ -630,19 +630,19 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 		// If an item is on loan then it is physically outside the Library and should not be deleted from Library records
 		foreach ( $connected_objects as $object ) {
 			switch( $object[1] ) {
-					// Checks if item is on loan
-					case 'wp_lib_items':
-						$item = WP_LIB_ITEM::create( $this->wp_librarian, $object[0] );
-						
-						if ( $item->onLoan() )
-							$this->stopAjax( 205 );
-					break;
+				// Checks if item is on loan
+				case 'wp_lib_items':
+					$item = WP_LIB_ITEM::create( $this->wp_librarian, $object[0] );
 					
-					// Checks if loan is open, meaning item is outside the library
-					case 'wp_lib_loans':
-						if ( get_post_meta( $object[0], 'wp_lib_status', true ) == 1 )
-							$this->stopAjax( 205 );
-					break;
+					if ( $item->onLoan() )
+						$this->stopAjax( 205 );
+				break;
+				
+				// Checks if loan is open, meaning item is outside the library
+				case 'wp_lib_loans':
+					if ( get_post_meta( $object[0], 'wp_lib_status', true ) == 1 )
+						$this->stopAjax( 205 );
+				break;
 			}
 		}
 		
