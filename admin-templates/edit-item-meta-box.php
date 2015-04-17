@@ -127,18 +127,7 @@ $meta_formatting = array(
 			),
 
 		)
-	),
-	array(
-		'title'	=> 'DVD Details',
-		'value'	=> 'dvds',
-		'fields'=> array(
-			array(
-				'title'		=> 'Placeholder',
-				'name'		=> 'wp_lib_item_placeholder',
-				'type'		=> 'text',
-			),
-		)
-	),
+	)
 );
 
 // Fetches all post meta then strips away any meta not needed by the meta formatting
