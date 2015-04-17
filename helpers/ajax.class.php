@@ -1562,7 +1562,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			foreach( $meta['wp_lib_renew'] as $renew_event ) {
 				++$count;
 				$renewings[] = array(
-					'renewedDate'	=> wp_lib_format_unix_timestamp($renew_event[0]),
+					'renewedOn'		=> wp_lib_format_unix_timestamp($renew_event[0]),
 					'renewedUntil'	=> wp_lib_format_unix_timestamp( isset($meta['wp_lib_renew'][$count]) ? $meta['wp_lib_renew'][$count][1] : $meta['wp_lib_end_date'][0] ),
 					'librarian'		=> $this->getUserName($renew_event[2])
 				);
@@ -1572,7 +1572,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			$page[] = array(
 				'type'		=> 'dtable',
 				'id'		=> 'loan-renewings',
-				'headers'	=> ['Renewed Date', 'Renewed Until', 'Librarian'],
+				'headers'	=> ['Renewed On', 'Renewed Until', 'Librarian'],
 				'data'		=> $renewings,
 				'labels'	=> array(
 					'records'	=> 'times renewed'
