@@ -693,8 +693,10 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		parent::__construct( $wp_librarian );
 	
 		// If no dash page has been specified, load Dashboard
-		if ( !isset( $_POST['dash_page'] ) )
+		if ( !isset( $_POST['dash_page'] ) ) {
+			$_POST['dash_page'] = 'dashboard';
 			$this->genDashboard();
+		}
 		
 		// Calls relevant function to prepare requested page
 		switch( $_POST['dash_page'] ) {
@@ -792,9 +794,9 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	 */
 	private function sendPage( $page_title, $tab_title, $page, $scripts = false ) {
 		$this->output_buffer[2] = array(
-			$page_title,
-			$tab_title,
-			$page
+			apply_filters('wp_lib_dash_page_title', $page_title, $_POST['dash_page']),
+			apply_filters('wp_lib_dash_tab_title', $tab_title, $_POST['dash_page']),
+			apply_filters('wp_lib_dash_page', $page, $_POST['dash_page'])
 		);
 		
 		if ( $scripts )
