@@ -82,6 +82,7 @@ class WP_LIB_ERROR {
 		504	=> 'Unknown API request',
 		505	=> 'Object not authorised for deletion',
 		506 => 'Infinite loop detected, request terminated',
+		507	=> "Object missing necessary property '\p'",
 		600	=> 'Unable to schedule debugging loan',
 		601	=> 'Unable to fulfil successfully scheduled debugging loan',
 		901 => 'Error encountered while processing error (error code not a number)',

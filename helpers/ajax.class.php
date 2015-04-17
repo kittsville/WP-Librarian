@@ -805,6 +805,27 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	}
 	
 	/**
+	 * Returns value of meta field, if it exists, via a callback (if one was given). Otherwise returns '-'
+	 * @param	array		$meta	Post meta
+	 * @param	string		$key	Post meta key
+	 * @param	bool		$error	OPTIONAL Call an error if the meta field does not exist
+	 * @param	callback	$filter	OPTIONAL Callback to process the meta field
+	 * @return	string				Post meta value or '-'
+	 */
+	private function getMetaField(Array $meta, $key, $error = false, $filter = false) {
+		if (isset($meta[$key]))
+			// Returns meta value, filtered via a callback if there is a valid one
+			if ($filter && is_callable($filter))
+				return $filter($meta[$key][0]);
+			else
+				return $meta[$key][0];
+		elseif ($error)
+			$this->stopAjax(507, $key);
+		else
+			return '-';
+	}
+	
+	/**
 	 * Prepares WordPress nonce
 	 * @see 					http://codex.wordpress.org/WordPress_Nonces
 	 * @param	str		$action	Action to create custom nonce
@@ -833,7 +854,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		// Item meta fields to be displayed in management header
 		$meta_fields = array(
 			array( 'Item ID',	$item->ID ),
-			array( 'Condition',	wp_lib_format_item_condition( $meta['wp_lib_item_condition'][0] ) )
+			array( 'Condition',	$this->getMetaField($meta, 'wp_lib_item_condition', false, wp_lib_format_item_condition))
 		);
 		
 		// If item has a donor and the ID matches an existing member
@@ -841,7 +862,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			// Adds meta field, displaying donor with a link to manage the member
 			$meta_fields[] = array(
 				'Donor',
-				wp_lib_manage_member_dash_hyperlink( $meta['wp_lib_item_donor'][0] )
+				$this->getMetaField($meta, 'wp_lib_item_donor', false, wp_lib_manage_member_dash_hyperlink)
 			);
 		}
 		
@@ -896,9 +917,9 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		// Sets up header's meta fields
 		$meta_fields = array(
 			array( 'Member ID',	$member->ID ),
-			array( 'Email',		$meta['wp_lib_member_email'][0] ),
-			array( 'Phone',		$meta['wp_lib_member_phone'][0] ),
-			array( 'Mobile',	$meta['wp_lib_member_mobile'][0] ),
+			array( 'Email',		$this->getMetaField($meta, 'wp_lib_member_email')),
+			array( 'Phone',		$this->getMetaField($meta, 'wp_lib_member_phone')),
+			array( 'Mobile',	$this->getMetaField($meta, 'wp_lib_member_mobile')),
 			array( 'Owed',		wp_lib_format_money( $member->getMoneyOwed() ) ),
 			array( 'On Loan',	wp_lib_prep_members_items_out( $member->ID ) )
 		);
@@ -927,14 +948,14 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		// Adds basic loan meta fields
 		$meta_fields = array(
 			array( 'Loan ID',			$loan->ID ),
-			array( 'Item',				wp_lib_manage_item_dash_hyperlink( $meta['wp_lib_item'][0] ) ),
-			array( 'Member',			wp_lib_manage_member_dash_hyperlink( $meta['wp_lib_member'][0] ) ),
-			array( 'Creator',			$this->getUserName( get_post_field( 'post_author', $loan->ID ) ) ),
-			array( 'Expected Start',	wp_lib_format_unix_timestamp( $meta['wp_lib_start_date'][0] ) ),
-			array( 'Expected End',		wp_lib_format_unix_timestamp( $meta['wp_lib_end_date'][0] ) ),
-			array( 'Actual Start',		( isset( $meta['wp_lib_give_date'] ) ? wp_lib_format_unix_timestamp( $meta['wp_lib_give_date'][0] ) : 'N/A' ) ),
-			array( 'Actual End',		( isset( $meta['wp_lib_return_date'] ) ? wp_lib_format_unix_timestamp( $meta['wp_lib_return_date'][0] ) : 'N/A' ) ),
-			array( 'Status',			$meta['wp_lib_status'][0] === '4' ? wp_lib_prep_dash_hyperlink( $status, wp_lib_prep_manage_fine_params( $meta['wp_lib_fine'][0] ) ) : $status ) // If loan incurred fine, status is link to manage fine
+			array( 'Item',				$this->getMetaField($meta, 'wp_lib_item', true, wp_lib_manage_item_dash_hyperlink)),
+			array( 'Member',			$this->getMetaField($meta, 'wp_lib_member', true, wp_lib_manage_member_dash_hyperlink)),
+			array( 'Creator',			$this->getUserName(get_post_field('post_author', $loan->ID))),
+			array( 'Expected Start',	$this->getMetaField($meta, 'wp_lib_start_date', true, wp_lib_format_unix_timestamp)),
+			array( 'Expected End',		$this->getMetaField($meta, 'wp_lib_end_date', true, wp_lib_format_unix_timestamp)),
+			array( 'Actual Start',		$this->getMetaField($meta, 'wp_lib_give_date', false, wp_lib_format_unix_timestamp)),
+			array( 'Actual End',		$this->getMetaField($meta, 'wp_lib_return_date', false, wp_lib_format_unix_timestamp)),
+			array( 'Status',			$meta['wp_lib_status'][0] === '4' ? wp_lib_prep_dash_hyperlink( $status, $this->getMetaField($meta, 'wp_lib_fine', true, wp_lib_prep_manage_fine_params)) : $status ) // If loan incurred fine, status is link to manage fine
 		);
 		
 		// Finalises and returns management header
@@ -962,12 +983,12 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			'classes'	=> 'fine-man',
 			'fields'	=> array(
 				array( 'Fine ID',	$fine->ID ),
-				array( 'Loan ID',	wp_lib_prep_dash_hyperlink( $meta['wp_lib_loan'][0], wp_lib_prep_manage_loan_params( $meta['wp_lib_loan'][0] ) ) ),
-				array( 'Item',		wp_lib_manage_item_dash_hyperlink( $meta['wp_lib_item'][0] ) ),
-				array( 'Member',	wp_lib_manage_member_dash_hyperlink( $meta['wp_lib_member'][0] ) ),
+				array( 'Loan ID',	wp_lib_prep_dash_hyperlink( $this->getMetaField($meta, 'wp_lib_loan', true), $this->getMetaField($meta, 'wp_lib_loan', true, wp_lib_prep_manage_loan_params))),
+				array( 'Item',		$this->getMetaField($meta, 'wp_lib_item', true, wp_lib_manage_item_dash_hyperlink)),
+				array( 'Member',	$this->getMetaField($meta, 'wp_lib_member', true, wp_lib_manage_member_dash_hyperlink)),
 				array( 'Creator',	$this->getUserName( get_post_field( 'post_author', $fine->ID ) ) ),
-				array( 'Amount',	wp_lib_format_money( $meta['wp_lib_owed'][0] ) ),
-				array( 'Status',	wp_lib_format_fine_status( $meta['wp_lib_status'][0] ) ),
+				array( 'Amount',	$this->getMetaField($meta, 'wp_lib_owed', true, wp_lib_format_money)),
+				array( 'Status',	$this->getMetaField($meta, 'wp_lib_status', true, wp_lib_format_fine_status)),
 				array( 'Created',	get_the_date( '', $fine->ID ) )
 			)
 		);
@@ -1443,8 +1464,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		// Renders header with useful loan information
 		$page[] = $this->prepLoanMetaBox( $loan );
 		
-		// Fetches item status
-		$status = $meta['wp_lib_status'][0];
+		$status = $this->getMetaField($meta, 'wp_lib_status', true);
 		
 		// Initialises form
 		$form = array(
@@ -1469,9 +1489,9 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		$time = current_time( 'timestamp' );
 		
 		// If loan is scheduled and the loan's start date has already happened
-		if ( $status === '5' && $meta['wp_lib_start_date'][0] <= $time ) {
+		if ( $status === '5' && $this->getMetaField($meta, 'wp_lib_start_date', true) <= $time ) {
 			// If loan's end date has not passed yet
-			if ( $time <= $meta['wp_lib_end_date'][0] ) {
+			if ( $time <= $this->getMetaField($meta, 'wp_lib_end_date', true) ) {
 				// Adds nonce so dash action will work
 				$form[] = $this->prepNonce( 'Managing Loan: ' . $loan->ID );
 				
@@ -1843,7 +1863,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		$meta = get_post_meta( $loan->ID );
 		
 		// Checks if loan has correct status to be allowed to 
-		if ( $meta['wp_lib_status'][0] !== '5' || $meta['wp_lib_start_date'][0] > current_time( 'timestamp' ) ) {
+		if ( $this->getMetaField($meta, 'wp_lib_status', true) !== '5' || $this->getMetaField($meta, 'wp_lib_start_date', true) > current_time( 'timestamp' ) ) {
 			$this->stopAjax( 322 );
 		}
 		
