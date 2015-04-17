@@ -627,7 +627,8 @@ function wp_lib_prep_admin_meta( $post_id, $formatting ) {
 	// Iterates through meta formatting and fetches needed meta values for all item meta
 	foreach ( $formatting as $meta_area ) {
 		foreach ( $meta_area['fields'] as $field ) {
-			$meta[$field['name']] = $all_meta[ $field['name'] ][0];
+			if (isset($all_meta[$field['name']]))
+				$meta[$field['name']] = $all_meta[$field['name']][0];
 		}
 	}
 	
