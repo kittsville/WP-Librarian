@@ -227,9 +227,10 @@ class WP_LIB_ADMIN_TABLES {
 		}
 		
 		switch ($column) {
-			// Displays the current status of the item (On Loan/Available/Late)
+			// Displays the member's name with links to manage or edit the member
 			case 'member_name':
 				echo wp_lib_manage_member_hyperlink($member_id);
+				echo '<span class="edit-member-link">| <a href="' . get_edit_post_link($member_id) . '">Edit</a></span>';
 			break;
 			
 			// Displays number of items currently in the possession of the member
