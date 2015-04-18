@@ -868,7 +868,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		// Item meta fields to be displayed in management header
 		$meta_fields = array(
 			array( 'Item ID',	$item->ID ),
-			array( 'Condition',	$this->getMetaField($meta, 'wp_lib_item_condition', false, wp_lib_format_item_condition))
+			array( 'Condition',	$this->getMetaField($meta, 'wp_lib_item_condition', false, 'wp_lib_format_item_condition'))
 		);
 		
 		// If item has a donor and the ID matches an existing member
@@ -876,7 +876,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			// Adds meta field, displaying donor with a link to manage the member
 			$meta_fields[] = array(
 				'Donor',
-				$this->getMetaField($meta, 'wp_lib_item_donor', false, wp_lib_manage_member_dash_hyperlink)
+				$this->getMetaField($meta, 'wp_lib_item_donor', false, 'wp_lib_manage_member_dash_hyperlink')
 			);
 		}
 		
@@ -962,14 +962,14 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		// Adds basic loan meta fields
 		$meta_fields = array(
 			array( 'Loan ID',			$loan->ID ),
-			array( 'Item',				$this->getMetaField($meta, 'wp_lib_item', true, wp_lib_manage_item_dash_hyperlink)),
-			array( 'Member',			$this->getMetaField($meta, 'wp_lib_member', true, wp_lib_manage_member_dash_hyperlink)),
+			array( 'Item',				$this->getMetaField($meta, 'wp_lib_item', true, 'wp_lib_manage_item_dash_hyperlink')),
+			array( 'Member',			$this->getMetaField($meta, 'wp_lib_member', true, 'wp_lib_manage_member_dash_hyperlink')),
 			array( 'Creator',			$this->getUserName(get_post_field('post_author', $loan->ID))),
-			array( 'Expected Start',	$this->getMetaField($meta, 'wp_lib_start_date', true, wp_lib_format_unix_timestamp)),
-			array( 'Expected End',		$this->getMetaField($meta, 'wp_lib_end_date', true, wp_lib_format_unix_timestamp)),
-			array( 'Actual Start',		$this->getMetaField($meta, 'wp_lib_give_date', false, wp_lib_format_unix_timestamp)),
-			array( 'Actual End',		$this->getMetaField($meta, 'wp_lib_return_date', false, wp_lib_format_unix_timestamp)),
-			array( 'Status',			$meta['wp_lib_status'][0] === '4' ? wp_lib_prep_dash_hyperlink( $status, $this->getMetaField($meta, 'wp_lib_fine', true, wp_lib_prep_manage_fine_params)) : $status ) // If loan incurred fine, status is link to manage fine
+			array( 'Expected Start',	$this->getMetaField($meta, 'wp_lib_start_date', true, 'wp_lib_format_unix_timestamp')),
+			array( 'Expected End',		$this->getMetaField($meta, 'wp_lib_end_date', true, 'wp_lib_format_unix_timestamp')),
+			array( 'Actual Start',		$this->getMetaField($meta, 'wp_lib_give_date', false, 'wp_lib_format_unix_timestamp')),
+			array( 'Actual End',		$this->getMetaField($meta, 'wp_lib_return_date', false, 'wp_lib_format_unix_timestamp')),
+			array( 'Status',			$meta['wp_lib_status'][0] === '4' ? wp_lib_prep_dash_hyperlink( $status, $this->getMetaField($meta, 'wp_lib_fine', true, 'wp_lib_prep_manage_fine_params')) : $status ) // If loan incurred fine, status is link to manage fine
 		);
 		
 		// Finalises and returns management header
@@ -997,12 +997,12 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			'classes'	=> 'fine-man',
 			'fields'	=> array(
 				array( 'Fine ID',	$fine->ID ),
-				array( 'Loan ID',	wp_lib_prep_dash_hyperlink( $this->getMetaField($meta, 'wp_lib_loan', true), $this->getMetaField($meta, 'wp_lib_loan', true, wp_lib_prep_manage_loan_params))),
-				array( 'Item',		$this->getMetaField($meta, 'wp_lib_item', true, wp_lib_manage_item_dash_hyperlink)),
-				array( 'Member',	$this->getMetaField($meta, 'wp_lib_member', true, wp_lib_manage_member_dash_hyperlink)),
+				array( 'Loan ID',	wp_lib_prep_dash_hyperlink( $this->getMetaField($meta, 'wp_lib_loan', true), $this->getMetaField($meta, 'wp_lib_loan', true, 'wp_lib_prep_manage_loan_params'))),
+				array( 'Item',		$this->getMetaField($meta, 'wp_lib_item', true, 'wp_lib_manage_item_dash_hyperlink')),
+				array( 'Member',	$this->getMetaField($meta, 'wp_lib_member', true, 'wp_lib_manage_member_dash_hyperlink')),
 				array( 'Creator',	$this->getUserName( get_post_field( 'post_author', $fine->ID ) ) ),
-				array( 'Amount',	$this->getMetaField($meta, 'wp_lib_owed', true, wp_lib_format_money)),
-				array( 'Status',	$this->getMetaField($meta, 'wp_lib_status', true, wp_lib_format_fine_status)),
+				array( 'Amount',	$this->getMetaField($meta, 'wp_lib_owed', true, 'wp_lib_format_money')),
+				array( 'Status',	$this->getMetaField($meta, 'wp_lib_status', true, 'wp_lib_format_fine_status')),
 				array( 'Created',	get_the_date( '', $fine->ID ) )
 			)
 		);
