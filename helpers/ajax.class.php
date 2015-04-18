@@ -1041,7 +1041,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	 */
 	private function genDashboard() {
 		// Dashboard icons
-		$buttons = array(
+		$buttons = apply_filters('wp_lib_dash_home_buttons', array(
 			array(
 				'bName'	=> 'Scan Barcode',
 				'icon'	=> 'search',
@@ -1091,7 +1091,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 				'url'	=> 'https://github.com/kittsville/WP-Librarian/wiki',
 				'title'	=> 'Read plugin documentation'
 			)
-		);
+		));
 
 		// Adds element type to each button, so it will be rendered correctly client-side
 		foreach ( $buttons as $key => $value ) {
