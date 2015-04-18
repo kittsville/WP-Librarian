@@ -698,11 +698,10 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			$this->genDashboard();
 		}
 		
-		/**
-		 * Allows developers to add custom Dash pages
-		 * @link https://github.com/kittsville/WP-Librarian/wiki/wp_lib_hook_page
-		 */
+		// Allows developers to add/overwrite a specific Dash page
 		do_action('wp_lib_dash_page_load_'.$_POST['dash_page'], $this);
+		
+		// Allows developers to interact with all Dash page requests
 		do_action('wp_lib_dash_page_load', $this, $_POST['dash_page']);
 		
 		// Calls relevant function to prepare requested page
