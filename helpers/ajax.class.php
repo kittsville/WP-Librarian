@@ -209,6 +209,10 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 		if ( !isset( $_POST['dash_action'] ) )
 			$this->stopAjax(500);
 		
+		// Allows developers to add/overwrite a specific Dash action
+		
+		// Allows developers to interact with all Dash actions
+		
 		switch( $_POST['dash_action'] ) {
 			case 'loan':
 				$this->doLoanItem();
