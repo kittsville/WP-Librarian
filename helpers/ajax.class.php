@@ -698,6 +698,12 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			$this->genDashboard();
 		}
 		
+		/**
+		 * Allows developers to add custom Dash pages
+		 * @link https://github.com/kittsville/WP-Librarian/wiki/wp_lib_hook_page
+		 */
+		do_action('wp_lib_hook_page', $_POST['dash_page'], $this);
+		
 		// Calls relevant function to prepare requested page
 		switch( $_POST['dash_page'] ) {
 			case 'dashboard':
@@ -792,7 +798,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	 * @param array		$page		All Dash page elements, passed to client-side wp_lib_render_page() to construct HTML
 	 * @param array		$scripts	OPTIONAL Array of script names (strings) required by the Dash page
 	 */
-	private function sendPage( $page_title, $tab_title, $page, $scripts = false ) {
+	public function sendPage( $page_title, $tab_title, $page, $scripts = false ) {
 		$this->output_buffer[2] = array(
 			apply_filters('wp_lib_dash_page_title', $page_title, $_POST['dash_page']),
 			apply_filters('wp_lib_dash_tab_title', $tab_title, $_POST['dash_page']),
