@@ -1212,7 +1212,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	 * Displays information about the given item with links to modify the item based on its current state
 	 * @todo Refactor function heavily, it hasn't been reviewed in a very long time
 	 */
-	private function genManageItem() {		
+	private function genManageItem() {
 		// Fetches item using item ID in AJAX request
 		$item = $this->getItem();
 		
