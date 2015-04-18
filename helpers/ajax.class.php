@@ -1060,21 +1060,21 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 				'bName'	=> 'Manage Members',
 				'icon'	=> 'admin-users',
 				'link'	=> 'post-type',
-				'pType'	=> 'wp_lib_members',
+				'cpt'	=> 'wp_lib_members',
 				'title'	=> 'View list of all members'
 			),
 			array(
 				'bName'	=> 'Manage Loans',
 				'icon'	=> 'upload',
 				'link'	=> 'post-type',
-				'pType'	=> 'wp_lib_loans',
+				'cpt'	=> 'wp_lib_loans',
 				'title'	=> 'View list of all loans'
 			),
 			array(
 				'bName'	=> 'Manage Fines',
 				'icon'	=> 'carrot', // Placeholder carrot
 				'link'	=> 'post-type',
-				'pType'	=> 'wp_lib_fines',
+				'cpt'	=> 'wp_lib_fines',
 				'title'	=> 'View list of all fines'
 			),
 			array(

@@ -399,7 +399,7 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 				
 				case 'post-type':
 					theElement.attr({
-						href	: wp_lib_vars.adminUrl + 'edit.php?post_type=' + pageItem.pType,
+						href	: wp_lib_vars.adminUrl + 'edit.php?post_type=' + pageItem.cpt,
 						onclick	: wp_lib_vars.onClick
 					});
 				break;
