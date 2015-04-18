@@ -702,7 +702,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		 * Allows developers to add custom Dash pages
 		 * @link https://github.com/kittsville/WP-Librarian/wiki/wp_lib_hook_page
 		 */
-		do_action('wp_lib_hook_page', $_POST['dash_page'], $this);
+		do_action('wp_lib_dash_page_load', $_POST['dash_page'], $this);
 		
 		// Calls relevant function to prepare requested page
 		switch( $_POST['dash_page'] ) {
