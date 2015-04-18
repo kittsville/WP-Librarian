@@ -269,7 +269,7 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 	 * @param string|array		$notification	OPTIONAL Notification(s) to send to client
 	 * @todo									Improve commenting and/or refactor function
 	 */
-	private function endAction( $success, $notification = false ){
+	public function endAction( $success, $notification = false ){
 		if ( $success === true ) {
 			if ( is_string( $notification ) ) {
 				$this->addNotification( $notification );
