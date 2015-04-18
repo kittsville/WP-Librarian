@@ -266,7 +266,7 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 	 * Ends AJAX request, returning indication of action success to client
 	 * Also buffers any given success notification
 	 * @param bool|WP_LIB_ERROR	$success		Whether the AJAX request succeeded or not
-	 * @param string|array		$notification	OPTIONAL Notification(s) to send to client
+	 * @param string|array		$notification	OPTIONAL Notification(s) to send to client if action was a success
 	 * @todo									Improve commenting and/or refactor function
 	 */
 	public function endAction( $success, $notification = false ){
