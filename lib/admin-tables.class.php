@@ -638,7 +638,18 @@ SQL;
 			break;
 			
 			case 'item_condition':
-				$wp_query->set('meta_key',	'wp_lib_item_condition');
+				$wp_query->set('meta_query',array(
+					'relation'	=> 'OR',
+					array(
+						'key'		=> 'wp_lib_item_condition',
+						'compare'	=> 'EXISTS'
+					),
+					array(
+						'key'		=> 'wp_lib_item_condition',
+						'compare'	=> 'NOT EXISTS',
+						'value'		=> 'bug #23268'	// Allows WP-Librarian to run on pre-3.9 WP installs (bug was fixed for 3.9, text is arbitrary)
+					)
+				));
 				$wp_query->set('orderby',	'meta_value_num');
 			break;
 			
@@ -658,7 +669,7 @@ SQL;
 			case 'loan_end':
 				$wp_query->set('meta_key',	'wp_lib_end_date');
 				$wp_query->set('orderby',	'meta_value_num');
-				$wp_query->set('meta_type','NUMERIC');
+				$wp_query->set('meta_type',	'NUMERIC');
 			break;
 			
 			case 'loan_returned':
