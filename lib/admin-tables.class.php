@@ -114,12 +114,13 @@ class WP_LIB_ADMIN_TABLES {
 	public function manageItemsTableColumns(Array $columns) {	
 		// Adds item status and item condition columns
 		$new_columns = array(
-			'item_status'		=> 'Loan Status',
-			'item_condition'	=> 'Item Condition'
+			'taxonomy-wp_lib_media_type'	=> 'Media Type',
+			'item_status'					=> 'Loan Status',
+			'item_condition'				=> 'Item Condition'
 		);
 		
 		// Adds new columns between existing ones
-		$columns = array_slice($columns, 0, 4, true) + $new_columns + array_slice($columns, 4, NULL, true);
+		$columns = array_slice($columns, 0, 3, true) + $new_columns + array_slice($columns, 4, NULL, true);
 		
 		return $columns;
 	}
