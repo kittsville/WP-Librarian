@@ -26,6 +26,10 @@ class WP_LIB_ADMIN_TABLES {
 	function __construct(WP_LIBRARIAN $wp_librarian) {
 		$this->wp_librarian = $wp_librarian;
 		
+		// Stops admin post table logic interfering elsewhere
+		if (!is_admin() || (defined('DOING_AJAX') && DOING_AJAX))
+			return;
+		
 		// Adds custom columns, removes unneeded columns and changes the order of columns
 		add_filter('manage_wp_lib_items_posts_columns',				array($this,			'manageItemsTableColumns'),			10, 1);
 		add_filter('manage_wp_lib_members_posts_columns',			array($this,			'manageMembersTableColumns'),		10, 1);
