@@ -395,7 +395,7 @@ class WP_LIB_ADMIN_TABLES {
 	 * @return	Array				Modified array of sortable table columns
 	 */
 	public function setSortableItemsTableColumns(Array $columns) {
-		foreach(['taxonomy-wp_lib_media_type','taxonomy-wp_lib_author','item_status','item_condition'] as $sortable) {
+		foreach(['taxonomy-wp_lib_media_type','taxonomy-wp_lib_author','item_condition'] as $sortable) {
 			$columns[$sortable] = $sortable;
 		}
 		
@@ -638,10 +638,6 @@ SQL;
 		
 		// Adds sorting logic based on column being sorted
 		switch($wp_query->get( 'orderby')) {
-			case 'item_status':
-				// Requires special logic
-			break;
-			
 			case 'item_condition':
 				$wp_query->set('meta_query',array(
 					'relation'	=> 'OR',
