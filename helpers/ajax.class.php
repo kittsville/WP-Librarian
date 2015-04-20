@@ -776,7 +776,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	 * @param string|array		$params		OPTIONAL parameters to pass to error reporter
 	 */
 	protected function stopAjax( $error = false, $params = false ) {
-		if ( $error_code !== false )
+		if ( $error !== false )
 			$this->handleError( $error, $params );
 		
 		// If this is the user's first Dash page then, to avoid user being faced with a blank Dash page, load Dashboard
