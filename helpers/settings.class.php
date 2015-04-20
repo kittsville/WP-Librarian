@@ -7,12 +7,6 @@ defined( 'ABSPATH' ) OR die('No');
  */
 class WP_LIB_SETTINGS {
 	/**
-	 * Single instance of core plugin class
-	 * @var WP_LIBRARIAN
-	 */
-	protected $wp_librarian;
-	
-	/**
 	 * All settings WP-Librarian is responsible for
 	 * @var array
 	 */
@@ -73,14 +67,6 @@ class WP_LIB_SETTINGS {
 	);
 	
 	/**
-	 * Adds instance of core plugin class to settings classes' properties
-	 * @param WP_LIBRARIAN $wp_librarian Single instance of core plugin class
-	 */
-	function __construct( WP_LIBRARIAN $wp_librarian ) {
-		$this->wp_librarian = $wp_librarian;
-	}
-	
-	/**
 	 * Adds all plugin default options. If a setting already exists it is ignored
 	 */
 	public function addPluginSettings() {
@@ -134,13 +120,9 @@ class WP_LIB_SETTINGS {
 class WP_LIB_SETTINGS_SECTION extends WP_LIB_SETTINGS {
 	/**
 	 * Registers settings section and all child settings and their child settings fields
-	 * @param WP_LIBRARIAN	$wp_librarian	Single instance of core plugin class
 	 * @param array			$section		Settings section to be registered
 	 */
-	function __construct( WP_LIBRARIAN $wp_librarian, array $section ) {
-		// Sets core plugin class as function property
-		parent::__construct( $wp_librarian );
-		
+	function __construct(array $section ) {
 		// If header to render section description is not provided, passes dummy callback
 		if ( !isset( $section['callback'] ) )
 			$section['callback'] = false;
