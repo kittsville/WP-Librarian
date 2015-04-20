@@ -754,6 +754,8 @@ class WP_LIBRARIAN {
 	public function registerSettings() {
 		// Loads file with settings classes
 		$this->loadHelper('settings');
+		
+		WP_LIB_SETTINGS::$plugin_settings = apply_filters('wp_lib_plugin_settings', WP_LIB_SETTINGS::$plugin_settings);
 	
 		/* -- General Library Settings -- */
 		
