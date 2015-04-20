@@ -758,7 +758,7 @@ class WP_LIBRARIAN {
 		/* -- General Library Settings -- */
 		
 		// Registers general settings section, settings and fields with sanitization callbacks
-		new WP_LIB_SETTINGS_SECTION(array(
+		WP_LIB_SETTINGS_SECTION::registerSection(array(
 			'name'		=> 'wp_lib_library_group',
 			'title'		=> 'General Settings',
 			'page'		=> 'wp_lib_library_group-options',
@@ -847,7 +847,7 @@ class WP_LIBRARIAN {
 		/* -- Slug Settings -- */
 
 		// Registers settings groups and their sanitization callbacks for the slugs used on the front-end of the plugin
-		new WP_LIB_SETTINGS_SECTION(array(
+		WP_LIB_SETTINGS_SECTION::registerSection(array(
 			'name'		=> 'wp_lib_slug_group',
 			'title'		=> 'Front-end Slugs',
 			'callback'	=> function(){
@@ -925,7 +925,7 @@ class WP_LIBRARIAN {
 		/* -- Dashboard Settings -- */
 		
 		// Registers Dashboard Settings section with all relevant settings/fields
-		new WP_LIB_SETTINGS_SECTION(array(
+		WP_LIB_SETTINGS_SECTION::registerSection(array(
 			'name'		=> 'wp_lib_dash_group',
 			'title'		=> 'Dashboard',
 			'callback'	=>

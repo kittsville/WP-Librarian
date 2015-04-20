@@ -69,7 +69,7 @@ class WP_LIB_SETTINGS {
 	/**
 	 * Adds all plugin default options. If a setting already exists it is ignored
 	 */
-	public function addPluginSettings() {
+	public static function addPluginSettings() {
 		foreach ( self::$plugin_settings as $setting ) {
 			add_option( $setting['key'], $setting['default'] );
 		}
@@ -79,7 +79,7 @@ class WP_LIB_SETTINGS {
 	 * Deletes all plugin options, as specified in $plugin_settings
 	 * As the plugin relies on these options to function, be wary when using this function
 	 */
-	public function purgePluginSettings() {
+	public static function purgePluginSettings() {
 		foreach ( self::$plugin_settings as $setting ) {
 			delete_option( $setting['key'], $setting['default'] );
 		}
@@ -88,7 +88,7 @@ class WP_LIB_SETTINGS {
 	/**
 	 * Checks if all options controlled by plugin exist. Creates option if one does not
 	 */
-	public function checkPluginSettingsIntegrity() {
+	public static function checkPluginSettingsIntegrity() {
 		foreach ( self::$plugin_settings as $setting ) {
 			$setting_value = get_option( $setting['key'], false );
 			
@@ -104,7 +104,7 @@ class WP_LIB_SETTINGS {
 	 * @param	string	$settings_key	WordPress settings key
 	 * @return	bool					If the option key matched a plugin key
 	 */
-	public function isValidSettingKey( $settings_key ) {
+	public static function isValidSettingKey( $settings_key ) {
 		foreach ( self::$plugin_settings as $setting ) {
 			if ( $settings_key === $setting['key'] ) {
 				return true;
@@ -122,7 +122,7 @@ class WP_LIB_SETTINGS_SECTION extends WP_LIB_SETTINGS {
 	 * Registers settings section and all child settings and their child settings fields
 	 * @param array			$section		Settings section to be registered
 	 */
-	function __construct(array $section ) {
+	public static function registerSection(array $section ) {
 		// If header to render section description is not provided, passes dummy callback
 		if ( !isset( $section['callback'] ) )
 			$section['callback'] = false;
@@ -133,7 +133,7 @@ class WP_LIB_SETTINGS_SECTION extends WP_LIB_SETTINGS {
 		// Iterates over settings, generating fields for each settings' fields 
 		foreach( $section['settings'] as $setting ) {
 			// Skips registering any settings that are listed as a WP-Librarian setting
-			if ( !$this->isValidSettingKey( $setting['name'] ) )
+			if ( !self::isValidSettingKey( $setting['name'] ) )
 				break;
 			
 			// Registers setting section's page
@@ -174,7 +174,7 @@ class WP_LIB_SETTINGS_SECTION extends WP_LIB_SETTINGS {
 				$field['args']['classes'] = array_merge( $field['args']['classes'], $setting['classes'] );
 				
 				// Prepares callback to render field for use by WordPress by adding class name
-				$field['field_type'] = array( $this, $field['field_type'] );
+				$field['field_type'] = array( __CLASS__, $field['field_type'] );
 				
 				// Adds field position in setting array to field args
 				$field['args']['position'] = $position;
@@ -191,7 +191,7 @@ class WP_LIB_SETTINGS_SECTION extends WP_LIB_SETTINGS {
 	 * @param	array	$output	An array of strings of HTML
 	 * @param	array	$args	Settings field arguments
 	 */
-	private function addDescription( array &$output, array $args ) {
+	private static function addDescription( array &$output, array $args ) {
 		if ( isset( $args['alt'] ) )
 			$output[] = '<p class="tooltip description">' . $args['alt'] . '</p>';
 	}
@@ -201,13 +201,13 @@ class WP_LIB_SETTINGS_SECTION extends WP_LIB_SETTINGS {
 	 * @param	array $args	Settings field arguments
 	 * @return	mixed		Settings field's value
 	 */
-	private function getOption( array $args ) {
+	private static function getOption( array $args ) {
 		// Fetches option value from database. Uses false if option does not exist
 		$option = get_option( $args['setting_name'], false );
 		
 		// If option does not exist or is invalid, attempts to fix settings then calls error
 		if ( !is_array( $option ) ) {
-			$this->checkPluginSettingsIntegrity();
+			self::checkPluginSettingsIntegrity();
 			wp_lib_error( 114 );
 		}
 		
@@ -230,7 +230,7 @@ class WP_LIB_SETTINGS_SECTION extends WP_LIB_SETTINGS {
 	 * @param	array	$add_prop	Additional properties for the settings field input/select element
 	 * @return	string				Settings field HTML element properties
 	 */
-	private function setupFieldProperties( array $args, array $add_prop ) {
+	private static function setupFieldProperties( array $args, array $add_prop ) {
 		// Merges given field classes with default field classes
 		$classes = array_merge(
 			$args['classes'],
@@ -264,62 +264,62 @@ class WP_LIB_SETTINGS_SECTION extends WP_LIB_SETTINGS {
 	 * Renders an HTML text input field
 	 * @param	array	$args	Settings field arguments
 	 */
-	public function textInput( array $args ) {
+	public static function textInput( array $args ) {
 		$properties = array(
 			'type' => 'text',
-			'value'=> $this->getOption( $args )
+			'value'=> self::getOption( $args )
 		);
 		
 		// Sets field output
 		$output = array(
-			'<input ' . $this->setupFieldProperties( $args, $properties ) . '/>'
+			'<input ' . self::setupFieldProperties( $args, $properties ) . '/>'
 		);
 		
 		// Adds field description, if one exists
-		$this->addDescription( $output, $args );
+		self::addDescription( $output, $args );
 		
 		// If hook exists to add html elements to the output, apply
 		if ( isset( $args['html_filter'] ) )
 			$output = $args['html_filter']( $output, $args );
 		
 		// Renders output to setting field
-		$this->outputLines( $output );
+		self::outputLines( $output );
 	}
 	
 	/**
 	 * Renders an HTML checkbox input
 	 * @param	array	$args	Settings field arguments
 	 */
-	public function checkboxInput( array $args ) {
+	public static function checkboxInput( array $args ) {
 		$properties = array(
 			'type'	=> 'checkbox',
 			'value'	=> 3
 		);
 		
-		if ( $this->getOption( $args ) == 3 )
+		if ( self::getOption( $args ) == 3 )
 			$properties['checked'] = 'checked';
 		
 		// Sets field output
 		$output = array(
-			'<input ' . $this->setupFieldProperties( $args, $properties ) . '/>'
+			'<input ' . self::setupFieldProperties( $args, $properties ) . '/>'
 		);
 		
 		// Adds field description, if one exists
-		$this->addDescription( $output, $args );
+		self::addDescription( $output, $args );
 		
 		// If hook exists to add html elements to the output, apply
 		if ( isset( $args['html_filter'] ) )
 			$output = $args['html_filter']( $output, $args );
 		
 		// Renders output to setting field
-		$this->outputLines( $output );
+		self::outputLines( $output );
 	}
 	
 	/**
 	 * Echoes an array of strings of HTML
 	 * @param	array	$lines	An array of strings of HTML
 	 */
-	private function outputLines( array $lines ) {
+	private static function outputLines( array $lines ) {
 		foreach ( $lines as $line ) {
 			echo $line;
 		}
