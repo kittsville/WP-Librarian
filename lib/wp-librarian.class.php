@@ -966,7 +966,7 @@ class WP_LIBRARIAN {
 		));
 		
 		// Allows plugins to use WP-Librarian's settings class to handle their settings
-		do_action('wp_lib_settings');
+		do_action('wp_lib_register_settings');
 	}
 	
 	/**
