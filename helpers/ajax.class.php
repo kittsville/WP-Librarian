@@ -26,10 +26,6 @@ class WP_LIB_AJAX {
 	 * Adds instance of core plugin class to ajax classes' properties
 	 */
 	function __construct( WP_LIBRARIAN $wp_librarian ) {
-		// Makes sure first parameter is instance of main plugin class
-		if ( !( $wp_librarian instanceof WP_LIBRARIAN ) )
-			return wp_lib_error( 601, get_class() );
-		
 		$this->wp_librarian = $wp_librarian;
 		
 		// Ensures object can only be created if an AJAX request is being performed
