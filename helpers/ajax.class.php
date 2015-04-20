@@ -799,19 +799,19 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	
 	/**
 	 * Adds prepared Dashboard page to content buffer then trigger AJAX request closure
-	 * @param string	$page_title	Title that displays on the Dash page
-	 * @param string	$tab_title	Title that displays in the browser tab
-	 * @param array		$page		All Dash page elements, passed to client-side wp_lib_render_page() to construct HTML
-	 * @param array		$scripts	OPTIONAL Array of script names (strings) required by the Dash page
+	 * @param string		$page_title	Title that displays on the Dash page
+	 * @param string		$tab_title	Title that displays in the browser tab
+	 * @param array			$page		All Dash page elements, passed to client-side wp_lib_render_page() to construct HTML
+	 * @param array|null	$scripts	OPTIONAL Script names (strings) required by the Dash page
 	 */
-	public function sendPage( $page_title, $tab_title, $page, $scripts = false ) {
+	public function sendPage( $page_title, $tab_title, $page, $scripts = null ) {
 		$this->output_buffer[2] = array(
-			apply_filters('wp_lib_dash_page_title', $page_title, $_POST['dash_page']),
-			apply_filters('wp_lib_dash_tab_title', $tab_title, $_POST['dash_page']),
-			apply_filters('wp_lib_dash_page', $page, $_POST['dash_page'])
+			apply_filters('wp_lib_dash_page_title',	$page_title, $_POST['dash_page']),
+			apply_filters('wp_lib_dash_tab_title',	$tab_title, $_POST['dash_page']),
+			apply_filters('wp_lib_dash_page',		$page, $_POST['dash_page'])
 		);
 		
-		if ( $scripts )
+		if (is_array($scripts))
 			$this->output_buffer[2][] = $scripts;
 		
 		// Triggers flushing of output buffer
