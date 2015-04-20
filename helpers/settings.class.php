@@ -15,55 +15,35 @@ class WP_LIB_SETTINGS {
 		/* Settings relating to loaning/returning systems */
 		
 		// Loan length in days
-		array(
-			'key'		=> 'wp_lib_loan_length',
-			'default'	=> array(12)
-		),
+		'wp_lib_loan_length'	=> array(12),
 		
 		// Maximum number of times an item can be renewed while on loan
-		array(
-			'key'		=> 'wp_lib_renew_limit',
-			'defualt'	=> array(2)
-		),
+		'wp_lib_renew_limit'	=> array(2),
 		
 		// Fine length (per day)
-		array(
-			'key'		=> 'wp_lib_fine_daily',
-			'default'	=> array(0.20)
-		),
+		'wp_lib_fine_daily'		=> array(0.20),
+		
 		/* -- Slugs -- */
 		/* Sections of site urls used when accessing plugin pages e.g. my-site.com/wp-librarian */
 		
-		array(
-			'key' 		=> 'wp_lib_slugs',
-			'default'	=> array(
-				'wp-librarian',	// The slug for library items
-				'item', 		// The sub-slug for single items e.g. library/item/moby-dick
-				'author',		// The slug for viewing authors
-				'type'			// The slug for viewing media types
-			)
+		'wp_lib_slugs'			=> array(
+			'wp-librarian',	// The slug for library items
+			'item', 		// The sub-slug for single items e.g. library/item/moby-dick
+			'author',		// The slug for viewing authors
+			'type'			// The slug for viewing media types
 		),
 		
 		/* -- Formatting -- */
 		/* Settings relating to plugin presentation */
 		
 		// Currency Symbol and position relative to the numerical value (2 - Before: £20, 3 - After: 20£)
-		array(
-			'key' 		=> 'wp_lib_currency',
-			'default'	=> array('&pound;',2)
-		),
+		'wp_lib_currency'	=> array('&pound;', 2),
 		
 		/* -- Dashboard -- */
 		/* Settings relating to the Library Dashboard */
 		
 		// Whether to automatically search for an item with the given barcode when the given length is reached
-		array(
-			'key'		=> 'wp_lib_barcode_config',
-			'default'	=> array(
-				false,
-				8
-			)
-		)
+		'wp_lib_barcode_config'	=> array(false, 8),
 	);
 	
 	/**
@@ -80,8 +60,8 @@ class WP_LIB_SETTINGS {
 	 * As the plugin relies on these options to function, be wary when using this function
 	 */
 	public static function purgePluginSettings() {
-		foreach ( self::$plugin_settings as $setting ) {
-			delete_option( $setting['key'], $setting['default'] );
+		foreach ( self::$plugin_settings as $key => $default ) {
+			delete_option($key, $default);
 		}
 	}
 	
@@ -89,12 +69,12 @@ class WP_LIB_SETTINGS {
 	 * Checks if all options controlled by plugin exist. Creates option if one does not
 	 */
 	public static function checkPluginSettingsIntegrity() {
-		foreach ( self::$plugin_settings as $setting ) {
-			$setting_value = get_option( $setting['key'], false );
+		foreach ( self::$plugin_settings as $key => $default ) {
+			$setting_value = get_option( $key, false );
 			
 			// If setting doesn't exist or is invalid, resets to default value
 			if ( !is_array( $setting_value ) ) {
-				update_option( $setting['key'], $setting['default'] );
+				update_option($key, $default);
 			}
 		}
 	}
@@ -105,12 +85,10 @@ class WP_LIB_SETTINGS {
 	 * @return	bool					If the option key matched a plugin key
 	 */
 	public static function isValidSettingKey( $settings_key ) {
-		foreach ( self::$plugin_settings as $setting ) {
-			if ( $settings_key === $setting['key'] ) {
-				return true;
-			}
-		}
-		return false;
+		if (isset(self::$plugin_settings[$settings_key]))
+			return true;
+		else
+			return false;
 	}
 }
 
