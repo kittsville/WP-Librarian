@@ -94,7 +94,21 @@ class WP_LIB_DYNATABLE {
  * Generates Dynamic table for the Dashboard to display a list of loans associated with a member or item
  */
 class WP_LIB_DYNATABLE_LOANS extends WP_LIB_DYNATABLE {
-	function __construct( $key, $id ) {
+	/**
+	 * Single instance of class for creating Dashboard pages
+	 * @var WP_LIB_AJAX_PAGE
+	 */
+	protected $ajax_page;
+	
+	/**
+	 * Performs query for relevant loans and sets up class properties
+	 * @param	WP_LIB_AJAX_PAGE	$wp_lib_ajax_page	Instance of class for creating Dashboard pages
+	 * @param	string				$key				Loans post meta key (foreign key for item/member)
+	 * @param	string				$id					Loans post meta value (item/member post ID)
+	 */
+	function __construct(WP_LIB_AJAX_PAGE $wp_lib_ajax_page, $key, $id) {
+		$this->ajax_page = $wp_lib_ajax_page;
+		
 		parent::__construct(array(
 			'post_type' 	=> 'wp_lib_loans',
 			'post_status'	=> 'publish',
@@ -154,13 +168,13 @@ class WP_LIB_DYNATABLE_LOANS extends WP_LIB_DYNATABLE {
 	 * Generates formatted date of when item was due to be returned
 	 */
 	protected function genColumnLoanEnd() {
-		return wp_lib_format_unix_timestamp( $this->row_meta['wp_lib_end_date'][0] );
+		return $this->ajax_page->getMetaField($this->row_meta, 'wp_lib_end_date', true, 'wp_lib_format_unix_timestamp');
 	}
 	
 	/**
 	 * Generates formatted date of when item was actually returned
 	 */
 	protected function genColumnReturned() {
-		return wp_lib_format_unix_timestamp( $this->row_meta['wp_lib_return_date'][0] );
+		return $this->ajax_page->getMetaField($this->row_meta, 'wp_lib_return_date', false, 'wp_lib_format_unix_timestamp');
 	}
 }

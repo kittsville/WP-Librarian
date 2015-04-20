@@ -822,7 +822,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	 * @param	callback	$filter	OPTIONAL Callback to process the meta field
 	 * @return	string				Post meta value or '-'
 	 */
-	private function getMetaField(Array $meta, $key, $error = false, $filter = false) {
+	public function getMetaField(Array $meta, $key, $error = false, $filter = false) {
 		if (isset($meta[$key]))
 			// Returns meta value, filtered via a callback if there is a valid one
 			if ($filter && is_callable($filter))
@@ -1013,7 +1013,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		$this->wp_librarian->loadHelper('dynatable');
 		
 		// Queries WP for all loans of item
-		$dynatable = new WP_LIB_DYNATABLE_LOANS( 'wp_lib_item', $item_id );
+		$dynatable = new WP_LIB_DYNATABLE_LOANS($this, 'wp_lib_item', $item_id );
 		
 		// Generates Dynatable table of query results
 		return $dynatable->generateTable(
@@ -1437,7 +1437,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		$this->wp_librarian->loadHelper( 'dynatable' );
 		
 		// Queries database for loans made by member
-		$dynatable = new WP_LIB_DYNATABLE_LOANS( 'wp_lib_member', $member->ID);
+		$dynatable = new WP_LIB_DYNATABLE_LOANS($this, 'wp_lib_member', $member->ID);
 		
 		// Generates table of query results
 		$page[] = $dynatable->generateTable(
