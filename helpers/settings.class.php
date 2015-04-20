@@ -10,7 +10,7 @@ class WP_LIB_SETTINGS {
 	 * All settings WP-Librarian is responsible for
 	 * @var array
 	 */
-	private static $plugin_settings = array(
+	private static $plugin_settings = apply_filters('wp_lib_plugin_settings', array(
 		/* -- Library Options -- */
 		/* Settings relating to loaning/returning systems */
 		
@@ -64,7 +64,7 @@ class WP_LIB_SETTINGS {
 				8
 			)
 		)
-	);
+	));
 	
 	/**
 	 * Adds all plugin default options. If a setting already exists it is ignored
