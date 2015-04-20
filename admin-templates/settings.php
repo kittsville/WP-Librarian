@@ -15,20 +15,15 @@ if ( !current_user_can( 'wp_lib_change_settings' ) ) {
 // Loads settings CSS
 wp_enqueue_style( 'wp_lib_admin_settings' );
 
-// Sets settings tab to display based on GET param
-switch ( $_GET['tab'] ) {
-	case 'slugs':
-		$settings_tab = 'wp_lib_slug_group';
-	break;
-	
-	case 'dash':
-		$settings_tab = 'wp_lib_dash_group';
-	break;
-	
-	default:
-		$settings_tab = 'wp_lib_library_group';
-	break;
-}
+$selected_tab = isset($_GET['tab']) ? $_GET['tab'] : '';
+
+$tabs = apply_filters('wp_lib_settings_tabs', array(
+	''		=> array('wp_lib_library_group',	'General'),
+	'slugs'	=> array('wp_lib_slug_group',		'Slugs'),
+	'dash'	=> array('wp_lib_dash_group',		'Dashboard')
+));
+
+$settings_tab = isset($tabs[$selected_tab]) ? $tabs[$selected_tab][0] : $tabs[''][0];
 ?>
 <div id="wp-lib-admin-wrapper" class="wrap">
 	<?php wp_lib_render_plugin_version(); ?>
@@ -39,9 +34,21 @@ switch ( $_GET['tab'] ) {
 	<div id="wp-lib-notifications"></div>
 	
 	<h2 class="nav-tab-wrapper">
-		<a href="?post_type=wp_lib_items&page=wp-lib-settings" class="nav-tab <?php echo !isset( $_GET['tab'] ) ? 'nav-tab-active' : ''; ?>">General</a>
-		<a href="?post_type=wp_lib_items&page=wp-lib-settings&tab=slugs" class="nav-tab <?php echo ( $_GET['tab'] ) === 'slugs' ? 'nav-tab-active' : ''; ?>">Slugs</a>
-		<a href="?post_type=wp_lib_items&page=wp-lib-settings&tab=dash" class="nav-tab <?php echo ( $_GET['tab'] ) === 'dash' ? 'nav-tab-active' : ''; ?>">Dashboard</a>
+		<?php
+			foreach ($tabs as $key => $tab) {
+				$href	= '?post_type=wp_lib_items&page=wp-lib-settings';
+				$class	= 'nav-tab';
+				
+				if ($key !== '')
+					$href .= '&tab=' . $key;
+				
+				// If current tab is selected, display as such
+				if ($settings_tab === $tab[0])
+					$class .= ' nav-tab-active';
+				
+				echo "<a href='{$href}' class='{$class}'>{$tab[1]}</a>";
+			}
+		?>
     </h2>
 
 	<div id="wp-lib-main-content">
