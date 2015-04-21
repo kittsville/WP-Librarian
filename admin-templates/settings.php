@@ -17,6 +17,8 @@ wp_enqueue_style( 'wp_lib_admin_settings' );
 
 $selected_tab = isset($_GET['tab']) ? $_GET['tab'] : '';
 
+do_action('wp_lib_settings_page', $selected_tab);
+
 $tabs = apply_filters('wp_lib_settings_tabs', array(
 	''		=> array('wp_lib_library_group',	'General'),
 	'slugs'	=> array('wp_lib_slug_group',		'Slugs'),
