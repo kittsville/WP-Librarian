@@ -763,7 +763,6 @@ class WP_LIBRARIAN {
 		WP_LIB_SETTINGS_SECTION::registerSection(array(
 			'name'		=> 'wp_lib_library_group',
 			'title'		=> 'General Settings',
-			'page'		=> 'wp_lib_library_group-options',
 			'settings'	=> array(
 				array(
 					'name'			=> 'wp_lib_loan_length',
@@ -855,7 +854,6 @@ class WP_LIBRARIAN {
 			'callback'	=> function(){
 				echo '<p>These form the URLs of the front-end pages of your library</p>';
 			},
-			'page'		=> 'wp_lib_slug_group-options',
 			'settings'	=> array(
 				array(
 					'name'			=> 'wp_lib_slugs',
@@ -934,7 +932,6 @@ class WP_LIBRARIAN {
 				function(){
 					echo '<p>These settings modify how the ' . wp_lib_hyperlink(wp_lib_format_dash_url(), 'Dashboard') . ' behaves</a></p>';
 				},
-			'page'		=> 'wp_lib_dash_group-options',
 			'settings'	=> array(
 				array(
 					'name'			=> 'wp_lib_barcode_config',
