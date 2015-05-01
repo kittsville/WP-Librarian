@@ -237,16 +237,11 @@ class WP_LIBRARIAN {
 			if (!current_user_can('edit_users') || !wp_verify_nonce($_POST['wp_lib_profile_nonce'], 'Editing User: ' . $user_id))
 				return;
 			
-			// Fetches new role
-			$new_role = $_POST['wp_lib_role'];
-			
-			// If role wasn't specified or is invalid, stops
-			if (!$new_role || !ctype_digit($new_role))
-				return;
+			$new_role = (int) isset($_POST['wp_lib_role']) ? $_POST['wp_lib_role'] :  0;
 		}
 		
 		// Checks if given role exists
-		if (!array_key_exists($new_role, $this->getUserRoles))
+		if (!array_key_exists($new_role, $this->getUserRoles()))
 			return;
 		
 		// Updates user's meta with new role
