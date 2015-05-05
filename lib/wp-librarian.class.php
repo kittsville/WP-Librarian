@@ -184,7 +184,7 @@ class WP_LIBRARIAN {
 			}
 		} else {
 			// Sets current user as a Library Admin
-			wp_lib_update_user_meta(get_current_user_id(), 10);
+			$this->updateUserPermissions(get_current_user_id(), 10);
 			
 			// Creates all settings plugin needs to run
 			$this->loadHelper('settings');
