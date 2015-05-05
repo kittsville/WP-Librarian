@@ -32,8 +32,8 @@ define('WP_LIB_MAINTAIN_INTEGRITY', true);
 
 require_once (dirname( __FILE__ ) . '/lib/wp-librarian.class.php');
 
-new WP_LIBRARIAN;
+$wp_librarian = new WP_LIBRARIAN;
 
-register_activation_hook(__FILE__, array($plugin, 'runOnActivation'));
+register_activation_hook(__FILE__, array($wp_librarian, 'runOnActivation'));
 
 register_deactivation_hook(__FILE__, 'flush_rewrite_rules');
