@@ -50,6 +50,14 @@ class WP_LIB_AJAX {
 	}
 	
 	/**
+	 * Adds an entry to the 'content' section of the AJAX buffer sent as a reply to the Dashboard
+	 * @param mixed $content Whatever content is to be added to the buffer
+	 */
+	public function addContent($content) {
+		$output_buffer[2][] = $content;
+	}
+	
+	/**
 	 * Verifies WP nonce of AJAX request, stopping request with error on failure
 	 * @param string $action Circumstance of page that generated the request
 	 */
