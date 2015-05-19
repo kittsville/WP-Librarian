@@ -2320,6 +2320,12 @@ class WP_LIB_AJAX_API extends WP_LIB_AJAX {
 		if ( !isset( $_POST['api_request'] ) )
 			$this->stopAjax( 504 );
 		
+		// Allows developers to add/overwrite a specific Dash API request
+		do_action('wp_lib_dash_api_request_'.$_POST['api_request'], $this);
+		
+		// Allows developers to interact with all Dash API requests
+		do_action('wp_lib_dash_api_request', $this, $_POST['api_request']);
+		
 		// Performs action based on request
 		switch( $_POST['api_request'] ) {
 			// Loads member metabox, given member ID
