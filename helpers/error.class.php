@@ -110,8 +110,6 @@ class WP_LIB_ERROR {
 		if ( !array_key_exists( $error_code, $error_codes ) )
 			$error_code = 902;
 		
-		wp_lib_var_dump($error_codes);
-		
 		// Sets up object properties
 		$this->ID			= $error_code;
 		$this->description	= str_replace( '\p', $param, $error_codes[$error_code] );
