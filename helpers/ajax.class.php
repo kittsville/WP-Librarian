@@ -729,10 +729,10 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		}
 		
 		// Allows developers to add/overwrite a specific Dash page
-		do_action('wp_lib_dash_page_load_'.$_POST['dash_page'], $this);
+		do_action('wp_lib_dash_page_'.$_POST['dash_page'], $this);
 		
 		// Allows developers to interact with all Dash page requests
-		do_action('wp_lib_dash_page_load', $this, $_POST['dash_page']);
+		do_action('wp_lib_dash_page', $this, $_POST['dash_page']);
 		
 		// Calls relevant function to prepare requested page
 		switch( $_POST['dash_page'] ) {
