@@ -248,7 +248,7 @@ function wp_lib_render_page( pageArray ) {
 function wp_lib_get_script( scriptURL ) {
 	jQuery.ajax({
 	    dataType	: 'script',
-		cache		: true,
+		cache		: !wp_lib_vars.debugMode, // Only caches JS if debugging mode isn't on
 		url			: scriptURL
 	}).fail( function() {
 		wp_lib_local_error( "Failed to load JavaScript needed for this page" );
