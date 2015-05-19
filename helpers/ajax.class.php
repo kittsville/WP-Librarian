@@ -54,7 +54,7 @@ class WP_LIB_AJAX {
 	 * @param mixed $content Whatever content is to be added to the buffer
 	 */
 	public function addContent($content) {
-		$output_buffer[2][] = $content;
+		$this->output_buffer[2][] = $content;
 	}
 	
 	/**
