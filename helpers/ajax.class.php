@@ -2211,6 +2211,10 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 					)
 				);
 			break;
+			
+			default:
+				$this->stopAjax(303, 'object');
+			break;
 		}
 		
 		// Adds page nonce, object ID and relevant buttons to form
