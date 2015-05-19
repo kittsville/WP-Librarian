@@ -726,7 +726,6 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		// If no dash page has been specified, load Dashboard
 		if ( !isset( $_POST['dash_page'] ) ) {
 			$_POST['dash_page'] = 'dashboard';
-			$this->genDashboard();
 		}
 		
 		// Allows developers to add/overwrite a specific Dash page
