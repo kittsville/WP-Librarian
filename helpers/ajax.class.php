@@ -1229,7 +1229,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		$page[] = $this->prepItemMetaBox( $item );
 		
 		// Adds page nonce
-		$form[] = $this->prepNonce( 'Managing Item: ' . $item->ID );
+		$form = array($this->prepNonce('Managing Item: ' . $item->ID));
 		
 		// Adds item ID to form
 		$form[] = array(
