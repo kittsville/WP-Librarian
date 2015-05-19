@@ -67,7 +67,7 @@ function wp_lib_sanitize_phone_number( $string ) {
 
 // Sanitizes input to
 function wp_lib_sanitize_number( $raw ) {
-	return ereg_replace('[^0-9]', '', $raw );
+	return preg_replace('/[^0-9]/', '', $raw );
 }
 
 // Sanitizes item cover type
@@ -101,7 +101,7 @@ function wp_lib_prep_boolean_option( $option ) {
 // Sanitizes string then checks if it is a valid ISBN, returns sanitized ISBN on success or empty string on failure.
 function wp_lib_sanitize_isbn( $raw ) {
 	// Strips all non-numeric characters, excluding x
-	$isbn = ereg_replace('[^0-9.x]', '', strtolower( $raw ) );
+	$isbn = preg_replace('/[^0-9.x]/', '', strtolower( $raw ) );
 	
 	// Checks ISBN validity
 	return wp_lib_valid_isbn( $isbn ) ? $isbn : '';
