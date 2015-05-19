@@ -246,7 +246,11 @@ function wp_lib_render_page( pageArray ) {
 }
 
 function wp_lib_get_script( scriptURL ) {
-	jQuery.getScript( scriptURL ).fail( function() {
+	jQuery.ajax({
+	    dataType	: 'script',
+		cache		: true,
+		url			: scriptURL
+	}).fail( function() {
 		wp_lib_local_error( "Failed to load JavaScript needed for this page" );
 	});
 }
