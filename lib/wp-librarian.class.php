@@ -990,7 +990,7 @@ class WP_LIBRARIAN {
 		wp_register_style('wp_lib_admin_core_styles', $this->getStyleUrl('admin-core'), array(), '0.2');
 
 		// Sends array of useful variables to client-side (JavaScript)
-		wp_localize_script('wp_lib_core', 'wp_lib_vars', array(
+		wp_localize_script('wp_lib_core', 'wp_lib_vars', apply_filters('wp_lib_script_vars', array(
 				'siteUrl' 		=> site_url(),
 				'adminUrl'		=> admin_url(),
 				'pluginsUrl'	=> $this->plugin_url,
@@ -998,7 +998,7 @@ class WP_LIBRARIAN {
 				'siteName'		=> get_bloginfo('name'),
 				'getParams'		=> $_GET,
 				'debugMode'		=> WP_LIB_DEBUG_MODE
-		));
+		)));
 		
 		if ($hook == 'post-new.php' || $hook == 'post.php') {
 			switch ($GLOBALS['post_type']) {
