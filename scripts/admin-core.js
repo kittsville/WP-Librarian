@@ -222,7 +222,11 @@ function wp_lib_send_ajax( ajaxData, postCallFunction ) {
 			}
 		}
 	})
-	.fail( function() {
+	.fail( function(data) {
+		if (wp_lib_vars.debugMode) {
+			console.log(data.responseText);
+		}
+		
 		wp_lib_local_error( 'Unable to contact ' + wp_lib_vars.siteName + '. The website may be down or you may be having connection issues.' );
 		
 		// Sets output status

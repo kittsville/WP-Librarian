@@ -81,6 +81,27 @@ class WP_LIB_AJAX {
 	}
 	
 	/**
+	 * Returns value of meta field, if it exists, via a callback (if one was given). Otherwise returns '-'
+	 * @param	array		$meta	Post meta
+	 * @param	string		$key	Post meta key
+	 * @param	bool		$error	OPTIONAL Call an error if the meta field does not exist
+	 * @param	callback	$filter	OPTIONAL Callback to process the meta field
+	 * @return	string				Post meta value or '-'
+	 */
+	protected function getMetaField(Array $meta, $key, $error = false, $filter = false) {
+		if (isset($meta[$key]))
+			// Returns meta value, filtered via a callback if there is a valid one
+			if ($filter && is_callable($filter))
+				return $filter($meta[$key][0]);
+			else
+				return $meta[$key][0];
+		elseif ($error)
+			$this->stopAjax(507, $key);
+		else
+			return '-';
+	}
+	
+	/**
 	 * Creates instance of item class using Item ID fetched from AJAX request
 	 * @return WP_LIB_ITEM|WP_LIB_ERROR	Item instance
 	 */
@@ -815,32 +836,11 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			apply_filters('wp_lib_dash_page',		$page, $_POST['dash_page'])
 		);
 		
-		if (is_array($scripts))
+		if (is_array($scripts) || is_string($scripts))
 			$this->output_buffer[2][] = $scripts;
 		
 		// Triggers flushing of output buffer
 		die();
-	}
-	
-	/**
-	 * Returns value of meta field, if it exists, via a callback (if one was given). Otherwise returns '-'
-	 * @param	array		$meta	Post meta
-	 * @param	string		$key	Post meta key
-	 * @param	bool		$error	OPTIONAL Call an error if the meta field does not exist
-	 * @param	callback	$filter	OPTIONAL Callback to process the meta field
-	 * @return	string				Post meta value or '-'
-	 */
-	public function getMetaField(Array $meta, $key, $error = false, $filter = false) {
-		if (isset($meta[$key]))
-			// Returns meta value, filtered via a callback if there is a valid one
-			if ($filter && is_callable($filter))
-				return $filter($meta[$key][0]);
-			else
-				return $meta[$key][0];
-		elseif ($error)
-			$this->stopAjax(507, $key);
-		else
-			return '-';
 	}
 	
 	/**
@@ -1378,11 +1378,11 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		// Fetches list of loans of item
 		$page[] = $this->prepLoansTable( $item->ID );
 		
-		// Lists additional scripts needed for Dash page
-		$scripts = array( 'admin-dashboard-manage-item' );
+		// Script to display currently selected member's meta box
+		$script = $this->wp_librarian->getScriptUrl('admin-dashboard-manage-item');
 		
 		// Encodes page as an array to be rendered client-side
-		$this->sendPage( 'Managing: ' . get_the_title( $item->ID ), 'Managing Item #' . $item->ID, $page, $scripts );
+		$this->sendPage( 'Managing: ' . get_the_title( $item->ID ), 'Managing Item #' . $item->ID, $page, $script );
 	}
 	
 	/**
@@ -1692,14 +1692,14 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			)
 		);
 		
-		// Enqueues barcode page script
-		$scripts[] = 'admin-barcode-scanner';
+		// Script to handle dynamic barcode lookup
+		$script = $this->wp_librarian->getScriptUrl('admin-barcode-scanner');
 		
-		// Sets item title
+		// Browser tab and Dashboard page title/header
 		$title = 'Scan Item Barcode';
 		
 		// Sends form to client to be rendered
-		$this->sendPage( $title, $title, $page, $scripts );
+		$this->sendPage( $title, $title, $page, $script );
 	}
 	
 	/**
@@ -1787,10 +1787,10 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		// Fetches list of loans of item
 		$page[] = $this->prepLoansTable( $item->ID );
 		
-		// Lists additional scripts needed for Dash page
-		$scripts = array( 'admin-dashboard-manage-item' );
+		// Script to display currently selected member's meta box
+		$script = $this->wp_librarian->getScriptUrl('admin-dashboard-manage-item');
 		
-		$this->sendPage( 'Scheduling loan of ' . get_the_title( $item->ID ), 'Scheduling loan of #' . $item->ID, $page, $scripts );
+		$this->sendPage('Scheduling loan of ' . get_the_title( $item->ID ), 'Scheduling loan of #' . $item->ID, $page, $script);
 	}
 	
 	/**
@@ -1994,10 +1994,8 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		if ( !$loan->isLate() )
 			$this->stopAjax( 406 );
 		
-		// Fetches current date
 		$date = current_time( 'timestamp' );
 		
-		// Useful variables:
 		$days_late				= $loan->formatDueDate( $date, array( 'late' => '\d day\p' ) );			// Formatted string of item lateness
 		$title					= get_the_title( $item->ID );											// Item's title
 		$fine_per_day			= get_option( 'wp_lib_fine_daily', array(0) )[0];						// Librarian set charge for each day an item is late
@@ -2057,10 +2055,8 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	 * Allows Library to reduce fines owed by member by paying part/all owed
 	 */
 	private function genPayMemberFines() {
-		// Fetches and validates Member ID
 		$member = $this->getMember();
 		
-		// Checks that there is actually money owed, stopping page load on failure
 		if ( $member->getMoneyOwed() <= 0 )
 			$this->stopAjax( 206 );
 		
@@ -2359,10 +2355,10 @@ class WP_LIB_AJAX_API extends WP_LIB_AJAX {
 		
 		// Sets up header's meta fields
 		$meta_fields = array(
-			array( 'Name',		get_the_title( $member->ID ) ),
-			array( 'Email',		$meta['wp_lib_member_email'][0] ),
-			array( 'On Loan',	wp_lib_prep_members_items_out( $member->ID ) ),
-			array( 'Owed',		wp_lib_format_money( $member->getMoneyOwed() ) )
+			array('Name',		get_the_title($member->ID)),
+			array('Email',		$this->getMetaField($meta, 'wp_lib_member_email')),
+			array('On Loan',	wp_lib_prep_members_items_out($member->ID)),
+			array('Owed',		wp_lib_format_money($member->getMoneyOwed()))
 		);
 		
 		// Finalises and returns member meta box

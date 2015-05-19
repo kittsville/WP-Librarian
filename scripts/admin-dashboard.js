@@ -235,15 +235,20 @@ function wp_lib_render_page( pageArray ) {
 		wp_lib_render_page_element( e, libWorkspace );
 	});
 	
-	// If any scripts are required by the page, loads them
+	// Loads any scripts required by the page
 	if ( pageArray[3] instanceof Array ) {
 		$( pageArray[3] ).each( function( i, scriptURL ) {
-			$.getScript( wp_lib_vars.pluginsUrl + '/scripts/' + scriptURL + '.js' )
-			.fail( function( jqxhr, settings, exception ) {
-				wp_lib_local_error( "Failed to load JavaScript needed for this page" );
-			});
+			wp_lib_get_script( scriptURL );
 		});
+	} else if (typeof pageArray[3] === 'string') {
+		wp_lib_get_script( pageArray[3] );
 	}
+}
+
+function wp_lib_get_script( scriptURL ) {
+	jQuery.getScript( scriptURL ).fail( function() {
+		wp_lib_local_error( "Failed to load JavaScript needed for this page" );
+	});
 }
 
 // Renders a page element to the specified parent
