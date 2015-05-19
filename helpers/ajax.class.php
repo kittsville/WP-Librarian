@@ -61,7 +61,7 @@ class WP_LIB_AJAX {
 	 * Verifies WP nonce of AJAX request, stopping request with error on failure
 	 * @param string $action Circumstance of page that generated the request
 	 */
-	protected function checkNonce( $action ) {
+	public function checkNonce( $action ) {
 		if ( !isset( $_POST['wp_lib_ajax_nonce'] ) || wp_verify_nonce( $_POST['wp_lib_ajax_nonce'], $action ) !== 1 )
 			$this->stopAjax( 503 );
 	}
@@ -200,7 +200,7 @@ class WP_LIB_AJAX {
 	 * @param int|WP_LIB_ERROR	$error		OPTIONAL ID or instance of error that necessitated terminating request
 	 * @param string|array		$params		OPTIONAL Details to enhance error message
 	 */
-	protected function stopAjax( $error = false, $params = false ) {
+	public function stopAjax( $error = false, $params = false ) {
 		if ( $error !== false )
 			$this->handleError( $error, $params );
 		
@@ -803,7 +803,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	 * @param int|WP_LIB_ERROR	$error		OPTIONAL ID or instance of error that occurred
 	 * @param string|array		$params		OPTIONAL parameters to pass to error reporter
 	 */
-	protected function stopAjax( $error = false, $params = false ) {
+	public function stopAjax( $error = false, $params = false ) {
 		if ( $error !== false )
 			$this->handleError( $error, $params );
 		
