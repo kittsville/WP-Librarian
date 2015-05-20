@@ -107,7 +107,7 @@ class WP_LIB_SETTINGS_SECTION extends WP_LIB_SETTINGS {
 		
 		// Settings sections displayed as library settings page tabs don't need to specify a page
 		if ( !isset( $section['page'] ) )
-			$section['page'] = $section['name'] .= '-options';
+			$section['page'] = $section['name'] . '-options';
 		
 		// Registers setting section
 		add_settings_section( $section['name'], $section['title'], $section['callback'], $section['page'] );
