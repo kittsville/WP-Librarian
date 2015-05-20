@@ -24,8 +24,8 @@ class WP_LIBRARIAN {
 	 * @todo Consider merging some required files into this class
 	 */
 	public function __construct() {
-		$this->plugin_path	= dirname(dirname(__FILE__));
-		$this->plugin_url	= plugins_url('', dirname(__FILE__));
+		$this->plugin_path  = dirname(dirname(__FILE__));
+		$this->plugin_url   = plugins_url('', dirname(__FILE__));
 		
 		// Registers functions to WordPress hooks
 		$this->registerHooks();
@@ -45,63 +45,63 @@ class WP_LIBRARIAN {
 	 */
 	private function registerHooks() {
 		// Registers custom post types, taxonomies and settings sections used by the plugin
-		add_action('init',								array($this, 'registerPostAndTax'));
-		add_action('admin_init',						array($this, 'registerSettings'));
+		add_action('init',                              array($this, 'registerPostAndTax'));
+		add_action('admin_init',                        array($this, 'registerSettings'));
 		
 		// Registers scripts and styles
-		add_action('wp_enqueue_scripts',				array($this, 'registerScripts'));
-		add_action('admin_enqueue_scripts',				array($this, 'registerAdminScripts'),		10, 1);
+		add_action('wp_enqueue_scripts',                array($this, 'registerScripts'));
+		add_action('admin_enqueue_scripts',             array($this, 'registerAdminScripts'),       10, 1);
 		
 		// Renames edit items 'Featured Image' box title
-		add_action('admin_head-post-new.php',			array($this, 'replaceFeaturedImageTitle'));
-		add_action('admin_head-post.php',				array($this, 'replaceFeaturedImageTitle'));
+		add_action('admin_head-post-new.php',           array($this, 'replaceFeaturedImageTitle'));
+		add_action('admin_head-post.php',               array($this, 'replaceFeaturedImageTitle'));
 		
 		// Renames greyed out 'Title here' prompt text for item/member descriptions
-		add_filter('enter_title_here',					array($this, 'replaceNewPostPromptText'));
+		add_filter('enter_title_here',                  array($this, 'replaceNewPostPromptText'));
 		
 		// Adds custom post and tax updated messages
-		add_filter('post_updated_messages',				array($this, 'replacePostUpdatedMessages'),	10, 1);
-		add_filter('term_updated_messages',				array($this, 'replaceTaxUpdatedMessages'),	10, 1);
+		add_filter('post_updated_messages',             array($this, 'replacePostUpdatedMessages'), 10, 1);
+		add_filter('term_updated_messages',             array($this, 'replaceTaxUpdatedMessages'),  10, 1);
 		
 		
 		// Adds custom rewrite rules, allowing for pretty front-end URLs for item archives
-		add_filter('generate_rewrite_rules',			array($this, 'generateRewriteRules'));
+		add_filter('generate_rewrite_rules',            array($this, 'generateRewriteRules'));
 		
 		// Checks posts before they're deleted to maintain the integrity of the library
-		add_action('before_delete_post',				array($this, 'checkPostPreTrash'));
+		add_action('before_delete_post',                array($this, 'checkPostPreTrash'));
 		
 		// User permissions
-		add_action('show_user_profile',					array($this, 'addUserPermissionsField'),	10, 1);
-		add_action('edit_user_profile',					array($this, 'addUserPermissionsField'),	10, 1);
-		add_action('personal_options_update',			array($this, 'updateUserPermissions'),		10, 1);
-		add_action('edit_user_profile_update', 			array($this, 'updateUserPermissions'),		10, 1);
+		add_action('show_user_profile',                 array($this, 'addUserPermissionsField'),    10, 1);
+		add_action('edit_user_profile',                 array($this, 'addUserPermissionsField'),    10, 1);
+		add_action('personal_options_update',           array($this, 'updateUserPermissions'),      10, 1);
+		add_action('edit_user_profile_update',          array($this, 'updateUserPermissions'),      10, 1);
 		
 		// Loads front-end templates for post archive/single pages from current theme, defaulting to plugin's templates 
-		add_filter('template_include',					array($this, 'locatePostTemplate'),			10, 1);
+		add_filter('template_include',                  array($this, 'locatePostTemplate'),         10, 1);
 		
 		// Hides items specifically excluded from the public archive
-		add_action('pre_get_posts',						array($this, 'hideDelistedItems'),			10, 1);
+		add_action('pre_get_posts',                     array($this, 'hideDelistedItems'),          10, 1);
 		
 		// Updates item/member meta when post is updated
-		add_action('save_post',							array($this, 'updatePostMeta'),				10, 2);
+		add_action('save_post',                         array($this, 'updatePostMeta'),             10, 2);
 		
 		// Removes "Additional Capabilities" section from user profile page
-		add_filter('additional_capabilities_display',	function(){ return false; });
+		add_filter('additional_capabilities_display',   function(){ return false; });
 		
 		// Adds Dashboard and, if user has sufficient permissions, Settings pages
-		add_action('admin_menu',						array($this, 'registerAdminPages'));
+		add_action('admin_menu',                        array($this, 'registerAdminPages'));
 		
-		add_action('admin_menu',						array($this, 'removeAdminMetaBoxes'));
+		add_action('admin_menu',                        array($this, 'removeAdminMetaBoxes'));
 		
 		// Performs AJAX related functions
-		add_action('wp_ajax_wp_lib_page',				array($this, 'ajaxLoadPage'));
-		add_action('wp_ajax_wp_lib_action',				array($this, 'ajaxDoAction'));
-		add_action('wp_ajax_wp_lib_api',				array($this, 'ajaxDoApiRequest'));
+		add_action('wp_ajax_wp_lib_page',               array($this, 'ajaxLoadPage'));
+		add_action('wp_ajax_wp_lib_action',             array($this, 'ajaxDoAction'));
+		add_action('wp_ajax_wp_lib_api',                array($this, 'ajaxDoApiRequest'));
 	}
 	
 	/**
 	 * Loads helper file from /helper directory
-	 * @param	string	$helper	Name of helper file, excluding .class.php
+	 * @param   string  $helper Name of helper file, excluding .class.php
 	 */
 	public function loadHelper($helper) {
 		require_once($this->plugin_path . '/helpers/' . $helper . '.class.php');
@@ -109,7 +109,7 @@ class WP_LIBRARIAN {
 	
 	/**
 	 * Loads library class from /lib directory
-	 * @param	string	$helper	Name of library to be loaded, excluding .class.php
+	 * @param   string  $helper Name of library to be loaded, excluding .class.php
 	 */
 	public function loadClass($library) {
 		require_once($this->plugin_path . '/lib/' . $library . '.class.php');
@@ -125,7 +125,7 @@ class WP_LIBRARIAN {
 	
 	/**
 	 * Given the name of an admin template file, loads
-	 * @param	string	$name	File name, e.g. 'settings'
+	 * @param   string  $name   File name, e.g. 'settings'
 	 */
 	public function loadAdminTemplate($name) {
 		require_once($this->plugin_path . '/admin-templates/' . $name . '.php');
@@ -146,11 +146,11 @@ class WP_LIBRARIAN {
 				
 				// Deletes member post meta 'wp_lib_owed'
 				$members_query = new WP_Query(array(
-					'post_type' 		=> 'wp_lib_members',
-					'meta_query'		=> array(
+					'post_type'         => 'wp_lib_members',
+					'meta_query'        => array(
 						array(
-							'key'			=> 'wp_lib_owed',
-							'compare'		=> 'EXISTS'
+							'key'           => 'wp_lib_owed',
+							'compare'       => 'EXISTS'
 						)
 					)
 				));
@@ -165,7 +165,7 @@ class WP_LIBRARIAN {
 				
 				// Renames fine post meta 'wp_lib_fine' to 'wp_lib_owed'
 				$fines_query = new WP_Query(array(
-					'post_type' 		=> 'wp_lib_fines',
+					'post_type' => 'wp_lib_fines',
 				));
 				
 				if ($fines_query->have_posts()){
@@ -204,7 +204,7 @@ class WP_LIBRARIAN {
 					'name' => 'Graphic Novel',
 					'slug' => 'graphic-novels',
 				)
-			] as $type ) {
+			] as $type) {
 				if (get_term_by('name', $type['name'], 'wp_lib_media_type') == false){
 					wp_insert_term(
 						$type['name'],
@@ -224,10 +224,10 @@ class WP_LIBRARIAN {
 	
 	/**
 	 * Updates user's library role and capabilities
-	 * @param	int			$user_id	ID of user to be updated
-	 * @param	int|bool	$new_role	OPTIONAL New library role to assign user
-	 * @see								http://codex.wordpress.org/Roles_and_Capabilities
-	 * @todo							That 'new_role' check makes me feel dirty. There must be a better way of doing it.
+	 * @param   int         $user_id    ID of user to be updated
+	 * @param   int|bool    $new_role   OPTIONAL New library role to assign user
+	 * @see                             http://codex.wordpress.org/Roles_and_Capabilities
+	 * @todo                            That 'new_role' check makes me feel dirty. There must be a better way of doing it.
 	 */
 	public function updateUserPermissions($user_id, $new_role = false) {
 		// If new role wasn't specified, function has been called from user profile and nonce checking/sanitization is needed
@@ -347,8 +347,8 @@ class WP_LIBRARIAN {
 				<td>
 					<select id="wp-lib-role-input" name="wp_lib_role">
 						<?php
-							foreach( $roles as $numeric_role => $text_role ) {
-								if ( $status == $numeric_role )
+							foreach($roles as $numeric_role => $text_role) {
+								if ($status == $numeric_role)
 									$selected = ' selected="selected" ';
 								else
 									$selected = '';
@@ -365,9 +365,9 @@ class WP_LIBRARIAN {
 	
 	/**
 	 * Updates item and member post meta on post save hook
-	 * @param	int		$post_id	Post ID of current post being saved
-	 * @param	post	$post		WP Post object
-	 * @return	int		$post_id	Post ID of current post being saved
+	 * @param   int     $post_id    Post ID of current post being saved
+	 * @param   post    $post       WP Post object
+	 * @return  int     $post_id    Post ID of current post being saved
 	 */
 	public function updatePostMeta($post_id, $post) {
 		// Check if the current user has permission to change a Library item's meta
@@ -384,41 +384,41 @@ class WP_LIBRARIAN {
 				// Stores all meta box fields and sanitization methods
 				$meta_array = array(
 					array(
-						'key'		=> 'wp_lib_item_isbn',
-						'sanitize'	=> 'wp_lib_sanitize_isbn'
+						'key'       => 'wp_lib_item_isbn',
+						'sanitize'  => 'wp_lib_sanitize_isbn'
 					),
 					array(
-						'key'		=> 'wp_lib_item_loanable',
-						'sanitize'	=> 'wp_lib_sanitize_checkbox'
+						'key'       => 'wp_lib_item_loanable',
+						'sanitize'  => 'wp_lib_sanitize_checkbox'
 					),
 					array(
-						'key'		=> 'wp_lib_item_delist',
-						'sanitize'	=> 'wp_lib_sanitize_checkbox'
+						'key'       => 'wp_lib_item_delist',
+						'sanitize'  => 'wp_lib_sanitize_checkbox'
 					),
 					array(
-						'key'		=> 'wp_lib_display_donor',
-						'sanitize'	=> 'wp_lib_sanitize_checkbox'
+						'key'       => 'wp_lib_display_donor',
+						'sanitize'  => 'wp_lib_sanitize_checkbox'
 					),
 					array(
-						'key'		=> 'wp_lib_item_condition',
-						'sanitize'	=> 'wp_lib_sanitize_number'
+						'key'       => 'wp_lib_item_condition',
+						'sanitize'  => 'wp_lib_sanitize_number'
 					),
 					array(
-						'key'		=> 'wp_lib_item_barcode',
-						'sanitize'	=> 'wp_lib_sanitize_number'
+						'key'       => 'wp_lib_item_barcode',
+						'sanitize'  => 'wp_lib_sanitize_number'
 					),
 					array(
-						'key'		=> 'wp_lib_item_cover_type',
-						'sanitize'	=> 'wp_lib_sanitize_number'
+						'key'       => 'wp_lib_item_cover_type',
+						'sanitize'  => 'wp_lib_sanitize_number'
 					),
 					array(
-						'key'		=> 'wp_lib_media_type',
-						'sanitize'	=> 'sanitize_title',
-						'tax'		=> true
+						'key'       => 'wp_lib_media_type',
+						'sanitize'  => 'sanitize_title',
+						'tax'       => true
 					),
 					array(
-						'key'		=> 'wp_lib_item_donor',
-						'sanitize'	=> 'wp_lib_sanitize_donor'
+						'key'       => 'wp_lib_item_donor',
+						'sanitize'  => 'wp_lib_sanitize_donor'
 					)
 				);
 			break;
@@ -431,20 +431,20 @@ class WP_LIBRARIAN {
 				// Stores all meta box fields and sanitization methods
 				$meta_array = array(
 					array(
-						'key'		=> 'wp_lib_member_phone',
-						'sanitize'	=> 'wp_lib_sanitize_phone_number'
+						'key'       => 'wp_lib_member_phone',
+						'sanitize'  => 'wp_lib_sanitize_phone_number'
 					),
 					array(
-						'key'		=> 'wp_lib_member_mobile',
-						'sanitize'	=> 'wp_lib_sanitize_phone_number'
+						'key'       => 'wp_lib_member_mobile',
+						'sanitize'  => 'wp_lib_sanitize_phone_number'
 					),
 					array(
-						'key'		=> 'wp_lib_member_email',
-						'sanitize'	=> 'sanitize_email'
+						'key'       => 'wp_lib_member_email',
+						'sanitize'  => 'sanitize_email'
 					),
 					array(
-						'key'		=> 'wp_lib_member_archive',
-						'sanitize'	=> 'wp_lib_sanitize_checkbox'
+						'key'       => 'wp_lib_member_archive',
+						'sanitize'  => 'wp_lib_sanitize_checkbox'
 					)
 				);
 			break;
@@ -516,30 +516,30 @@ class WP_LIBRARIAN {
 		register_post_type('wp_lib_items',
 			array(
 				'labels' => array(
-					'name'					=> 'Library',
-					'singular_name'			=> 'Library Item',
-					'name_admin_bar'		=> 'Library Item',
-					'all_items'				=> 'All Items',
-					'add_new'				=> 'New Item',
-					'add_new_item'			=> 'New Item',
-					'edit'					=> 'Edit',
-					'edit_item'				=> 'Edit Item',
-					'new_item'				=> 'New Item',
-					'view_item'				=> 'View Library Item',
-					'search_items'			=> 'Search Library Items',
-					'not_found'				=> 'No Items found',
-					'not_found_in_trash'	=> 'No Items found in Trash',
+					'name'                  => 'Library',
+					'singular_name'         => 'Library Item',
+					'name_admin_bar'        => 'Library Item',
+					'all_items'             => 'All Items',
+					'add_new'               => 'New Item',
+					'add_new_item'          => 'New Item',
+					'edit'                  => 'Edit',
+					'edit_item'             => 'Edit Item',
+					'new_item'              => 'New Item',
+					'view_item'             => 'View Library Item',
+					'search_items'          => 'Search Library Items',
+					'not_found'             => 'No Items found',
+					'not_found_in_trash'    => 'No Items found in Trash',
 				),
-				'public'				=> true,
-				'menu_position'			=> 15,
-				'capability_type'		=> 'wp_lib_items_cap',
-				'map_meta_cap'			=> true,
-				'supports'				=> array('title', 'editor', 'thumbnail'),
-				'taxonomies'			=> array(''),
-				'menu_icon'				=> 'dashicons-book-alt',
-				'has_archive'			=> true,
-				'rewrite'				=> array('slug' => $slugs[0].'/'.$slugs[1]),
-				'register_meta_box_cb'	=> function(){
+				'public'                => true,
+				'menu_position'         => 15,
+				'capability_type'       => 'wp_lib_items_cap',
+				'map_meta_cap'          => true,
+				'supports'              => array('title', 'editor', 'thumbnail'),
+				'taxonomies'            => array(''),
+				'menu_icon'             => 'dashicons-book-alt',
+				'has_archive'           => true,
+				'rewrite'               => array('slug' => $slugs[0].'/'.$slugs[1]),
+				'register_meta_box_cb'  => function(){
 					add_meta_box(
 						'library_items_meta_box',
 						'Item Details',
@@ -559,28 +559,28 @@ class WP_LIBRARIAN {
 		register_post_type('wp_lib_members',
 			array(
 				'labels' => array(
-					'name'					=> 'Members',
-					'singular_name'			=> 'Member',
-					'name_admin_bar'		=> 'Library Member',
-					'add_new'				=> 'Add New',
-					'add_new_item'			=> 'Add New',
-					'edit'					=> 'Edit',
-					'edit_item'				=> 'Edit Member',
-					'new_item'				=> 'New Member',
-					'view_item'				=> 'View Member',
-					'search_items'			=> 'Search All Members',
-					'not_found'				=> 'No Members found',
-					'not_found_in_trash'	=> 'No Members found in Trash',
+					'name'                  => 'Members',
+					'singular_name'         => 'Member',
+					'name_admin_bar'        => 'Library Member',
+					'add_new'               => 'Add New',
+					'add_new_item'          => 'Add New',
+					'edit'                  => 'Edit',
+					'edit_item'             => 'Edit Member',
+					'new_item'              => 'New Member',
+					'view_item'             => 'View Member',
+					'search_items'          => 'Search All Members',
+					'not_found'             => 'No Members found',
+					'not_found_in_trash'    => 'No Members found in Trash',
 				),
-				'public'				=> false,
-				'show_ui'				=> true,
-				'capability_type'		=> 'wp_lib_members_cap',
-				'map_meta_cap'			=> true,
-				'exclude_from_search'	=> true,
-				'publicly_queryable'	=> false,
-				'show_in_menu' 			=> 'edit.php?post_type=wp_lib_items',
-				'supports'				=> array('title'),
-				'register_meta_box_cb'	=> function(){
+				'public'                => false,
+				'show_ui'               => true,
+				'capability_type'       => 'wp_lib_members_cap',
+				'map_meta_cap'          => true,
+				'exclude_from_search'   => true,
+				'publicly_queryable'    => false,
+				'show_in_menu'          => 'edit.php?post_type=wp_lib_items',
+				'supports'              => array('title'),
+				'register_meta_box_cb'  => function(){
 					add_meta_box(
 						'library_members_meta_box',
 						'Member Details',
@@ -601,29 +601,29 @@ class WP_LIBRARIAN {
 		register_post_type('wp_lib_loans',
 			array(
 				'labels' => array(
-					'name'				=> 'Loans',
-					'singular_name'		=> 'Loan',
-					'add_new'			=> 'Add New Loan',
-					'add_new_item'		=> 'Add New Loan',
-					'edit'				=> 'Edit',
-					'edit_item'			=> 'Edit Loan',
-					'new_item'			=> 'New Loan',
-					'view_item'			=> 'View Loan',
-					'search_items'		=> 'Search Loans',
-					'not_found'			=> 'No Loans found',
+					'name'              => 'Loans',
+					'singular_name'     => 'Loan',
+					'add_new'           => 'Add New Loan',
+					'add_new_item'      => 'Add New Loan',
+					'edit'              => 'Edit',
+					'edit_item'         => 'Edit Loan',
+					'new_item'          => 'New Loan',
+					'view_item'         => 'View Loan',
+					'search_items'      => 'Search Loans',
+					'not_found'         => 'No Loans found',
 					'not_found_in_trash'=> 'No Loans found in Trash',
 				),
-				'public'				=> true,
-				'public'				=> true,
-				'capability_type'		=> 'wp_lib_loans_cap',
-				'capabilities'			=> array(
-					'create_posts'			=> false
+				'public'                => true,
+				'public'                => true,
+				'capability_type'       => 'wp_lib_loans_cap',
+				'capabilities'          => array(
+					'create_posts'          => false
 				),
-				'map_meta_cap'			=> true,
-				'exclude_from_search'	=> true,
-				'publicly_queryable'	=> true,
-				'show_in_menu'		 	=> 'edit.php?post_type=wp_lib_items',
-				'supports'				=> array(''),
+				'map_meta_cap'          => true,
+				'exclude_from_search'   => true,
+				'publicly_queryable'    => true,
+				'show_in_menu'          => 'edit.php?post_type=wp_lib_items',
+				'supports'              => array(''),
 			)
 		);
 		
@@ -635,28 +635,28 @@ class WP_LIBRARIAN {
 		register_post_type('wp_lib_fines',
 			array(
 				'labels' => array(
-					'name'				=> 'Fines',
-					'singular_name'		=> 'Fine',
-					'add_new'			=> 'Add New Fine',
-					'add_new_item'		=> 'Add New Fine',
-					'edit'				=> 'Edit',
-					'edit_item'			=> 'Edit Fine',
-					'new_item'			=> 'New Fine',
-					'view_item'			=> 'View Fine',
-					'search_items'		=> 'Search Fines',
-					'not_found'			=> 'No Fines found',
+					'name'              => 'Fines',
+					'singular_name'     => 'Fine',
+					'add_new'           => 'Add New Fine',
+					'add_new_item'      => 'Add New Fine',
+					'edit'              => 'Edit',
+					'edit_item'         => 'Edit Fine',
+					'new_item'          => 'New Fine',
+					'view_item'         => 'View Fine',
+					'search_items'      => 'Search Fines',
+					'not_found'         => 'No Fines found',
 					'not_found_in_trash'=> 'No Fines found in Trash',
 				),
-				'public'				=> true,
-				'capability_type'		=> 'wp_lib_fines_cap',
-				'capabilities'			=> array(
-					'create_posts'		=> false
+				'public'                => true,
+				'capability_type'       => 'wp_lib_fines_cap',
+				'capabilities'          => array(
+					'create_posts'      => false
 				),
-				'map_meta_cap'			=> true,
-				'exclude_from_search'	=> true,
-				'publicly_queryable'	=> true,
-				'show_in_menu'			=> 'edit.php?post_type=wp_lib_items',
-				'supports'				=> array(''),
+				'map_meta_cap'          => true,
+				'exclude_from_search'   => true,
+				'publicly_queryable'    => true,
+				'show_in_menu'          => 'edit.php?post_type=wp_lib_items',
+				'supports'              => array(''),
 			)
 		);
 		
@@ -669,37 +669,37 @@ class WP_LIBRARIAN {
 		 */
 		register_taxonomy('wp_lib_author', 'wp_lib_items',
 			array(
-				'capabilities'		=> array(	
-					'manage_terms'	=> 'wp_lib_manage_taxs',
-					'edit_terms'	=> 'wp_lib_manage_taxs',
-					'delete_terms'	=> 'wp_lib_manage_taxs',
-					'assign_terms'	=> 'wp_lib_manage_taxs'
+				'capabilities'      => array(   
+					'manage_terms'  => 'wp_lib_manage_taxs',
+					'edit_terms'    => 'wp_lib_manage_taxs',
+					'delete_terms'  => 'wp_lib_manage_taxs',
+					'assign_terms'  => 'wp_lib_manage_taxs'
 				),
-				'hierarchical'			=> false,
-				'show_ui'				=> true,
-				'show_admin_column'		=> true,
-				'update_count_callback'	=> '_update_post_term_count',
-				'query_var'				=> true,
-				'rewrite'				=> array(
-					'slug'			=> $slugs[0].'/'.$slugs[2],
-					'with_front'	=> false,
-					'hierarchical'	=> true
+				'hierarchical'          => false,
+				'show_ui'               => true,
+				'show_admin_column'     => true,
+				'update_count_callback' => '_update_post_term_count',
+				'query_var'             => true,
+				'rewrite'               => array(
+					'slug'          => $slugs[0].'/'.$slugs[2],
+					'with_front'    => false,
+					'hierarchical'  => true
 				),
-				'labels'				=> array(
-					'name'						=> 'Authors',
-					'singular_name'				=> 'Author',
-					'search_items'				=> 'Search Authors',
-					'popular_items'				=> 'Popular Authors',
-					'all_items'					=> 'All Authors',
-					'edit_item'					=> 'Edit Author',
-					'update_item'				=> 'Update Author',
-					'add_new_item'				=> 'Add New Author',
-					'new_item_name'				=> 'New Author Name',
+				'labels'                => array(
+					'name'                      => 'Authors',
+					'singular_name'             => 'Author',
+					'search_items'              => 'Search Authors',
+					'popular_items'             => 'Popular Authors',
+					'all_items'                 => 'All Authors',
+					'edit_item'                 => 'Edit Author',
+					'update_item'               => 'Update Author',
+					'add_new_item'              => 'Add New Author',
+					'new_item_name'             => 'New Author Name',
 					'separate_items_with_commas'=> 'Separate authors with commas',
-					'add_or_remove_items'		=> 'Add or remove authors',
-					'choose_from_most_used'		=> 'Choose from the most used authors',
-					'not_found'					=> 'No authors found.',
-					'menu_name'					=> 'Authors'
+					'add_or_remove_items'       => 'Add or remove authors',
+					'choose_from_most_used'     => 'Choose from the most used authors',
+					'not_found'                 => 'No authors found.',
+					'menu_name'                 => 'Authors'
 				)
 			)
 		);
@@ -711,33 +711,33 @@ class WP_LIBRARIAN {
 		 */
 		register_taxonomy('wp_lib_media_type', 'wp_lib_items',
 			array(
-				'capabilities'		=> array(	
-					'manage_terms'	=> 'wp_lib_manage_taxs',
-					'edit_terms'	=> 'wp_lib_manage_taxs',
-					'delete_terms'	=> 'wp_lib_manage_taxs',
-					'assign_terms'	=> 'wp_lib_manage_taxs'
+				'capabilities'      => array(   
+					'manage_terms'  => 'wp_lib_manage_taxs',
+					'edit_terms'    => 'wp_lib_manage_taxs',
+					'delete_terms'  => 'wp_lib_manage_taxs',
+					'assign_terms'  => 'wp_lib_manage_taxs'
 				),
-				'hierarchical'		=> true,
-				'show_ui'			=> true,
-				'show_admin_column'	=> true,
-				'query_var'			=> true,
-				'rewrite'			=> array(
-					'slug'			=> $slugs[0].'/'.$slugs[3],
-					'with_front'	=> false,
-					'hierarchical'	=> true
+				'hierarchical'      => true,
+				'show_ui'           => true,
+				'show_admin_column' => true,
+				'query_var'         => true,
+				'rewrite'           => array(
+					'slug'          => $slugs[0].'/'.$slugs[3],
+					'with_front'    => false,
+					'hierarchical'  => true
 				),
-				'labels'			=> array(
-					'name'				=> 'Media Types',
-					'singular_name'		=> 'Media Type',
-					'search_items'		=> 'Search Media Types',
-					'all_items'			=> 'All Media Types',
-					'parent_item'		=> 'Parent Media Type',
-					'parent_item_colon'	=> 'Parent Media Type:',
-					'edit_item'			=> 'Edit Media Type',
-					'update_item'		=> 'Update Media Type',
-					'add_new_item'		=> 'Add New Media Type',
-					'new_item_name'		=> 'New Media Type Name',
-					'menu_name'			=> 'Media Types'
+				'labels'            => array(
+					'name'              => 'Media Types',
+					'singular_name'     => 'Media Type',
+					'search_items'      => 'Search Media Types',
+					'all_items'         => 'All Media Types',
+					'parent_item'       => 'Parent Media Type',
+					'parent_item_colon' => 'Parent Media Type:',
+					'edit_item'         => 'Edit Media Type',
+					'update_item'       => 'Update Media Type',
+					'add_new_item'      => 'Add New Media Type',
+					'new_item_name'     => 'New Media Type Name',
+					'menu_name'         => 'Media Types'
 				)
 			)
 		);
@@ -756,83 +756,83 @@ class WP_LIBRARIAN {
 		
 		// Registers general settings section, settings and fields with sanitization callbacks
 		WP_LIB_SETTINGS_SECTION::registerSection(array(
-			'name'		=> 'wp_lib_library_group',
-			'title'		=> 'General Settings',
-			'settings'	=> array(
+			'name'      => 'wp_lib_library_group',
+			'title'     => 'General Settings',
+			'settings'  => array(
 				array(
-					'name'			=> 'wp_lib_loan_length',
-					'sanitize'		=>
+					'name'          => 'wp_lib_loan_length',
+					'sanitize'      =>
 						function($raw) {
 							// Ensures loan length is an integer between 1-100 (inclusive)
 							return array(min(max((int) abs(trim($raw[0])), 1), 100));
 						},
-					'fields'		=> array(
+					'fields'        => array(
 						array(
-							'name'			=> 'Default Loan Length',
-							'field_type'	=> 'textInput',
-							'args'			=> array(
-								'alt'		=> 'The default number of days to loan an item'
+							'name'          => 'Default Loan Length',
+							'field_type'    => 'textInput',
+							'args'          => array(
+								'alt'       => 'The default number of days to loan an item'
 							)
 						)
 					)
 				),
 				array(
-					'name'		=> 'wp_lib_renew_limit',
-					'sanitize'	=>
+					'name'      => 'wp_lib_renew_limit',
+					'sanitize'  =>
 						function($raw) {
 							// Ensures input is a positive integer between 0-10 (inclusive)
 							return array(min((int) abs(trim($raw[0])), 10));
 						},
-					'fields'	=> array(
+					'fields'    => array(
 						array(
-							'name'		=> 'Renewing Limit',
+							'name'      => 'Renewing Limit',
 							'field_type'=> 'textInput',
-							'args'		=> array(
-								'alt'	=> 'The maximum number of times an item can be renewed. 0 = no limit'
+							'args'      => array(
+								'alt'   => 'The maximum number of times an item can be renewed. 0 = no limit'
 							)
 						)
 					)
 				),
 				array(
-					'name'		=> 'wp_lib_fine_daily',
-					'sanitize'	=>
+					'name'      => 'wp_lib_fine_daily',
+					'sanitize'  =>
 						function($raw) {
 							// Ensures fine amount is a positive float with no more than 2 decimal places
 							return array(round(max((float) trim($raw[0]), 0), 2));
 						},
-					'fields'	=> array(
+					'fields'    => array(
 						array(
-							'name'			=> 'Late Fine',
-							'field_type'	=> 'textInput',
-							'args'			=> array(
-								'alt'		=> 'Amount to charge a member, per day, for a late item',
-								'filter'	=> function($input) { return number_format($input, 2); }
+							'name'          => 'Late Fine',
+							'field_type'    => 'textInput',
+							'args'          => array(
+								'alt'       => 'Amount to charge a member, per day, for a late item',
+								'filter'    => function($input) { return number_format($input, 2); }
 							)
 						)
 					)
 				),
 				array(
-					'name'		=> 'wp_lib_currency',
-					'sanitize'	=>
+					'name'      => 'wp_lib_currency',
+					'sanitize'  =>
 						function($raw) {
 							return array(
 								htmlentities(substr(iconv('UTF-8', 'ISO-8859-15', trim($raw[0])), 0, 4), ENT_QUOTES, 'ISO-8859-15'),
 								wp_lib_sanitize_option_checkbox($raw[1])
 							);
 						},
-					'fields'	=> array(
+					'fields'    => array(
 						array(
-							'name'		=> 'Currency Symbol',
+							'name'      => 'Currency Symbol',
 							'field_type'=> 'textInput',
-							'args'		=> array(
-								'alt'		=> 'Set the symbol to be used before or after money is displayed'
+							'args'      => array(
+								'alt'       => 'Set the symbol to be used before or after money is displayed'
 							)
 						),
 						array(
-							'name'		=> 'Currency Position',
+							'name'      => 'Currency Position',
 							'field_type'=> 'checkboxInput',
-							'args'		=> array(
-								'alt'		=> 'Check box to display currency symbol after value e.g. 0.40EUR'
+							'args'      => array(
+								'alt'       => 'Check box to display currency symbol after value e.g. 0.40EUR'
 							)
 						)
 					)
@@ -844,19 +844,19 @@ class WP_LIBRARIAN {
 
 		// Registers settings groups and their sanitization callbacks for the slugs used on the front-end of the plugin
 		WP_LIB_SETTINGS_SECTION::registerSection(array(
-			'name'		=> 'wp_lib_slug_group',
-			'title'		=> 'Front-end Slugs',
-			'callback'	=> function(){
+			'name'      => 'wp_lib_slug_group',
+			'title'     => 'Front-end Slugs',
+			'callback'  => function(){
 				echo '<p>These form the URLs of the front-end pages of your library</p>';
 			},
-			'settings'	=> array(
+			'settings'  => array(
 				array(
-					'name'			=> 'wp_lib_slugs',
-					'classes'		=> array('slug-input'),
-					'field_type'	=> 'textInput',
-					'sanitize'		=>
+					'name'          => 'wp_lib_slugs',
+					'classes'       => array('slug-input'),
+					'field_type'    => 'textInput',
+					'sanitize'      =>
 						function($raw) {
-							foreach(range( 0, 3 ) as $position) {
+							foreach(range(0, 3) as $position) {
 								$output[$position] = sanitize_title(trim($raw[$position]));
 								
 								// If there were no valid characters left in the slug, cancels saving
@@ -870,7 +870,7 @@ class WP_LIBRARIAN {
 							
 							return $output;
 						},
-					'html_filter'	=>
+					'html_filter'   =>
 						function($output, $args) {
 							// Initialises url output preview
 							$url = '<span>' . site_url() . '</span>/<span name="main-slug-text"></span>/';
@@ -884,32 +884,32 @@ class WP_LIBRARIAN {
 							
 							return $output;
 						},
-					'fields'	=> array(
+					'fields'    => array(
 						array(
-							'name'	=> 'Main',
-							'args'	=> array(
-								'alt'	=> 'This forms the base of all public Library pages'
+							'name'  => 'Main',
+							'args'  => array(
+								'alt'   => 'This forms the base of all public Library pages'
 							)
 						),
 						array(
-							'name'	=> 'Single Item',
-							'args'	=> array(
-								'alt'	=> 'This indicates the user is viewing a single item',
-								'end'	=> 'war-and-peace'
+							'name'  => 'Single Item',
+							'args'  => array(
+								'alt'   => 'This indicates the user is viewing a single item',
+								'end'   => 'war-and-peace'
 							)
 						),
 						array(
-							'name'	=> 'Authors',
-							'args'	=> array(
-								'alt'	=> 'This forms the url for browsing items by author',
-								'end'	=> 'terry-pratchett'
+							'name'  => 'Authors',
+							'args'  => array(
+								'alt'   => 'This forms the url for browsing items by author',
+								'end'   => 'terry-pratchett'
 							)
 						),
 						array(
-							'name'	=> 'Media Type',
-							'args'	=> array(
-								'alt'	=> 'This forms the url for browsing items by media type',
-								'end'	=> 'comic-books'
+							'name'  => 'Media Type',
+							'args'  => array(
+								'alt'   => 'This forms the url for browsing items by media type',
+								'end'   => 'comic-books'
 							)
 						)
 					)
@@ -921,16 +921,16 @@ class WP_LIBRARIAN {
 		
 		// Registers Dashboard Settings section with all relevant settings/fields
 		WP_LIB_SETTINGS_SECTION::registerSection(array(
-			'name'		=> 'wp_lib_dash_group',
-			'title'		=> 'Dashboard',
-			'callback'	=>
+			'name'      => 'wp_lib_dash_group',
+			'title'     => 'Dashboard',
+			'callback'  =>
 				function(){
 					echo '<p>These settings modify how the ' . wp_lib_hyperlink(wp_lib_format_dash_url(), 'Dashboard') . ' behaves</a></p>';
 				},
-			'settings'	=> array(
+			'settings'  => array(
 				array(
-					'name'			=> 'wp_lib_barcode_config',
-					'sanitize'		=> function($raw){
+					'name'          => 'wp_lib_barcode_config',
+					'sanitize'      => function($raw){
 						// Sanitizes triggering barcode length
 						$raw[1] = wp_lib_sanitize_number($raw[1]);
 						
@@ -939,19 +939,19 @@ class WP_LIBRARIAN {
 							(($raw[1] > 30) ? 30 : ($raw[1] < 1) ? 1 : $raw[1]) // Rounds barcode length to between 1 and 30
 						);
 					},
-					'fields'		=> array(
+					'fields'        => array(
 						array(
-							'name'			=> 'Barcode Auto-fetch',
-							'field_type'	=> 'checkboxInput',
-							'args'			=> array(
-								'alt'			=> 'If to automatically lookup an item when the barcode reaches a given length'
+							'name'          => 'Barcode Auto-fetch',
+							'field_type'    => 'checkboxInput',
+							'args'          => array(
+								'alt'           => 'If to automatically lookup an item when the barcode reaches a given length'
 							)
 						),
 						array(
-							'name'			=> 'Auto-fetch Length',
-							'field_type'	=> 'textInput',
-							'args'			=> array(
-								'alt'			=> 'Length at which to automatically look up an item\'s barcode'
+							'name'          => 'Auto-fetch Length',
+							'field_type'    => 'textInput',
+							'args'          => array(
+								'alt'           => 'Length at which to automatically look up an item\'s barcode'
 							)
 						),
 					)
@@ -973,8 +973,8 @@ class WP_LIBRARIAN {
 	
 	/**
 	 * Registers and potentially enqueues scripts and styles used on the back end
-	 * @param string $hook	The URL prefix of the current admin page
-	 * @see					http://codex.wordpress.org/Plugin_API/Action_Reference/admin_enqueue_scripts
+	 * @param string $hook  The URL prefix of the current admin page
+	 * @see                 http://codex.wordpress.org/Plugin_API/Action_Reference/admin_enqueue_scripts
 	 */
 	public function registerAdminScripts($hook) {
 		// Registers core JavaScript file for WP-Librarian, a collection of various essential functions
@@ -991,13 +991,13 @@ class WP_LIBRARIAN {
 
 		// Sends array of useful variables to client-side (JavaScript)
 		wp_localize_script('wp_lib_core', 'wp_lib_vars', apply_filters('wp_lib_script_vars', array(
-				'siteUrl' 		=> site_url(),
-				'adminUrl'		=> admin_url(),
-				'pluginsUrl'	=> $this->plugin_url,
-				'dashUrl'		=> wp_lib_format_dash_url(),
-				'siteName'		=> get_bloginfo('name'),
-				'getParams'		=> $_GET,
-				'debugMode'		=> WP_LIB_DEBUG_MODE
+				'siteUrl'       => site_url(),
+				'adminUrl'      => admin_url(),
+				'pluginsUrl'    => $this->plugin_url,
+				'dashUrl'       => wp_lib_format_dash_url(),
+				'siteName'      => get_bloginfo('name'),
+				'getParams'     => $_GET,
+				'debugMode'     => WP_LIB_DEBUG_MODE
 		)));
 		
 		if ($hook == 'post-new.php' || $hook == 'post.php') {
@@ -1042,7 +1042,7 @@ class WP_LIBRARIAN {
 	public function registerAdminPages() {
 		if (wp_lib_is_library_admin()) {
 			// Adds settings page to Library submenu of wp-admin menu
-			$hook = add_submenu_page('edit.php?post_type=wp_lib_items', 'WP Librarian Settings', 'Settings', 'wp_lib_change_settings', 'wp-lib-settings', function(){WP_LIBRARIAN::loadAdminTemplate('settings');});
+			$hook = add_submenu_page('edit.php?post_type=wp_lib_items', 'WP Librarian Settings', 'Settings', 'wp_lib_change_settings', 'wp-lib-settings', function(){self::loadAdminTemplate('settings');});
 			
 			// Registers hook to flush permalinks on successful settings update
 			add_action('load-' . $hook, function() {
@@ -1062,7 +1062,7 @@ class WP_LIBRARIAN {
 
 		// Registers Library Dashboard and saves handle to variable
 		if (wp_lib_is_librarian()) {
-			add_submenu_page('edit.php?post_type=wp_lib_items', 'Library Dashboard', 'Dashboard', 'edit_wp_lib_items_caps', 'dashboard', function(){WP_LIBRARIAN::loadAdminTemplate('dashboard');});
+			add_submenu_page('edit.php?post_type=wp_lib_items', 'Library Dashboard', 'Dashboard', 'edit_wp_lib_items_caps', 'dashboard', function(){self::loadAdminTemplate('dashboard');});
 		}
 	}
 	
@@ -1100,16 +1100,16 @@ class WP_LIBRARIAN {
 	 */
 	public function generateRewriteRules($wp_rewrite) {
 		// Fetches single/archive slugs
-		$slugs		= get_option('wp_lib_slugs', array('wp-librarian','item','authors','type'));
-		$archive	= trailingslashit($slugs[0]);
-		$single		= $archive . trailingslashit($slugs[1]);
+		$slugs      = get_option('wp_lib_slugs', array('wp-librarian','item','authors','type'));
+		$archive    = trailingslashit($slugs[0]);
+		$single     = $archive . trailingslashit($slugs[1]);
 		
-		$new_rules	= array();
+		$new_rules  = array();
 		
-		$new_rules[$archive.'?$']								= 'index.php?post_type=wp_lib_items';
-		$new_rules[$archive.'page/?([0-9]{1,})/?$']				= 'index.php?post_type=wp_lib_items&paged=' . $wp_rewrite->preg_index(1);
-		$new_rules[$archive.'(feed|rdf|rss|rss2|atom)/?$']		= 'index.php?post_type=wp_lib_items&feed=' . $wp_rewrite->preg_index(1);
-		$new_rules[$archive.'feed/(feed|rdf|rss|rss2|atom)/?$']	= 'index.php?post_type=wp_lib_items&feed=' . $wp_rewrite->preg_index(1);
+		$new_rules[$archive.'?$']                               = 'index.php?post_type=wp_lib_items';
+		$new_rules[$archive.'page/?([0-9]{1,})/?$']             = 'index.php?post_type=wp_lib_items&paged=' . $wp_rewrite->preg_index(1);
+		$new_rules[$archive.'(feed|rdf|rss|rss2|atom)/?$']      = 'index.php?post_type=wp_lib_items&feed=' . $wp_rewrite->preg_index(1);
+		$new_rules[$archive.'feed/(feed|rdf|rss|rss2|atom)/?$'] = 'index.php?post_type=wp_lib_items&feed=' . $wp_rewrite->preg_index(1);
 		
 		$wp_rewrite->rules = $new_rules + $wp_rewrite->rules;
 		
@@ -1128,14 +1128,14 @@ class WP_LIBRARIAN {
 	
 	/**
 	 * Returns the current update channel, version, build and nickname of WP-Librarian
-	 * @return	array	Current plugin version
+	 * @return  array   Current plugin version
 	 */
 	public function getPluginVersion() {
 		return array(
-			'channel'	=> 'Alpha',
-			'version'	=> '0.2',
+			'channel'   => 'Alpha',
+			'version'   => '0.2',
 			'subversion'=> '008',
-			'nickname'	=> 'Wolf Tail'
+			'nickname'  => 'Wolf Tail'
 		);
 	}
 	
@@ -1145,17 +1145,17 @@ class WP_LIBRARIAN {
 	 */
 	public function getUserRoles() {
 		return array(
-			0	=> '',
-			1	=> '',
-			5	=> 'Librarian',
-			10	=> 'Administrator'
+			0   => '',
+			1   => '',
+			5   => 'Librarian',
+			10  => 'Administrator'
 		);
 	}
 	
 	/**
 	 * Given the name of a CSS file, returns its full URL
-	 * @param	string	$name	File name e.g. 'front-end-core'
-	 * @return	string			Full file URL e.g. '.../styles/front-end-core.css'
+	 * @param   string  $name   File name e.g. 'front-end-core'
+	 * @return  string          Full file URL e.g. '.../styles/front-end-core.css'
 	 */
 	public function getStyleUrl($name) {
 		// Uses minified assets in production, full assets for debugging
@@ -1166,8 +1166,8 @@ class WP_LIBRARIAN {
 	
 	/**
 	 * Given the name of a JS file, returns its full URL
-	 * @param	string	$name	File name e.g. 'admin-dashboard'
-	 * @return	string			Full file URL e.g. '.../scripts/admin.js'
+	 * @param   string  $name   File name e.g. 'admin-dashboard'
+	 * @return  string          Full file URL e.g. '.../scripts/admin.js'
 	 */
 	public function getScriptUrl($name) {
 		// Uses minified assets in production, full assets for debugging
@@ -1178,8 +1178,8 @@ class WP_LIBRARIAN {
 	
 	/**
 	 * Given the name of a template file, returns full path to template
-	 * @param	string	$name	File name, e.g. 'archive-wp_lib_items'
-	 * @return	string			Full file path e.g. '.../templates/archive-wp_lib_items.php'
+	 * @param   string  $name   File name, e.g. 'archive-wp_lib_items'
+	 * @return  string          Full file path e.g. '.../templates/archive-wp_lib_items.php'
 	 */
 	public function getTemplateDir($name) {
 		return $this->plugin_path . '/templates/' . $name . '.php';
@@ -1187,8 +1187,8 @@ class WP_LIBRARIAN {
 	
 	/*
 	 * If given ID belongs to a valid library object, returns formatted object type
-	 * @param	int					$post_id	Post ID of library object (item/member/etc.)
-	 * @return	string|WP_LIB_ERROR				Formatted object type or instance of error
+	 * @param   int                 $post_id    Post ID of library object (item/member/etc.)
+	 * @return  string|WP_LIB_ERROR             Formatted object type or instance of error
 	 */
 	public function getObjectType($post_id) {
 		// Returns Library object type
@@ -1218,7 +1218,7 @@ class WP_LIBRARIAN {
 	
 	/**
 	 * Replaces 'Post title' prompt text with custom post type specific text
-	 * @return string	Prompt text relevant to the current post type
+	 * @return string   Prompt text relevant to the current post type
 	 */
 	public function replaceNewPostPromptText() {
 		switch (get_current_screen()->post_type) {
@@ -1244,8 +1244,8 @@ class WP_LIBRARIAN {
 	
 	/**
 	 * Replaces item and member post updated messages with custom messages
-	 * @param	array	$messages	An array of post types containing an array their post updated messages
-	 * @return	array				The message array originally passed in with modifications made
+	 * @param   array   $messages   An array of post types containing an array their post updated messages
+	 * @return  array               The message array originally passed in with modifications made
 	 */
 	public function replacePostUpdatedMessages($messages) {
 		// Fetches post and post type
@@ -1256,9 +1256,9 @@ class WP_LIBRARIAN {
 		switch($post_type) {
 			case 'wp_lib_items':
 				// Creates hyperlink to view or preview item
-				$permalink		= get_permalink($post->ID);
-				$view_link		= ' <a href="' . esc_url($permalink) . '">' . 'View Item' . '</a>';
-				$preview_link	= ' <a target="_blank" href="' . esc_url(add_query_arg('preview', 'true', $permalink)) . '">' . 'Preview Item' . '</a>';
+				$permalink      = get_permalink($post->ID);
+				$view_link      = ' <a href="' . esc_url($permalink) . '">' . 'View Item' . '</a>';
+				$preview_link   = ' <a target="_blank" href="' . esc_url(add_query_arg('preview', 'true', $permalink)) . '">' . 'Preview Item' . '</a>';
 				$messages['wp_lib_items'] = array(
 					1 => 'Item Updated.' . $view_link,
 					6 => 'Item Published.' . $view_link,
@@ -1288,12 +1288,12 @@ class WP_LIBRARIAN {
 	
 	/**
 	 * Replaces plugin's taxonomy updated messages with custom messages
-	 * @param	array	$messages	Array of taxonomies, each containing an array of tax updated messages
-	 * @return	array				Given array with modifications made to plugin's taxes
+	 * @param   array   $messages   Array of taxonomies, each containing an array of tax updated messages
+	 * @return  array               Given array with modifications made to plugin's taxes
 	 */
 	public function replaceTaxUpdatedMessages($messages) {
 		// Customises messages based on current taxonomy
-		switch( $_GET['taxonomy'] ) {
+		switch($_GET['taxonomy']) {
 			case 'wp_lib_author':
 				$messages['_item'] = array(
 					1 => 'Author Created',
@@ -1325,8 +1325,8 @@ class WP_LIBRARIAN {
 	public function locatePostTemplate($template) {
 		if (get_post_type() === 'wp_lib_items') {
 			// Name of archive/single post templates
-			$archive_name	= 'archive-wp_lib_items';
-			$single_name	= 'single-wp_lib_items';
+			$archive_name   = 'archive-wp_lib_items';
+			$single_name    = 'single-wp_lib_items';
 			
 			// Loads template hook class
 			$this->loadClass('template-hooks');
@@ -1355,8 +1355,8 @@ class WP_LIBRARIAN {
 	
 	/**
 	 * Checks a post before it is deleted to ensure, if it a library post, its deletion does not damage the library's integrity
-	 * @param int $post_id	The post ID of the post about to be deleted
-	 * @todo				Create deletion class to handle authorised deletion buffering etc.
+	 * @param int $post_id  The post ID of the post about to be deleted
+	 * @todo                Create deletion class to handle authorised deletion buffering etc.
 	 */
 	public function checkPostPreTrash($post_id) {
 		// If object doesn't belong to the Library, is an autosave or integrity checking is turned off, pre-deletion checking is skipped
@@ -1390,7 +1390,7 @@ class WP_LIBRARIAN {
 			wp_redirect(wp_lib_format_dash_url(
 				array(
 					'dash_page' => 'object-deletion',
-					'post_id'	=> $post_id
+					'post_id'   => $post_id
 				)
 			));
 			die();
@@ -1401,22 +1401,22 @@ class WP_LIBRARIAN {
 	 * Hides items marked as 'delisted' from public item archive
 	 * Note that this does not hide them from being viewed via their direct URL
 	 * For greater control of who can see what, use a permissions plugin like Page Security by Contexture
-	 * @param	WP_Query	$query	Current posts query, passed by reference
+	 * @param   WP_Query    $query  Current posts query, passed by reference
 	 */
 	public function hideDelistedItems(WP_Query $query) {
 		if ($query->is_post_type_archive('wp_lib_items') && $query->is_main_query() && !is_admin()) {
 			$query->set('meta_query',
 				array(
-					'relation'		=> 'OR',
+					'relation'      => 'OR',
 					array(
-						'key'		=> 'wp_lib_item_delist',
-						'value'		=> '1',
-						'compare'	=> '!=',
+						'key'       => 'wp_lib_item_delist',
+						'value'     => '1',
+						'compare'   => '!=',
 					),
 					array(
-						'key'		=> 'wp_lib_item_delist',
-						'value'		=> 'bug #23268', // Allows WP-Librarian to run on pre-3.9 WP installs (bug was fixed for 3.9, text is arbitrary)
-						'compare'	=> 'NOT EXISTS',
+						'key'       => 'wp_lib_item_delist',
+						'value'     => 'bug #23268', // Allows WP-Librarian to run on pre-3.9 WP installs (bug was fixed for 3.9, text is arbitrary)
+						'compare'   => 'NOT EXISTS',
 					)
 				)
 			);
