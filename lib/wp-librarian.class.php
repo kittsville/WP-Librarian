@@ -71,8 +71,8 @@ class WP_LIBRARIAN {
 		add_action('before_delete_post',                array($this, 'checkPostPreTrash'));
 		
 		// User permissions
-		add_action('show_user_profile',                 function(){self::loadAdminTemplate('edit-user');});
-		add_action('edit_user_profile',                 function(){self::loadAdminTemplate('edit-user');});
+		add_action('show_user_profile',                 array($this, 'addProfilePermissionsField'), 10, 1);
+-		add_action('edit_user_profile',                 array($this, 'addProfilePermissionsField'), 10, 1);
 		add_action('personal_options_update',           array($this, 'updateUserPermissions'),      10, 1);
 		add_action('edit_user_profile_update',          array($this, 'updateUserPermissions'),      10, 1);
 		
@@ -126,8 +126,9 @@ class WP_LIBRARIAN {
 	/**
 	 * Given the name of an admin template file, loads
 	 * @param   string  $name   File name, e.g. 'settings'
+	 * @param	array	$params	OPTIONAL Associative array of parameters for the template
 	 */
-	public function loadAdminTemplate($name) {
+	public function loadAdminTemplate($name, Array $params = array()) {
 		require_once($this->plugin_path . '/admin-templates/' . $name . '.php');
 	}
 	
@@ -222,6 +223,29 @@ class WP_LIBRARIAN {
 		$this->flushPermalinks();
 	}
 	
+ 	/**
+	 * Adds Library Role option to user profile page
+	 * @param WP_User $user WP_User object of current user being edited
+	 */
+	public function addProfilePermissionsField($user) {
+		if (!current_user_can('edit_users'))
+			return;
+
+		$roles = WP_LIBRARIAN::getUserRoles();
+
+		// Fetches user's current roles
+		$status = get_user_meta($user->ID, 'wp_lib_role', true);
+
+		// If user has no role, role is 0
+		if (!$status)
+			$status = 1;
+
+		// Adds nonce to section
+		wp_nonce_field('Editing User: ' . $user->ID, 'wp_lib_edit_user_nonce');
+		
+		$this->loadAdminTemplate('edit-user', array($roles, $status));
+	}
+	
 	/**
 	 * Updates user's library role and capabilities
 	 * @param   int         $user_id    ID of user to be updated
@@ -233,8 +257,10 @@ class WP_LIBRARIAN {
 		// If new role wasn't specified, function has been called from user profile and nonce checking/sanitization is needed
 		// Otherwise function has been called from plugin activation hook and new role will be passed directly to the function
 		if (!$new_role) {
+			//wp_lib_var_dump('here');
+			//die('derp');
 			// If user is not allowed to edit user meta or nonce fails, stops
-			if (!current_user_can('edit_users') || !wp_verify_nonce($_POST['wp_lib_profile_nonce'], 'Editing User: ' . $user_id))
+			if (!current_user_can('edit_users') || !wp_verify_nonce($_POST['wp_lib_edit_user_nonce'], 'Editing User: ' . $user_id))
 				return;
 			
 			$new_role = (int) isset($_POST['wp_lib_role']) ? $_POST['wp_lib_role'] :  0;
@@ -1097,7 +1123,6 @@ class WP_LIBRARIAN {
 	 */
 	public function getUserRoles() {
 		return array(
-			0   => '',
 			1   => '',
 			5   => 'Librarian',
 			10  => 'Administrator'
