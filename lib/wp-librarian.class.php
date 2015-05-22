@@ -257,8 +257,6 @@ class WP_LIBRARIAN {
 		// If new role wasn't specified, function has been called from user profile and nonce checking/sanitization is needed
 		// Otherwise function has been called from plugin activation hook and new role will be passed directly to the function
 		if (!$new_role) {
-			//wp_lib_var_dump('here');
-			//die('derp');
 			// If user is not allowed to edit user meta or nonce fails, stops
 			if (!current_user_can('edit_users') || !wp_verify_nonce($_POST['wp_lib_edit_user_nonce'], 'Editing User: ' . $user_id))
 				return;
