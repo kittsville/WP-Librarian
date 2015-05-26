@@ -1335,7 +1335,7 @@ class WP_LIBRARIAN {
 	 */
 	public function checkPostPreTrash($post_id) {
 		// If object doesn't belong to the Library, is an autosave or integrity checking is turned off, pre-deletion checking is skipped
-		if (!in_array($GLOBALS['post_type'], ['wp_lib_items', 'wp_lib_members', 'wp_lib_loans', 'wp_lib_fines']) || wp_is_post_autosave($post_id) || !WP_LIB_MAINTAIN_INTEGRITY)
+		if (!in_array($GLOBALS['post_type'], ['wp_lib_items', 'wp_lib_members', 'wp_lib_loans', 'wp_lib_fines']) || wp_is_post_autosave($post_id) || !WP_LIB_MAINTAIN_INTEGRITY || apply_filters('wp_lib_allow_deletion', false))
 			return;
 		
 		// If object is being deleted via an AJAX request
