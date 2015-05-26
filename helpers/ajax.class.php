@@ -228,7 +228,7 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 	/**
 	 * Performs Dashboard based on requested action
 	 */
-	function __construct($wp_librarian) {
+	function __construct(WP_LIBRARIAN $wp_librarian) {
 		parent::__construct($wp_librarian);
 		// If no action has been specified, call error
 		if (!isset($_POST['dash_action']))
@@ -720,7 +720,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	/**
 	 * Calls relevant prep function based on requested Dash page
 	 */
-	function __construct($wp_librarian) {
+	function __construct(WP_LIBRARIAN $wp_librarian) {
 		parent::__construct($wp_librarian);
 	
 		// If no dash page has been specified, load Dashboard
@@ -2316,7 +2316,7 @@ class WP_LIB_AJAX_API extends WP_LIB_AJAX {
 	/**
 	 * Performs API request and returns relevant information to client
 	 */
-	function __construct($wp_librarian) {
+	function __construct(WP_LIBRARIAN $wp_librarian) {
 		parent::__construct($wp_librarian);
 		
 		// If no request has been given, return error
