@@ -250,8 +250,18 @@ function wp_lib_get_script( scriptURL ) {
 	    dataType	: 'script',
 		cache		: !wp_lib_vars.debugMode, // Only caches JS if debugging mode isn't on
 		url			: scriptURL
-	}).fail( function() {
+	}).fail(function(jqxhr, settings, exception) {
 		wp_lib_local_error( "Failed to load JavaScript needed for this page" );
+		console.log('Script URL: ' + scriptURL);
+		console.log(exception);
+	}).success(function() {
+		// Gets module name from script URL
+		var moduleName = scriptURL.match(/.*\/(.+?)\./)[1];
+		
+		// Initialises module if script contained a module named after the script
+		if (window[moduleName] instanceof Object && window[moduleName].init instanceof Object) {
+			window[moduleName].init();
+		}
 	});
 }
 
