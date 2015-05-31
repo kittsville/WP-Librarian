@@ -14,33 +14,33 @@ wp_nonce_field( "Updating member {$member->ID} meta", 'wp_lib_member_meta_nonce'
 // Array of all item meta, consisting of each section, then each section's fields and their properties
 $meta_formatting = array(
 	array(
-		'title'	=> 'Contact Information',
+		'title' => 'Contact Information',
 		'fields'=> array(
 			array(
-				'title'		=> 'Email Address',
-				'name'		=> 'wp_lib_member_email',
-				'type'		=> 'email'
+				'title'     => 'Email Address',
+				'name'      => 'wp_lib_member_email',
+				'type'      => 'email'
 			),
 			array(
-				'title'		=> 'Phone Number',
-				'name'		=> 'wp_lib_member_phone',
-				'type'		=> 'tel'
+				'title'     => 'Phone Number',
+				'name'      => 'wp_lib_member_phone',
+				'type'      => 'tel'
 			),
 			array(
-				'title'		=> 'Mobile Number',
-				'name'		=> 'wp_lib_member_mobile',
-				'type'		=> 'tel'
+				'title'     => 'Mobile Number',
+				'name'      => 'wp_lib_member_mobile',
+				'type'      => 'tel'
 			)
 		)
 	),
 	array(
-		'title'	=> 'Settings',
+		'title' => 'Settings',
 		'fields'=> array(
 			array(
-				'title'		=> 'Archive member',
-				'name'		=> 'wp_lib_member_archive',
-				'type'		=> 'checkbox',
-				'altText'	=> 'Removes member from active participation in the library'
+				'title'     => 'Archive member',
+				'name'      => 'wp_lib_member_archive',
+				'type'      => 'checkbox',
+				'altText'   => 'Removes member from active participation in the library'
 			)
 		)
 	)

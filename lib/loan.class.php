@@ -9,9 +9,9 @@ defined('ABSPATH') OR die('No');
 class WP_LIB_LOAN extends WP_LIB_OBJECT {
 	/**
 	 * Creates new instance of a loan from its post ID
-	 * @param	WP_LIBRARIAN				$wp_librarian	Single instance of core plugin class
-	 * @param	int							$loan_id		Post ID of a loan
-	 * @return	WP_LIB_LOAN||WP_LIB_ERROR					Instance of class or, if error occurred, error class
+	 * @param   WP_LIBRARIAN                $wp_librarian   Single instance of core plugin class
+	 * @param   int                         $loan_id        Post ID of a loan
+	 * @return  WP_LIB_LOAN||WP_LIB_ERROR                   Instance of class or, if error occurred, error class
 	 */
 	public static function create(WP_LIBRARIAN $wp_librarian, $loan_id) {
 		return parent::initObject($wp_librarian, $loan_id, __class__, 'wp_lib_loans', 'Loan');
@@ -19,8 +19,8 @@ class WP_LIB_LOAN extends WP_LIB_OBJECT {
 	
 	/**
 	 * Marks item as having left the library
-	 * @param	int|bool			$date		OPTIONAL Date (as UNIX timestamp) to give item to member on, deafaults to WP's current_time()
-	 * @return	bool|WP_LIB_ERROR				Success/failure of giving item to member
+	 * @param   int|bool            $date       OPTIONAL Date (as UNIX timestamp) to give item to member on, deafaults to WP's current_time()
+	 * @return  bool|WP_LIB_ERROR               Success/failure of giving item to member
 	 */
 	public function giveItem($date = false) {
 		// Sets date to current time if not set
@@ -49,15 +49,15 @@ class WP_LIB_LOAN extends WP_LIB_OBJECT {
 		// Sets date item was loaned
 		wp_lib_add_meta($this->ID,
 			array(
-				'wp_lib_give_date'	=> $date,						// Date/time item is passed to member
-				'wp_lib_give_user'	=> get_current_user_id()		// Librarian who marks item as being given
+				'wp_lib_give_date'  => $date,                       // Date/time item is passed to member
+				'wp_lib_give_user'  => get_current_user_id()        // Librarian who marks item as being given
 			)
 		);
 		
 		wp_lib_add_meta($meta['wp_lib_item'][0],
 			array(
-				'wp_lib_member'		=> $meta['wp_lib_member'][0],	// Assigns item to member to signify the physical item is in their possession
-				'wp_lib_loan'		=> $this->ID					// Adds loan ID to item meta as caching, until item returns to Library possession
+				'wp_lib_member'     => $meta['wp_lib_member'][0],   // Assigns item to member to signify the physical item is in their possession
+				'wp_lib_loan'       => $this->ID                    // Adds loan ID to item meta as caching, until item returns to Library possession
 			)
 		);
 
@@ -66,8 +66,8 @@ class WP_LIB_LOAN extends WP_LIB_OBJECT {
 	
 	/**
 	 * Checks if given item would be late at given time
-	 * @param	int|bool			$date	OPTIONAL Date to base item lateness calculations on, uses current time by default
-	 * @return	bool|WP_LIB_ERROR			If item is/would be late on given date
+	 * @param   int|bool            $date   OPTIONAL Date to base item lateness calculations on, uses current time by default
+	 * @return  bool|WP_LIB_ERROR           If item is/would be late on given date
 	 */
 	public function isLate($date = false) {
 		// Sets date to current time if unspecified
@@ -90,25 +90,25 @@ class WP_LIB_LOAN extends WP_LIB_OBJECT {
 	/**
 	 * Calculates days until an item needs to be returned
 	 * It's the damn fine cherry pie function! amon.jpg
-	 * @param	int					$date	Date to base days left calculation. Use WP's current_time() to base calculation on current date
-	 * @return	int|WP_LIB_ERROR			Days until item needs to be returned, value is negative if item is late
+	 * @param   int                 $date   Date to base days left calculation. Use WP's current_time() to base calculation on current date
+	 * @return  int|WP_LIB_ERROR            Days until item needs to be returned, value is negative if item is late
 	 */
 	public function cherryPie($date) {
 		// If date hasn't been given, uses current time
 		wp_lib_prep_date($date);
 		
 		// Fetches item due date from loan meta
-		$due_date	= get_post_meta($this->ID, 'wp_lib_end_date', true);
+		$due_date   = get_post_meta($this->ID, 'wp_lib_end_date', true);
 		
 		// Converts strings to DateTime objects
-		$due_date	= DateTime::createFromFormat('U', $due_date);
-		$date		= DateTime::createFromFormat('U', $date);
+		$due_date   = DateTime::createFromFormat('U', $due_date);
+		$date       = DateTime::createFromFormat('U', $date);
 		
 		// Difference between loan's due date and given or current date is calculated
-		$diff		= $date->diff($due_date, false);
+		$diff       = $date->diff($due_date, false);
 		
-		$sign		= $diff->format('%R');
-		$days		= $diff->format('%a');
+		$sign       = $diff->format('%R');
+		$days       = $diff->format('%a');
 		
 		// If the due date is the date given, return 0
 		if ($days === 0)
@@ -127,10 +127,10 @@ class WP_LIB_LOAN extends WP_LIB_OBJECT {
 	/**
 	 * Creates formatted string specifying the days until an item is due back
 	 * e.g. 'this item is \d day\p late' --> 'this item is 4 days late'
-	 * @param	int|bool		$date		OPTIONAL Date to generate item's lateness from
-	 * @param	array			$formatting	Array containing formatting details
-	 * @return	str|WP_LIB_ERROR			Item's lateness in readable string e.g. this item is 4 days late
-	 * @todo								Consider using plural() and generally assess for optimisation
+	 * @param   int|bool        $date       OPTIONAL Date to generate item's lateness from
+	 * @param   array           $formatting Array containing formatting details
+	 * @return  str|WP_LIB_ERROR            Item's lateness in readable string e.g. this item is 4 days late
+	 * @todo                                Consider using plural() and generally assess for optimisation
 	 */
 	public function formatDueDate($date = false, $formatting) {
 		// Use cherry pie to get due/late
@@ -149,7 +149,7 @@ class WP_LIB_LOAN extends WP_LIB_OBJECT {
 		else
 			return wp_lib_error(212);
 		
-		// If $due value isn't plural, '\p' is removed		
+		// If $due value isn't plural, '\p' is removed      
 		if ($due == 1 || $due == -1)
 			$text = str_replace('\p', '', $text);
 		// If $due value is plural, '\p' is replaced with 's' 
@@ -162,8 +162,8 @@ class WP_LIB_LOAN extends WP_LIB_OBJECT {
 	
 	/**
 	 * Checks if item can be renewed
-	 * @param	bool				$display_errors	Whether to generate and return an error on failure
-	 * @return	bool|WP_LIB_ERROR					If item is eligible for renewal
+	 * @param   bool                $display_errors Whether to generate and return an error on failure
+	 * @return  bool|WP_LIB_ERROR                   If item is eligible for renewal
 	 */
 	public function isRenewable($display_errors = false) {
 		$meta = get_post_meta($this->ID);
@@ -189,8 +189,8 @@ class WP_LIB_LOAN extends WP_LIB_OBJECT {
 	
 	/**
 	 * Renews an item currently on loan, giving the member more time before they have to return it
-	 * @param	int|bool			$date	OPTIONAL Date to extend loan's due date to, defaults to WP's current_time()
-	 * @return	bool|WP_LIB_ERROR			Success/failure of function
+	 * @param   int|bool            $date   OPTIONAL Date to extend loan's due date to, defaults to WP's current_time()
+	 * @return  bool|WP_LIB_ERROR           Success/failure of function
 	 */
 	public function renewItem($date = false) {
 		wp_lib_prep_date($date);
@@ -237,9 +237,9 @@ class WP_LIB_LOAN extends WP_LIB_OBJECT {
 	
 	/**
 	 * Returns an item that was on loan to the library, charging a fine if appropriate
-	 * @param	int|bool				$date			OPTIONAL Date (as UNIX timestamp) to return item, defaults to WP's current_time()
-	 * @param	bool					$charge_fine	If to fine member if the item is late
-	 * @return	int|bool|WP_LIB_ERROR					Success/failure of function, or fine's post ID if fine was charged
+	 * @param   int|bool                $date           OPTIONAL Date (as UNIX timestamp) to return item, defaults to WP's current_time()
+	 * @param   bool                    $charge_fine    If to fine member if the item is late
+	 * @return  int|bool|WP_LIB_ERROR                   Success/failure of function, or fine's post ID if fine was charged
 	 */
 	public function returnItem($date = false, $charge_fine = null) {
 		// Sets date to current date, if unspecified
@@ -274,8 +274,8 @@ class WP_LIB_LOAN extends WP_LIB_OBJECT {
 				case true:
 					// Creates the fine, a custom post type that holds useful meta about the fine
 					$fine_id = wp_insert_post(array(
-						'post_status'		=> 'publish',
-						'post_type'			=> 'wp_lib_fines'
+						'post_status'       => 'publish',
+						'post_type'         => 'wp_lib_fines'
 					));
 					
 					// If fine creation failed, call error
@@ -298,11 +298,11 @@ class WP_LIB_LOAN extends WP_LIB_OBJECT {
 					// Saves information relating to fine to its post meta
 					wp_lib_update_meta($fine_id,
 						array(
-							'wp_lib_item'	=> $meta['wp_lib_item'][0],
-							'wp_lib_loan'	=> $this->ID,
-							'wp_lib_member'	=> $member_id,
-							'wp_lib_status'	=> 1,
-							'wp_lib_owed'	=> $fine_amount
+							'wp_lib_item'   => $meta['wp_lib_item'][0],
+							'wp_lib_loan'   => $this->ID,
+							'wp_lib_member' => $member_id,
+							'wp_lib_status' => 1,
+							'wp_lib_owed'   => $fine_amount
 						)
 					);
 					

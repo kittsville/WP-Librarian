@@ -23,8 +23,8 @@ $media_types = array();
 // Creates meta formatting array of media types
 foreach ( $media_type_objects as $type ) {
 	$media_types[] = array(
-		'value'	=> $type->slug,
-		'html'	=> $type->name
+		'value' => $type->slug,
+		'html'  => $type->name
 	);
 }
 
@@ -34,94 +34,94 @@ $donors = wp_lib_prep_member_options( false );
 // Array of all item meta, consisting of each section, then each section's fields and their properties
 $meta_formatting = array(
 	array(
-		'title'	=> 'Basic Details',
-		'class'	=> 'meta-basic-details-section',
+		'title' => 'Basic Details',
+		'class' => 'meta-basic-details-section',
 		'fields'=> array(
 			array(
-				'title'		=> 'Media Type',
-				'id'		=> 'meta-media-type-selector',
-				'name'		=> 'wp_lib_media_type',
-				'type'		=> 'select',
-				'options'	=> $media_types
+				'title'     => 'Media Type',
+				'id'        => 'meta-media-type-selector',
+				'name'      => 'wp_lib_media_type',
+				'type'      => 'select',
+				'options'   => $media_types
 			),
 			array(
-				'title'		=> 'Available',
-				'name'		=> 'wp_lib_item_loanable',
-				'type'		=> 'checkbox',
-				'altText'	=> 'Check if item can be loaned',
-				'default'	=> 'checked'
+				'title'     => 'Available',
+				'name'      => 'wp_lib_item_loanable',
+				'type'      => 'checkbox',
+				'altText'   => 'Check if item can be loaned',
+				'default'   => 'checked'
 			),
 			array(
-				'title'		=> 'Hide from listing',
-				'name'		=> 'wp_lib_item_delist',
-				'type'		=> 'checkbox',
-				'altText'	=> 'Check to hide from public list of items'
+				'title'     => 'Hide from listing',
+				'name'      => 'wp_lib_item_delist',
+				'type'      => 'checkbox',
+				'altText'   => 'Check to hide from public list of items'
 			),
 			array(
-				'title'		=> 'Condition',
-				'name'		=> 'wp_lib_item_condition',
-				'type'		=> 'select',
-				'options'	=> array(
+				'title'     => 'Condition',
+				'name'      => 'wp_lib_item_condition',
+				'type'      => 'select',
+				'options'   => array(
 					array(
 						'value' => '4',
-						'html'	=> wp_lib_format_item_condition( 4 )
+						'html'  => wp_lib_format_item_condition( 4 )
 					),
 					array(
 						'value' => '3',
-						'html'	=> wp_lib_format_item_condition( 3 )
+						'html'  => wp_lib_format_item_condition( 3 )
 					),
 					array(
 						'value' => '2',
-						'html'	=> wp_lib_format_item_condition( 2 )
+						'html'  => wp_lib_format_item_condition( 2 )
 					),
 					array(
 						'value' => '1',
-						'html'	=> wp_lib_format_item_condition( 1 )
+						'html'  => wp_lib_format_item_condition( 1 )
 					)
 				)
 			),
 			array(
-				'title'		=> 'Donor',
-				'id'		=> 'meta-donor-selector',
-				'altText'	=> 'Select member that donated the item',
-				'name'		=> 'wp_lib_item_donor',
-				'type'		=> 'select',
-				'options'	=> $donors
+				'title'     => 'Donor',
+				'id'        => 'meta-donor-selector',
+				'altText'   => 'Select member that donated the item',
+				'name'      => 'wp_lib_item_donor',
+				'type'      => 'select',
+				'options'   => $donors
 			),
 			array(
-				'title'		=> 'Display Donor Publicly',
-				'altText'	=> 'Whether or not to display the donor\'s name publicly',
-				'name'		=> 'wp_lib_display_donor',
-				'type'		=> 'checkbox'
+				'title'     => 'Display Donor Publicly',
+				'altText'   => 'Whether or not to display the donor\'s name publicly',
+				'name'      => 'wp_lib_display_donor',
+				'type'      => 'checkbox'
 			),
 			array(
-				'title'		=> 'Barcode',
-				'name'		=> 'wp_lib_item_barcode',
-				'type'		=> 'text'
+				'title'     => 'Barcode',
+				'name'      => 'wp_lib_item_barcode',
+				'type'      => 'text'
 			)
 		)
 	),
 	array(
-		'title'	=> 'Book Details',
-		'value'	=> 'books',
+		'title' => 'Book Details',
+		'value' => 'books',
 		'fields'=> array(
 			array(
-				'title'		=> 'ISBN',
-				'name'		=> 'wp_lib_item_isbn',
-				'type'		=> 'text',
+				'title'     => 'ISBN',
+				'name'      => 'wp_lib_item_isbn',
+				'type'      => 'text',
 			),
 			array(
-				'title'		=> 'Cover Type',
-				'name'		=> 'wp_lib_item_cover_type',
-				'type'		=> 'select',
-				'options'	=> array(
+				'title'     => 'Cover Type',
+				'name'      => 'wp_lib_item_cover_type',
+				'type'      => 'select',
+				'options'   => array(
 					array(
-						'value'	=> '2',
-						'html'	=> 'HardCover'
+						'value' => '2',
+						'html'  => 'HardCover'
 					),
 					array(
-						'value'	=> '3',
-						'html'	=> 'Softcover'
+						'value' => '3',
+						'html'  => 'Softcover'
 					)
 				),
 			),

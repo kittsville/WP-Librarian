@@ -31,7 +31,7 @@ class WP_LIB_DYNATABLE {
 	
 	/**
 	 * Generates WP_Query instance
-	 * @param Array|String	$args		WP_Query Arguments
+	 * @param Array|String  $args       WP_Query Arguments
 	 */
 	function __construct( $args ) {
 		// Checks class has been called from a valid context
@@ -44,10 +44,10 @@ class WP_LIB_DYNATABLE {
 	
 	/**
 	 * Generates a Dynatable with the currently set columns
-	 * @param	Array	$table_columns	Columns to be created for each row
-	 * @param	Array	$properties		OPTIONAL Additional properties to add to Dynatable
-	 * @param	String	$no_posts		OPTIONAL Text to display if no posts were found
-	 * @return	Array					Dynatable in Library Dashboard format
+	 * @param   Array   $table_columns  Columns to be created for each row
+	 * @param   Array   $properties     OPTIONAL Additional properties to add to Dynatable
+	 * @param   String  $no_posts       OPTIONAL Text to display if no posts were found
+	 * @return  Array                   Dynatable in Library Dashboard format
 	 */
 	public function generateTable( $table_columns, $properties = array(), $no_posts = 'No posts found' ) {
 		if ( $this->WP_Query->have_posts() ) {
@@ -76,15 +76,15 @@ class WP_LIB_DYNATABLE {
 			return array_merge(
 				$properties,
 				array(
-					'type'		=> 'dtable',
-					'headers'	=> $headers,
-					'data'		=> $table_rows
+					'type'      => 'dtable',
+					'headers'   => $headers,
+					'data'      => $table_rows
 				)
 			);
 		} else {
 			return array(
-				'type'		=> 'paras',
-				'content'	=> array( $no_posts )
+				'type'      => 'paras',
+				'content'   => array( $no_posts )
 			);
 		}
 	}
@@ -102,21 +102,21 @@ class WP_LIB_DYNATABLE_LOANS extends WP_LIB_DYNATABLE {
 	
 	/**
 	 * Performs query for relevant loans and sets up class properties
-	 * @param	WP_LIB_AJAX_PAGE	$wp_lib_ajax_page	Instance of class for creating Dashboard pages
-	 * @param	string				$key				Loans post meta key (foreign key for item/member)
-	 * @param	string				$id					Loans post meta value (item/member post ID)
+	 * @param   WP_LIB_AJAX_PAGE    $wp_lib_ajax_page   Instance of class for creating Dashboard pages
+	 * @param   string              $key                Loans post meta key (foreign key for item/member)
+	 * @param   string              $id                 Loans post meta value (item/member post ID)
 	 */
 	function __construct(WP_LIB_AJAX_PAGE $wp_lib_ajax_page, $key, $id) {
 		$this->ajax_page = $wp_lib_ajax_page;
 		
 		parent::__construct(array(
-			'post_type' 	=> 'wp_lib_loans',
-			'post_status'	=> 'publish',
-			'meta_query'	=> array(
+			'post_type'     => 'wp_lib_loans',
+			'post_status'   => 'publish',
+			'meta_query'    => array(
 				array(
-					'key'		=> $key,
-					'value'		=> $id,
-					'compare'	=> 'IN'
+					'key'       => $key,
+					'value'     => $id,
+					'compare'   => 'IN'
 				)
 			)
 		));

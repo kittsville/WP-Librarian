@@ -20,9 +20,9 @@ $selected_tab = isset($_GET['tab']) ? $_GET['tab'] : '';
 do_action('wp_lib_settings_page', $selected_tab);
 
 $tabs = apply_filters('wp_lib_settings_tabs', array(
-	''		=> array('wp_lib_library_group',	'General'),
-	'slugs'	=> array('wp_lib_slug_group',		'Slugs'),
-	'dash'	=> array('wp_lib_dash_group',		'Dashboard')
+	''      => array('wp_lib_library_group',    'General'),
+	'slugs' => array('wp_lib_slug_group',       'Slugs'),
+	'dash'  => array('wp_lib_dash_group',       'Dashboard')
 ), $selected_tab);
 
 $settings_tab = isset($tabs[$selected_tab]) ? $tabs[$selected_tab][0] : $tabs[''][0];
@@ -38,8 +38,8 @@ $settings_tab = isset($tabs[$selected_tab]) ? $tabs[$selected_tab][0] : $tabs[''
 	<h2 class="nav-tab-wrapper">
 		<?php
 			foreach ($tabs as $key => $tab) {
-				$href	= '?post_type=wp_lib_items&page=wp-lib-settings';
-				$class	= 'nav-tab';
+				$href   = '?post_type=wp_lib_items&page=wp-lib-settings';
+				$class  = 'nav-tab';
 				
 				if ($key !== '')
 					$href .= '&tab=' . $key;
@@ -51,7 +51,7 @@ $settings_tab = isset($tabs[$selected_tab]) ? $tabs[$selected_tab][0] : $tabs[''
 				echo "<a href='{$href}' class='{$class}'>{$tab[1]}</a>";
 			}
 		?>
-    </h2>
+	</h2>
 
 	<div id="wp-lib-main-content">
 		<form method="POST" action="options.php">

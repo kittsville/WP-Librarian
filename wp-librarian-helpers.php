@@ -11,8 +11,8 @@ defined( 'ABSPATH' ) OR die('No');
 
 /**
  * Generates error based on given error code and, if not an AJAX request, kills thread
- * @param int			$error_id	Error that has occurred
- * @param string|array	$param		OPTIONAL Relevant parameters to error to enhance error message (not optional for certain error messages)
+ * @param int           $error_id   Error that has occurred
+ * @param string|array  $param      OPTIONAL Relevant parameters to error to enhance error message (not optional for certain error messages)
  */
 function wp_lib_error( $error_id, $param = null ) {
 	return new WP_LIB_ERROR( $error_id, $param );
@@ -20,8 +20,8 @@ function wp_lib_error( $error_id, $param = null ) {
 
 /*
  * Determines whether given data is an instance of a library error
- * @param	mixed	$object	Data to be checked
- * @return	bool			Whether given data is a library error
+ * @param   mixed   $object Data to be checked
+ * @return  bool            Whether given data is a library error
  */
 function wp_lib_is_error( $object ) {
 	return ($object instanceof WP_LIB_ERROR);
@@ -32,9 +32,9 @@ function wp_lib_is_error( $object ) {
 /**
 * Checks if user is a librarian (or higher)
 * A librarian can view and modify items, members, loans and fines, where appropriate
-* @link		https://github.com/kittsville/WP-Librarian/wiki/Librarians
-* @param	int|null	$user_id	OPTIONAL ID of user to be checked. Defaults to current user's ID
-* @return	bool					Whether user is a librarian
+* @link     https://github.com/kittsville/WP-Librarian/wiki/Librarians
+* @param    int|null    $user_id    OPTIONAL ID of user to be checked. Defaults to current user's ID
+* @return   bool                    Whether user is a librarian
 */
 function wp_lib_is_librarian( $user_id = null ) {
 	if ($user_id === null and !is_user_logged_in())
@@ -46,9 +46,9 @@ function wp_lib_is_librarian( $user_id = null ) {
 /**
 * Checks if user is a library admin
 * Admins have the permissions of librarians plus they can modify library settings
-* @link		https://github.com/kittsville/WP-Librarian/wiki/Library-Admins
-* @param	int|null	$user_id	OPTIONAL ID of user to be checked. Defaults to current user's ID
-* @return	bool					Whether user is a librarian admin
+* @link     https://github.com/kittsville/WP-Librarian/wiki/Library-Admins
+* @param    int|null    $user_id    OPTIONAL ID of user to be checked. Defaults to current user's ID
+* @return   bool                    Whether user is a librarian admin
 */
 function wp_lib_is_library_admin( $user_id = null ) {
 	if ($user_id === null and !is_user_logged_in())
@@ -154,29 +154,29 @@ function wp_lib_sanitize_donor( $member_id ) {
 
 function wp_lib_prep_manage_item_params( $item_id ) {
 	return array(
-		'dash_page'	=> 'manage-item',
-		'item_id'	=> $item_id
+		'dash_page' => 'manage-item',
+		'item_id'   => $item_id
 	);
 }
 
 function wp_lib_prep_manage_member_params( $member_id ) {
 	return array(
-		'dash_page'	=> 'manage-member',
-		'member_id'	=> $member_id
+		'dash_page' => 'manage-member',
+		'member_id' => $member_id
 	);
 }
 
 function wp_lib_prep_manage_loan_params( $loan_id ) {
 	return array(
-		'dash_page'	=> 'manage-loan',
-		'loan_id'	=> $loan_id
+		'dash_page' => 'manage-loan',
+		'loan_id'   => $loan_id
 	);
 }
 
 function wp_lib_prep_manage_fine_params( $fine_id ) {
 	return array(
-		'dash_page'	=> 'manage-fine',
-		'fine_id'	=> $fine_id
+		'dash_page' => 'manage-fine',
+		'fine_id'   => $fine_id
 	);
 }
 
@@ -207,7 +207,7 @@ function wp_lib_format_dash_url( $params = array() ) {
 	
 	// Adds any additional parameters to the base URL
 	foreach ( $params as $key => $value ) {
-		$url .= '&' . $key . '=' . $value;		
+		$url .= '&' . $key . '=' . $value;      
 	}
 
 	return $url;
@@ -231,9 +231,9 @@ function wp_lib_hyperlink( $link, $text ) {
 // Creates dash URL element given a set of parameters
 function wp_lib_prep_dash_hyperlink( $name, $params ) {
 	return array(
-		'type'	=> 'dash-url',
+		'type'  => 'dash-url',
 		'params'=> $params,
-		'html'	=> $name
+		'html'  => $name
 	);
 }
 
@@ -339,13 +339,13 @@ function wp_lib_format_money( $value, $html_ent = true ) {
 	
 	// Formats $value with currency symbol at preferred position
 	if ( $position ) {
-		return $value . $symbol;						// 0.40EUR
+		return $value . $symbol;                        // 0.40EUR
 	} else {
 		// If currency is negative, display negation symbol before currency symbol
 		if ( $value < 0 )
-			return '-' . $symbol . substr( $value, 1 );	// -£0.40
+			return '-' . $symbol . substr( $value, 1 ); // -£0.40
 		else
-			return $symbol . $value;					// £0.40
+			return $symbol . $value;                    // £0.40
 	}
 }
 
@@ -423,12 +423,12 @@ function wp_lib_test_functions() {
 function wp_lib_format_loan_status( $status ) {
 	// Array of all possible states of the loan
 	$strings = array(
-		0	=> '',
-		1	=> 'On Loan',
-		2	=> 'Returned',
-		3	=> 'Returned Late',
-		4	=> 'Returned Late (with fine)',
-		5	=> 'Scheduled'
+		0   => '',
+		1   => 'On Loan',
+		2   => 'Returned',
+		3   => 'Returned Late',
+		4   => 'Returned Late (with fine)',
+		5   => 'Scheduled'
 	);
 	
 	// If given number refers to a status that doesn't exist, throw error
@@ -444,9 +444,9 @@ function wp_lib_format_loan_status( $status ) {
 function wp_lib_format_fine_status( $status ) {
 	// Array of all possible states of the fine
 	$strings = array(
-		0	=> '',
-		1	=> 'Active',
-		2	=> 'Cancelled'
+		0   => '',
+		1   => 'Active',
+		2   => 'Cancelled'
 	);
 	
 	// If given number refers to a status that doesn't exist, throw error
@@ -506,12 +506,12 @@ function wp_lib_format_item_condition( $number ) {
 /**
  * Given an array of loans, checks if a proposed loan would be viable
  * Use create_loan_index to generate and sort the ordered loan index necessary for the function
- * @param	int		$proposed_start	Proposed start of new loan as a UNIX timestamp
- * @param	int		$proposed_end	Proposed end of new loan as a UNIX timestamp
- * @param	array	$loans			List of existing loans, ordered chronologically. Can't be empty array
- * @param	int		$current		Current position in array being checked by recursive_scheduling_engine()
- * @return	bool					Whether the proposed loan would be viable
- * @todo							Move to dedicated class or create wrapper than handles empty $loans cases
+ * @param   int     $proposed_start Proposed start of new loan as a UNIX timestamp
+ * @param   int     $proposed_end   Proposed end of new loan as a UNIX timestamp
+ * @param   array   $loans          List of existing loans, ordered chronologically. Can't be empty array
+ * @param   int     $current        Current position in array being checked by recursive_scheduling_engine()
+ * @return  bool                    Whether the proposed loan would be viable
+ * @todo                            Move to dedicated class or create wrapper than handles empty $loans cases
  */
 function wp_lib_recursive_scheduling_engine( $proposed_start, $proposed_end, $loans, $current = 0 ) {
 	// Creates key for previous and next loans, regardless of if they exist
@@ -547,14 +547,14 @@ function wp_lib_prep_member_options( $default_option = true ) {
 	// Adds default option, if specified
 	if ( $default_option ) {
 		$options[] = array(
-			'value'	=> '',
-			'html'	=> 'Member'
+			'value' => '',
+			'html'  => 'Member'
 		);
 	}
 	
 	$args = array(
-		'post_type'		=> 'wp_lib_members',
-		'post_status'	=> 'publish'
+		'post_type'     => 'wp_lib_members',
+		'post_status'   => 'publish'
 	);
 	
 	// Fetches all, if any, members
@@ -575,8 +575,8 @@ function wp_lib_prep_member_options( $default_option = true ) {
 			
 			// Adds member's details to the options array
 			$options[] = array(
-				'value'	=> get_the_ID(),
-				'html'	=> get_the_title()
+				'value' => get_the_ID(),
+				'html'  => get_the_title()
 			);
 		}
 	}
@@ -587,13 +587,13 @@ function wp_lib_prep_member_options( $default_option = true ) {
 function wp_lib_prep_members_items_out( $member_id ) {
 	// Queries post table for all items marked as currently in member's possession
 	$query = NEW WP_Query(array(
-		'post_type'		=> 'wp_lib_items',
-		'post_status'	=> 'publish',
-		'meta_query'	=> array(
+		'post_type'     => 'wp_lib_items',
+		'post_status'   => 'publish',
+		'meta_query'    => array(
 			array(
-				'key'		=> 'wp_lib_member',
-				'value'		=> $member_id,
-				'compare'	=> 'IN'
+				'key'       => 'wp_lib_member',
+				'value'     => $member_id,
+				'compare'   => 'IN'
 			)
 		)
 	));
@@ -657,13 +657,13 @@ function wp_lib_fetch_dependant_objects( $post_id, $post_type = false, $connecte
 		
 		// Sets query args
 		$args = array(
-			'post_type'		=> 'wp_lib_loans',
-			'post_status'	=> 'publish',
-			'meta_query'	=> array(
+			'post_type'     => 'wp_lib_loans',
+			'post_status'   => 'publish',
+			'meta_query'    => array(
 				array(
-					'key'		=> $key,
-					'value'		=> $post_id,
-					'compare'	=> 'IN'
+					'key'       => $key,
+					'value'     => $post_id,
+					'compare'   => 'IN'
 				)
 			)
 		);

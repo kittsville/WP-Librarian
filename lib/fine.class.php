@@ -9,8 +9,8 @@ defined('ABSPATH') OR die('No');
 class WP_LIB_FINE extends WP_LIB_OBJECT {
 	/**
 	 * Creates new instance of a fine from its post ID
-	 * @param	WP_LIBRARIAN	$wp_librarian	Single instance of core plugin class
-	 * @param	int				$fine_id		Post ID of a fine
+	 * @param   WP_LIBRARIAN    $wp_librarian   Single instance of core plugin class
+	 * @param   int             $fine_id        Post ID of a fine
 	 */
 	public static function create(WP_LIBRARIAN $wp_librarian, $fine_id) {
 		return parent::initObject($wp_librarian, $fine_id, __class__, 'wp_lib_fines', 'Fine');
@@ -18,7 +18,7 @@ class WP_LIB_FINE extends WP_LIB_OBJECT {
 	
 	/**
 	 * Cancels fine, removing fine amount from member's total debt
-	 * @return	bool|WP_LIB_ERROR	Success/failure of fine cancellation
+	 * @return  bool|WP_LIB_ERROR   Success/failure of fine cancellation
 	 */
 	public function cancel() {
 		// Fetches (unformatted) fine status

@@ -23,16 +23,16 @@ class WP_LIB_ERROR {
 	/**
 	 * All valid error codes within WP-Librarian and their descriptions
 	 * Each block of 100 codes is assigned to a category of error:
-	 * 0xx		- Reserved, see wp_lib_add_notification()
-	 * 1xx		- Core functionality failure
-	 * 2xx		- General loan/return systems error
-	 * 3xx		- Invalid loan/return parameters
-	 * 4xx		- Error loaning/returning item or fining user
-	 * 5xx		- AJAX systems error
-	 * 6xx		- Debugging/Development Errors
-	 * 8xx		- JavaScript Errors, stored client-side
-	 * 9xx		- Error processing error
-	 * 1000+	- Reserved for plugins see 
+	 * 0xx      - Reserved, see wp_lib_add_notification()
+	 * 1xx      - Core functionality failure
+	 * 2xx      - General loan/return systems error
+	 * 3xx      - Invalid loan/return parameters
+	 * 4xx      - Error loaning/returning item or fining user
+	 * 5xx      - AJAX systems error
+	 * 6xx      - Debugging/Development Errors
+	 * 8xx      - JavaScript Errors, stored client-side
+	 * 9xx      - Error processing error
+	 * 1000+    - Reserved for plugins see 
 	 */
 	public static $error_codes = array(
 		'110' => 'DateTime neither positive or negative',
@@ -92,8 +92,8 @@ class WP_LIB_ERROR {
 
 	/**
 	 * Creates the error object
-	 * @param	int		$error_code	Error code, a number referring to an error already defined within the class
-	 * @param	mixed	$param		OPTIONAL Additional details required by certain error codes
+	 * @param   int     $error_code Error code, a number referring to an error already defined within the class
+	 * @param   mixed   $param      OPTIONAL Additional details required by certain error codes
 	 */
 	function __construct( $error_code, $param = null ) {
 		// Checks if error code is valid and error exists, if not calls error
@@ -111,8 +111,8 @@ class WP_LIB_ERROR {
 			$error_code = 902;
 		
 		// Sets up object properties
-		$this->ID			= $error_code;
-		$this->description	= str_replace( '\p', $param, $error_codes[$error_code] );
+		$this->ID           = $error_code;
+		$this->description  = str_replace( '\p', $param, $error_codes[$error_code] );
 		
 		// If error was not called from an AJAX request, kill thread execution
 		if ( !defined('DOING_AJAX') || !DOING_AJAX ) {

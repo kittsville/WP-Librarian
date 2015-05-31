@@ -72,7 +72,7 @@ class WP_LIBRARIAN {
 		
 		// User permissions
 		add_action('show_user_profile',                 array($this, 'addProfilePermissionsField'), 10, 1);
--		add_action('edit_user_profile',                 array($this, 'addProfilePermissionsField'), 10, 1);
+-       add_action('edit_user_profile',                 array($this, 'addProfilePermissionsField'), 10, 1);
 		add_action('personal_options_update',           array($this, 'updateUserPermissions'),      10, 1);
 		add_action('edit_user_profile_update',          array($this, 'updateUserPermissions'),      10, 1);
 		
@@ -126,7 +126,7 @@ class WP_LIBRARIAN {
 	/**
 	 * Given the name of an admin template file, loads
 	 * @param   string  $name   File name, e.g. 'settings'
-	 * @param	array	$params	OPTIONAL Associative array of parameters for the template
+	 * @param   array   $params OPTIONAL Associative array of parameters for the template
 	 */
 	public function loadAdminTemplate($name, Array $params = array()) {
 		require_once($this->plugin_path . '/admin-templates/' . $name . '.php');
@@ -148,8 +148,8 @@ class WP_LIBRARIAN {
 				// Deletes member post meta 'wp_lib_owed'
 				$members_query = new WP_Query(array(
 					'post_type'         => 'wp_lib_members',
-					'post_status'		=> 'publish',
-					'nopaging'      	=> true,
+					'post_status'       => 'publish',
+					'nopaging'          => true,
 					'meta_query'        => array(
 						array(
 							'key'           => 'wp_lib_owed',
@@ -168,8 +168,8 @@ class WP_LIBRARIAN {
 				
 				// Renames fine post meta 'wp_lib_fine' to 'wp_lib_owed'
 				$fines_query = new WP_Query(array(
-					'post_type'		=> 'wp_lib_fines',
-					'post_status'	=> 'publish',
+					'post_type'     => 'wp_lib_fines',
+					'post_status'   => 'publish',
 					'nopaging'      => true
 				));
 				
@@ -227,7 +227,7 @@ class WP_LIBRARIAN {
 		$this->flushPermalinks();
 	}
 	
- 	/**
+	/**
 	 * Adds Library Role option to user profile page
 	 * @param WP_User $user WP_User object of current user being edited
 	 */

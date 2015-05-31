@@ -14,7 +14,7 @@ class WP_LIB_TEMPLATE_HOOKS {
 	
 	/**
 	 * Registers hooks that allow templates to access functions of relevant classes
-	 * @param	WP_LIBRARIAN	$wp_librarian	Single instance of core plugin class
+	 * @param   WP_LIBRARIAN    $wp_librarian   Single instance of core plugin class
 	 */
 	public function __construct(WP_LIBRARIAN $wp_librarian) {
 		$this->wp_librarian = $wp_librarian;
@@ -53,12 +53,12 @@ class WP_LIB_TEMPLATE_HOOKS {
 		
 		// Creates array of raw item meta
 		$raw_meta = array(
-			array('Title',		get_the_title($item->ID)),
-			array('Media Type',	get_the_terms($item->ID, 'wp_lib_media_type')),
-			array('Author',		get_the_terms($item->ID, 'wp_lib_author')),
-			array('Donor',		$donor),
-			array('ISBN',		get_post_meta($item->ID, 'wp_lib_item_isbn', true)),
-			array('Status',		$item->formattedStatus())
+			array('Title',      get_the_title($item->ID)),
+			array('Media Type', get_the_terms($item->ID, 'wp_lib_media_type')),
+			array('Author',     get_the_terms($item->ID, 'wp_lib_author')),
+			array('Donor',      $donor),
+			array('ISBN',       get_post_meta($item->ID, 'wp_lib_item_isbn', true)),
+			array('Status',     $item->formattedStatus())
 		);
 		
 		// If item is being displayed in an archive, item title is link to view single item

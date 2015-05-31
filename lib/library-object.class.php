@@ -27,7 +27,7 @@ abstract class WP_LIB_OBJECT {
 	 */
 	private function __construct(WP_LIBRARIAN $wp_librarian, $post_id) {
 		$this->wp_librarian = $wp_librarian;
-		$this->ID			= $post_id;
+		$this->ID           = $post_id;
 	}
 	
 	protected static function initObject($wp_librarian, $post_id, $class, $post_type, $object_name) {
