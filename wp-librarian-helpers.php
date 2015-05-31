@@ -458,31 +458,6 @@ function wp_lib_format_fine_status($status) {
 	return $strings[$status];
 }
 
-// Turns numeric user status into readable string e.g. 5 -> Librarian
-function wp_lib_format_user_permission_status($status) {
-	// Array of all possible user permissions
-	$strings = WP_Librarian::getUserRoles();
-	
-	// If given number refers to a status that doesn't exist, throw error
-	if (!array_key_exists($status, $strings)) {
-		return wp_lib_error(201, 'User');
-	}
-	
-	// State is looked up in the array and returned
-	return $strings[$status];
-}
-
-// Fetches and formats user permission status
-function wp_lib_fetch_user_permission_status($user_id) {
-	// Fetches status
-	$status = get_user_meta($user_id, 'wp_lib_role', true);
-	
-	if (!$status)
-		return '';
-	else
-		return wp_lib_format_user_permission_status($status);
-}
-
 // Returns formatted item condition given item number
 function wp_lib_format_item_condition($number) {
 	// All possible conditions item can be in
@@ -538,6 +513,36 @@ function wp_lib_recursive_scheduling_engine($proposed_start, $proposed_end, $loa
 	
 	// If this statement is reached, all loans have been checked and no viable gap has been found, so proposed loan will not work
 	return false;
+}
+
+/**
+ * Checks if a proposed loan conflicts with the item's existing loans
+ * @param	int		$loan_start		Proposed start of new loan as a UNIX timestamp
+ * @param	int		$loan_end		Proposed end of new loan as a UNIX timestamp
+ * @param	Array	$existing_loans	Item's existing loans, ordered by starting date
+ * @return	bool					Whether the proposed loan would work
+ */
+function wp_lib_conflict_free_loan($loan_start, $loan_end, Array $existing_loans) {
+	if (0 === count($existing_loans))
+		return true;
+	
+	// If new loan ends before first existing loan starts
+	if ($loan_end < $existing_loans[0]['start'])
+		return true;
+	
+	end($array);
+	
+	// If new loan starts after last existing loan ends
+	if ($loan_start > $existing_loans[key($array)]['end'])
+		return true;
+	
+	/**
+	 * Traverses array from last to first because typically loan will concern last (most recent chronologically) loans
+	 * For the new loan to work it must start after the last loan ends and end before the next one starts
+	 */
+	for ($i = count($existing_loans); $i > 1; --$i) {
+		// GGGG
+	}
 }
 
 function wp_lib_prep_member_options($default_option = true) {

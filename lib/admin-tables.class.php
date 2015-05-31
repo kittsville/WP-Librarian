@@ -385,7 +385,20 @@ class WP_Lib_Admin_Tables {
 	public function fillUsersTableColumns($value='', $column, $user_id) {
 		switch($column) {
 			case 'library-role':
-				return wp_lib_fetch_user_permission_status($user_id);
+				$library_role = get_user_meta($user_id, 'wp_lib_role', true);
+				
+				if (!$library_role) {
+					return '';
+				} else {
+					$roles = $this->wp_librarian->getUserRoles();
+					
+					// If given number refers to a status that doesn't exist, throw error
+					if (!array_key_exists($library_role, $roles))
+						return wp_lib_error(201, 'User');
+					
+					// State is looked up in the array and returned
+					return $roles[$library_role];
+				}
 			break;
 		}
 	}
