@@ -2433,7 +2433,7 @@ class WP_Lib_AJAX_API extends WP_Lib_AJAX {
 		$query = new WP_Query(array(
 			'post_type'     => 'wp_lib_items',
 			'post_status'   => 'publish',
-			'nopaging'      => true
+			'nopaging'      => true,
 			'meta_query'    => array(
 				$meta_query
 			)
