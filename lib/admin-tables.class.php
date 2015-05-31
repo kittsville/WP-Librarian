@@ -379,6 +379,7 @@ class WP_Lib_Admin_Tables {
 	
 	/**
 	 * Fills custom library role column with name of users' current library role
+	 * Note that WordPress requires this function to return its content as a string rather than echoing it. Why? Because fuck you that's why.
 	 * @param   string  $column     Name of an fines post table column
 	 * @param   int     $fine_id    Post ID of current row's fines
 	 */
