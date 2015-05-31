@@ -519,6 +519,7 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 			array(
 				'post_type'     => 'wp_lib_members',
 				'post_status'   => 'publish',
+				'nopaging'      => true,
 				'meta_query'    => array(
 					array(
 						'key'       => 'wp_lib_member_archive',
@@ -1146,7 +1147,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			array(
 				'post_type'         => 'wp_lib_items',
 				'post_status'       => 'publish',
-				'posts_per_page'    => '-1'
+				'nopaging'          => true
 			)
 		);
 		
@@ -2432,6 +2433,7 @@ class WP_LIB_AJAX_API extends WP_LIB_AJAX {
 		$query = new WP_Query(array(
 			'post_type'     => 'wp_lib_items',
 			'post_status'   => 'publish',
+			'nopaging'      => true
 			'meta_query'    => array(
 				$meta_query
 			)

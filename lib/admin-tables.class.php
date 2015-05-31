@@ -254,6 +254,7 @@ class WP_LIB_ADMIN_TABLES {
 			case 'member_donated':
 				echo (new WP_Query(array(
 					'post_type' 		=> 'wp_lib_items',
+					'nopaging'			=> true,
 					'meta_query'		=> array(
 						array(
 							'key'			=> 'wp_lib_item_donor',

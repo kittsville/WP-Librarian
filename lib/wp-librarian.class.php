@@ -148,6 +148,8 @@ class WP_LIBRARIAN {
 				// Deletes member post meta 'wp_lib_owed'
 				$members_query = new WP_Query(array(
 					'post_type'         => 'wp_lib_members',
+					'post_status'		=> 'publish',
+					'nopaging'      	=> true,
 					'meta_query'        => array(
 						array(
 							'key'           => 'wp_lib_owed',
@@ -166,7 +168,9 @@ class WP_LIBRARIAN {
 				
 				// Renames fine post meta 'wp_lib_fine' to 'wp_lib_owed'
 				$fines_query = new WP_Query(array(
-					'post_type' => 'wp_lib_fines',
+					'post_type'		=> 'wp_lib_fines',
+					'post_status'	=> 'publish',
+					'nopaging'      => true
 				));
 				
 				if ($fines_query->have_posts()){

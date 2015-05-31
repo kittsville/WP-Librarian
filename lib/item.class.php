@@ -128,6 +128,7 @@ class WP_LIB_ITEM extends WP_LIB_OBJECT {
 		$query = NEW WP_Query(array(
 			'post_type'		=> 'wp_lib_loans',
 			'post_status'	=> 'publish',
+			'nopaging'		=> true,
 			'meta_query'	=> array(
 				array(
 					'key'		=> 'wp_lib_item',

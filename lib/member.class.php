@@ -26,6 +26,8 @@ class WP_LIB_MEMBER extends WP_LIB_OBJECT {
 		// Queries WP for all loans to current member where a fine was incurred
 		$query = new WP_Query(array(
 			'post_type' 		=> 'wp_lib_loans',
+			'post_status',		=> 'published',
+			'nopaging'			=> true,
 			'meta_query'		=> array(
 				'relation'		=> 'AND',
 				array(
