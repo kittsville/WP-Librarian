@@ -1,6 +1,6 @@
 <?php
 // No direct loading
-defined( 'ABSPATH' ) OR die('No');
+defined('ABSPATH') OR die('No');
 
 /**
  * Manages item post template functionality

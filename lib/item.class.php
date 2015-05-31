@@ -28,7 +28,7 @@ class WP_LIB_ITEM extends WP_LIB_OBJECT {
 	public function onLoan($start_date = false, $end_date = false) {
 		// If dates weren't given then the schedule doesn't need to be checked
 		// The simpler method of checking the item for an assigned member can be used
-		if ( $start_date === false || $end_date === false ) {
+		if ($start_date === false || $end_date === false) {
 			// Fetches all members assigned to item
 			$loan_already = get_post_meta($this->ID, 'wp_lib_member', true);
 

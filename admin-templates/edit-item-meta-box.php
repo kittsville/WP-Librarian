@@ -6,22 +6,22 @@
  */
 
 // No direct loading
-defined( 'ABSPATH' ) OR die('No');
+defined('ABSPATH') OR die('No');
 
 // Loads meta box css
-wp_enqueue_style( 'wp_lib_admin_item_meta' );
+wp_enqueue_style('wp_lib_admin_item_meta');
 
 // Nonce, to verify user authenticity
-wp_nonce_field( "Updating item {$item->ID} meta", 'wp_lib_item_meta_nonce' );
+wp_nonce_field("Updating item {$item->ID} meta", 'wp_lib_item_meta_nonce');
 
 // Fetches list of media types
-$media_type_objects = get_terms( 'wp_lib_media_type', 'hide_empty=0' );
+$media_type_objects = get_terms('wp_lib_media_type', 'hide_empty=0');
 
 // Initialises media types
 $media_types = array();
 
 // Creates meta formatting array of media types
-foreach ( $media_type_objects as $type ) {
+foreach ($media_type_objects as $type) {
 	$media_types[] = array(
 		'value' => $type->slug,
 		'html'  => $type->name
@@ -29,7 +29,7 @@ foreach ( $media_type_objects as $type ) {
 }
 
 // Fetches list of possible item donors
-$donors = wp_lib_prep_member_options( false );
+$donors = wp_lib_prep_member_options(false);
 
 // Array of all item meta, consisting of each section, then each section's fields and their properties
 $meta_formatting = array(
@@ -64,19 +64,19 @@ $meta_formatting = array(
 				'options'   => array(
 					array(
 						'value' => '4',
-						'html'  => wp_lib_format_item_condition( 4 )
+						'html'  => wp_lib_format_item_condition(4)
 					),
 					array(
 						'value' => '3',
-						'html'  => wp_lib_format_item_condition( 3 )
+						'html'  => wp_lib_format_item_condition(3)
 					),
 					array(
 						'value' => '2',
-						'html'  => wp_lib_format_item_condition( 2 )
+						'html'  => wp_lib_format_item_condition(2)
 					),
 					array(
 						'value' => '1',
-						'html'  => wp_lib_format_item_condition( 1 )
+						'html'  => wp_lib_format_item_condition(1)
 					)
 				)
 			),
@@ -131,21 +131,21 @@ $meta_formatting = array(
 );
 
 // Fetches all post meta then strips away any meta not needed by the meta formatting
-$meta = wp_lib_prep_admin_meta( $item->ID, $meta_formatting );
+$meta = wp_lib_prep_admin_meta($item->ID, $meta_formatting);
 
 // Adds media type meta to meta array
-$meta['wp_lib_media_type'] = wp_get_object_terms($item->ID, 'wp_lib_media_type', array("fields" => "slugs") )[0];
+$meta['wp_lib_media_type'] = wp_get_object_terms($item->ID, 'wp_lib_media_type', array("fields" => "slugs"))[0];
 
 // If item is a new item, set item to be allowed to be loaned by default
-if ( $GLOBALS['hook_suffix'] === 'post-new.php' )
+if ($GLOBALS['hook_suffix'] === 'post-new.php')
 	$meta['wp_lib_item_loanable'] = '1';
 ?>
 <div id="meta-dropzone">
 	<div id="meta-formatting">
-		<?php echo json_encode( $meta_formatting ); ?>
+		<?php echo json_encode($meta_formatting); ?>
 	</div>
 	<div id="meta-raw">
-		<?php echo json_encode( $meta ); ?>
+		<?php echo json_encode($meta); ?>
 	</div>
 </div>
 <div id="item-meta"></div>

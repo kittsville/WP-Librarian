@@ -1,6 +1,6 @@
 <?php
 // No direct loading
-defined( 'ABSPATH' ) OR die('No');
+defined('ABSPATH') OR die('No');
 
 /**
  * Used to generate a Dynatable from a WordPress query, using columns built into the class
@@ -33,13 +33,13 @@ class WP_LIB_DYNATABLE {
 	 * Generates WP_Query instance
 	 * @param Array|String  $args       WP_Query Arguments
 	 */
-	function __construct( $args ) {
+	function __construct($args) {
 		// Checks class has been called from a valid context
-		if ( !defined('DOING_AJAX') || !DOING_AJAX )
-			wp_lib_error( 116 );
+		if (!defined('DOING_AJAX') || !DOING_AJAX)
+			wp_lib_error(116);
 		
 		// Runs query, generating object containing matching posts
-		$this->WP_Query = new WP_Query( $args );
+		$this->WP_Query = new WP_Query($args);
 	}
 	
 	/**
@@ -49,23 +49,23 @@ class WP_LIB_DYNATABLE {
 	 * @param   String  $no_posts       OPTIONAL Text to display if no posts were found
 	 * @return  Array                   Dynatable in Library Dashboard format
 	 */
-	public function generateTable( $table_columns, $properties = array(), $no_posts = 'No posts found' ) {
-		if ( $this->WP_Query->have_posts() ) {
+	public function generateTable($table_columns, $properties = array(), $no_posts = 'No posts found') {
+		if ($this->WP_Query->have_posts()) {
 			// Fetches table header names
-			foreach ( $table_columns as $column )
+			foreach ($table_columns as $column)
 				$headers[] = $column[0];
 			
 			// Iterates over posts, generating table rows
-			while ( $this->WP_Query->have_posts() ) {
+			while ($this->WP_Query->have_posts()) {
 				$this->WP_Query->the_post();
 				
 				$this->row_post_id = get_the_ID();
-				$this->row_meta = get_post_meta( $this->row_post_id );
+				$this->row_meta = get_post_meta($this->row_post_id);
 				
 				$row = array();
 				
 				// Creates data for each row's column
-				foreach ( $table_columns as $column ) {
+				foreach ($table_columns as $column) {
 					$row[$column[1]] = $this->$column[2]();
 				}
 				
@@ -84,7 +84,7 @@ class WP_LIB_DYNATABLE {
 		} else {
 			return array(
 				'type'      => 'paras',
-				'content'   => array( $no_posts )
+				'content'   => array($no_posts)
 			);
 		}
 	}
@@ -126,32 +126,32 @@ class WP_LIB_DYNATABLE_LOANS extends WP_LIB_DYNATABLE {
 	 * Generates Dashboard hyperlink to manage the Item
 	 */
 	protected function genColumnManageItem() {
-		return wp_lib_manage_item_dash_hyperlink( $this->row_meta['wp_lib_item'][0] );
+		return wp_lib_manage_item_dash_hyperlink($this->row_meta['wp_lib_item'][0]);
 	}
 	
 	/**
 	 * Generates Dashboard hyperlink to manage the member
 	 */
 	protected function genColumnManageMember() {
-		return wp_lib_manage_member_dash_hyperlink( $this->row_meta['wp_lib_member'][0] );
+		return wp_lib_manage_member_dash_hyperlink($this->row_meta['wp_lib_member'][0]);
 	}
 	
 	/**
 	 * Generates Dashboard hyperlink to manage the loan
 	 */
 	protected function genColumnManageLoan() {
-		return wp_lib_manage_loan_dash_hyperlink( $this->row_post_id );
+		return wp_lib_manage_loan_dash_hyperlink($this->row_post_id);
 	}
 	
 	/**
 	 * Generates readable loan status, with link to manage the loan
 	 */
 	protected function genColumnLoanStatus() {
-		$status = wp_lib_format_loan_status( $this->row_meta['wp_lib_status'][0] );
+		$status = wp_lib_format_loan_status($this->row_meta['wp_lib_status'][0]);
 		
 		// If there is a fine attached to the loan, makes status a hyperlink to manage the fine
-		if ( $this->row_meta['wp_lib_status'][0] == 4 ) {
-			return wp_lib_prep_dash_hyperlink( $status, wp_lib_prep_manage_fine_params( $this->row_meta['wp_lib_fine'][0] ) );
+		if ($this->row_meta['wp_lib_status'][0] == 4) {
+			return wp_lib_prep_dash_hyperlink($status, wp_lib_prep_manage_fine_params($this->row_meta['wp_lib_fine'][0]));
 		} else {
 			return $status;
 		}
@@ -161,7 +161,7 @@ class WP_LIB_DYNATABLE_LOANS extends WP_LIB_DYNATABLE {
 	 * Generates formatted date of when item was loaned or, if not yet loaned, the date the loan is scheduled to start
 	 */
 	protected function genColumnLoanStart() {
-		return wp_lib_format_unix_timestamp( ( isset( $this->row_meta['wp_lib_give_date'] ) ? $this->row_meta['wp_lib_give_date'][0] : $this->row_meta['wp_lib_start_date'][0] ) );
+		return wp_lib_format_unix_timestamp((isset($this->row_meta['wp_lib_give_date']) ? $this->row_meta['wp_lib_give_date'][0] : $this->row_meta['wp_lib_start_date'][0]));
 	}
 	
 	/**

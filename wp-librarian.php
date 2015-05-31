@@ -30,7 +30,7 @@ define('WP_LIB_DEBUG_MODE', true);
 // Whether to ensure connected objects can't be deleted individually (e.g. deleting a loan but not its fine). Turning this off is a great way to break your Library!
 define('WP_LIB_MAINTAIN_INTEGRITY', true);
 
-require_once (dirname( __FILE__ ) . '/lib/wp-librarian.class.php');
+require_once (dirname(__FILE__) . '/lib/wp-librarian.class.php');
 
 $wp_librarian = new WP_LIBRARIAN;
 

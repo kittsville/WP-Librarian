@@ -638,7 +638,7 @@ SQL;
 			return;
 		
 		// Adds sorting logic based on column being sorted
-		switch($wp_query->get( 'orderby')) {
+		switch($wp_query->get('orderby')) {
 			case 'item_condition':
 				$wp_query->set('meta_query',array(
 					'relation'  => 'OR',

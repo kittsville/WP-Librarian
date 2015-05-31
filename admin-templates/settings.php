@@ -5,15 +5,15 @@
  */
 
 // No direct loading
-defined( 'ABSPATH' ) OR die('No');
+defined('ABSPATH') OR die('No');
 
 // If user isn't allowed to modify site's settings, settings fields aren't rendered and error is called
-if ( !current_user_can( 'wp_lib_change_settings' ) ) {
-	wp_lib_error( 112, true );
+if (!current_user_can('wp_lib_change_settings')) {
+	wp_lib_error(112, true);
 }
 
 // Loads settings CSS
-wp_enqueue_style( 'wp_lib_admin_settings' );
+wp_enqueue_style('wp_lib_admin_settings');
 
 $selected_tab = isset($_GET['tab']) ? $_GET['tab'] : '';
 
@@ -57,13 +57,13 @@ $settings_tab = isset($tabs[$selected_tab]) ? $tabs[$selected_tab][0] : $tabs[''
 		<form method="POST" action="options.php">
 			<?php
 			// Handles nonces and other page security
-			settings_fields( $settings_tab );
+			settings_fields($settings_tab);
 			
 			// Renders selected tab's settings fields
-			do_settings_sections( $settings_tab . '-options' );
+			do_settings_sections($settings_tab . '-options');
 			
 			// Submit button to update options
-			submit_button( 'Update', 'primary' );
+			submit_button('Update', 'primary');
 			?>
 		</form>
 	</div>

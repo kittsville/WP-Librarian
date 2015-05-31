@@ -1,6 +1,6 @@
 <?php
 // No direct loading
-defined( 'ABSPATH' ) OR die('No');
+defined('ABSPATH') OR die('No');
 
 /**
  * Holds information about an error that occurred within WP-Librarian such as the error's description and where it occurred
@@ -95,9 +95,9 @@ class WP_LIB_ERROR {
 	 * @param   int     $error_code Error code, a number referring to an error already defined within the class
 	 * @param   mixed   $param      OPTIONAL Additional details required by certain error codes
 	 */
-	function __construct( $error_code, $param = null ) {
+	function __construct($error_code, $param = null) {
 		// Checks if error code is valid and error exists, if not calls error
-		if ( !is_int( $error_code ) )
+		if (!is_int($error_code))
 			$error_code = 901;
 		
 		/**
@@ -107,15 +107,15 @@ class WP_LIB_ERROR {
 		$error_codes = apply_filters('wp_lib_error_codes', WP_LIB_ERROR::$error_codes);
 	
 		// If given error code does not exist, calls 'undefined error code' error
-		if ( !array_key_exists( $error_code, $error_codes ) )
+		if (!array_key_exists($error_code, $error_codes))
 			$error_code = 902;
 		
 		// Sets up object properties
 		$this->ID           = $error_code;
-		$this->description  = str_replace( '\p', $param, $error_codes[$error_code] );
+		$this->description  = str_replace('\p', $param, $error_codes[$error_code]);
 		
 		// If error was not called from an AJAX request, kill thread execution
-		if ( !defined('DOING_AJAX') || !DOING_AJAX ) {
+		if (!defined('DOING_AJAX') || !DOING_AJAX) {
 			die("<div class='wp-lib-error error'><p><strong style=\"color: red;\">WP-Librarian Error {$error_code}: {$this->description}</strong></p></div>");
 		}
 	}

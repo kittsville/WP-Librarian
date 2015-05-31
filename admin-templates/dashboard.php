@@ -6,7 +6,7 @@
  */
 
 // No direct loading
-defined( 'ABSPATH' ) OR die('No');
+defined('ABSPATH') OR die('No');
 ?>
 <div class="wrap">
 	<?php wp_lib_render_plugin_version(); ?>

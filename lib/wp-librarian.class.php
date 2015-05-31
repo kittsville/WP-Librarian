@@ -649,7 +649,7 @@ class WP_LIBRARIAN {
 		 */
 		register_taxonomy('wp_lib_author', 'wp_lib_items',
 			array(
-				'capabilities'      => array(   
+				'capabilities'      => array(  
 					'manage_terms'  => 'wp_lib_manage_taxs',
 					'edit_terms'    => 'wp_lib_manage_taxs',
 					'delete_terms'  => 'wp_lib_manage_taxs',
@@ -691,7 +691,7 @@ class WP_LIBRARIAN {
 		 */
 		register_taxonomy('wp_lib_media_type', 'wp_lib_items',
 			array(
-				'capabilities'      => array(   
+				'capabilities'      => array(  
 					'manage_terms'  => 'wp_lib_manage_taxs',
 					'edit_terms'    => 'wp_lib_manage_taxs',
 					'delete_terms'  => 'wp_lib_manage_taxs',

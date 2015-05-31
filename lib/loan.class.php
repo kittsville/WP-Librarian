@@ -34,7 +34,7 @@ class WP_LIB_LOAN extends WP_LIB_OBJECT {
 			return wp_lib_error(211);
 		
 		// Checks to make sure item is allowed to be loaned
-		if (!(WP_LIB_ITEM::create($this->wp_librarian, $meta['wp_lib_item'][0] )->loanAllowed()))
+		if (!(WP_LIB_ITEM::create($this->wp_librarian, $meta['wp_lib_item'][0])->loanAllowed()))
 			return wp_lib_error(213);
 		
 		// If proposed give date isn't between loan's start/end dates, call error
