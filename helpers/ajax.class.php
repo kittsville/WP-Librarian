@@ -5,7 +5,7 @@ defined('ABSPATH') OR die('No');
 /**
  * Handles all Dashboard AJAX requests
  */
-class WP_LIB_AJAX {
+class WP_Lib_AJAX {
 	/**
 	 * Buffers content to be returned to server
 	 * @var array
@@ -18,14 +18,14 @@ class WP_LIB_AJAX {
 	
 	/**
 	 * Single instance of core plugin class
-	 * @var WP_LIBRARIAN
+	 * @var WP_Librarian
 	 */
 	protected $wp_librarian;
 	
 	/**
 	 * Adds instance of core plugin class to ajax classes' properties
 	 */
-	function __construct(WP_LIBRARIAN $wp_librarian) {
+	function __construct(WP_Librarian $wp_librarian) {
 		$this->wp_librarian = $wp_librarian;
 		
 		// Ensures object can only be created if an AJAX request is being performed
@@ -103,7 +103,7 @@ class WP_LIB_AJAX {
 	
 	/**
 	 * Creates instance of item class using Item ID fetched from AJAX request
-	 * @return WP_LIB_ITEM|WP_LIB_ERROR Item instance
+	 * @return WP_Lib_Item|WP_Lib_Error Item instance
 	 */
 	protected function getItem() {
 		// If item ID was not given, call error
@@ -111,7 +111,7 @@ class WP_LIB_AJAX {
 			$this->stopAjax(wp_lib_error(314, 'Item ID'));
 		
 		// Attempts to create item instance from item ID
-		$item = WP_LIB_ITEM::create($this->wp_librarian, (int) $_POST['item_id']);
+		$item = WP_Lib_Item::create($this->wp_librarian, (int) $_POST['item_id']);
 		
 		// If item ID was invalid (error was returned) stops AJAX request
 		if (wp_lib_is_error($item))
@@ -123,7 +123,7 @@ class WP_LIB_AJAX {
 	
 	/**
 	 * Creates instance of member class using Member ID fetched from AJAX request
-	 * @return WP_LIB_MEMBER|WP_LIB_ERROR   Member instance
+	 * @return WP_Lib_Member|WP_Lib_Error   Member instance
 	 */
 	protected function getMember() {
 		// If member ID was not given, call error
@@ -131,7 +131,7 @@ class WP_LIB_AJAX {
 			$this->stopAjax(wp_lib_error(314, 'Member ID'));
 		
 		// Attempts to create member instance from member ID
-		$member = WP_LIB_MEMBER::create($this->wp_librarian, (int) $_POST['member_id']);
+		$member = WP_Lib_Member::create($this->wp_librarian, (int) $_POST['member_id']);
 		
 		// If member ID was invalid (error was returned) stops AJAX request
 		if (wp_lib_is_error($member))
@@ -143,7 +143,7 @@ class WP_LIB_AJAX {
 	
 	/**
 	 * Creates instance of loan class using Loan ID fetched from AJAX request
-	 * @return WP_LIB_LOAN|WP_LIB_ERROR Loan instance
+	 * @return WP_Lib_Loan|WP_Lib_Error Loan instance
 	 */
 	protected function getLoan() {
 		// If loan ID was not given, call error
@@ -151,7 +151,7 @@ class WP_LIB_AJAX {
 			$this->stopAjax(wp_lib_error(314, 'Loan ID'));
 		
 		// Attempts to create loan instance from loan ID
-		$loan = WP_LIB_LOAN::create($this->wp_librarian, (int) $_POST['loan_id']);
+		$loan = WP_Lib_Loan::create($this->wp_librarian, (int) $_POST['loan_id']);
 		
 		// If loan ID was invalid (error was returned) stops AJAX request
 		if (wp_lib_is_error($loan))
@@ -163,7 +163,7 @@ class WP_LIB_AJAX {
 	
 	/**
 	 * Creates instance of fine class using Fine ID fetched from AJAX request
-	 * @return WP_LIB_FINE|WP_LIB_ERROR Fine instance
+	 * @return WP_Lib_Fine|WP_Lib_Error Fine instance
 	 */
 	protected function getFine() {
 		// If fine ID was not given, call error
@@ -171,7 +171,7 @@ class WP_LIB_AJAX {
 			$this->stopAjax(wp_lib_error(314, 'Fine ID'));
 		
 		// Attempts to create fine instance from fine ID
-		$fine = WP_LIB_FINE::create($this->wp_librarian, (int) $_POST['fine_id']);
+		$fine = WP_Lib_Fine::create($this->wp_librarian, (int) $_POST['fine_id']);
 		
 		// If fine ID was invalid (error was returned) stops AJAX request
 		if (wp_lib_is_error($fine))
@@ -183,7 +183,7 @@ class WP_LIB_AJAX {
 	
 	/**
 	 * Adds error to notification buffer
-	 * @param int|WP_LIB_ERROR  $error  ID or instance of an error that occurred within WP-Librarian
+	 * @param int|WP_Lib_Error  $error  ID or instance of an error that occurred within WP-Librarian
 	 * @param string|array      $params OPTIONAL Details to enhance error message
 	 */
 	protected function handleError($error, $params = false) {
@@ -197,7 +197,7 @@ class WP_LIB_AJAX {
 	
 	/**
 	 * Terminates AJAX request, calling optional explanatory error
-	 * @param int|WP_LIB_ERROR  $error      OPTIONAL ID or instance of error that necessitated terminating request
+	 * @param int|WP_Lib_Error  $error      OPTIONAL ID or instance of error that necessitated terminating request
 	 * @param string|array      $params     OPTIONAL Details to enhance error message
 	 */
 	public function stopAjax($error = false, $params = false) {
@@ -221,14 +221,14 @@ class WP_LIB_AJAX {
  * Performs a Dashboard action, modifying the Library in some way
  * such as loaning/returning an item or fining a member
  */
-class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
+class WP_Lib_AJAX_Action extends WP_Lib_AJAX {
 	// Contains array of posts authorised for deletion
 	public $deletion_authed_objects = [];
 	
 	/**
 	 * Performs Dashboard based on requested action
 	 */
-	function __construct(WP_LIBRARIAN $wp_librarian) {
+	function __construct(WP_Librarian $wp_librarian) {
 		parent::__construct($wp_librarian);
 		// If no action has been specified, call error
 		if (!isset($_POST['dash_action']))
@@ -290,7 +290,7 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 	/**
 	 * Ends AJAX request, returning indication of action success to client
 	 * Also buffers any given success notification
-	 * @param bool|WP_LIB_ERROR $success        Whether the AJAX request succeeded or not
+	 * @param bool|WP_Lib_Error $success        Whether the AJAX request succeeded or not
 	 * @param string|array      $notification   OPTIONAL Notification(s) to send to client if action was a success
 	 * @todo                                    Improve commenting and/or refactor function
 	 */
@@ -304,7 +304,7 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 				}
 			}
 			
-			// Triggers WP_LIB_AJAX destructor to render buffered output
+			// Triggers WP_Lib_AJAX destructor to render buffered output
 			die();
 		} else {
 			$this->stopAjax($success);
@@ -554,7 +554,7 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 			$this->stopAjax($loan_id);
 		
 		// Creates loan object
-		$loan = WP_LIB_LOAN::create($this->wp_librarian, $loan_id);
+		$loan = WP_Lib_Loan::create($this->wp_librarian, $loan_id);
 		
 		if ($loan->giveItem(current_time('timestamp') - (10 * 24 * 60 * 60) + 900)) {
 			$this->endAction(
@@ -664,7 +664,7 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 			switch($object[1]) {
 				// Checks if item is on loan
 				case 'wp_lib_items':
-					$item = WP_LIB_ITEM::create($this->wp_librarian, $object[0]);
+					$item = WP_Lib_Item::create($this->wp_librarian, $object[0]);
 					
 					if ($item->onLoan())
 						$this->stopAjax(205);
@@ -717,11 +717,11 @@ class WP_LIB_AJAX_ACTION extends WP_LIB_AJAX {
 /**
  * Prepares a requested Dashboard page to be rendered client-side by wp_lib_render_page()
  */
-class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
+class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 	/**
 	 * Calls relevant prep function based on requested Dash page
 	 */
-	function __construct(WP_LIBRARIAN $wp_librarian) {
+	function __construct(WP_Librarian $wp_librarian) {
 		parent::__construct($wp_librarian);
 	
 		// If no dash page has been specified, load Dashboard
@@ -801,7 +801,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	
 	/**
 	 * Stops Dashboard page loading based on current user circumstances
-	 * @param int|WP_LIB_ERROR  $error      OPTIONAL ID or instance of error that occurred
+	 * @param int|WP_Lib_Error  $error      OPTIONAL ID or instance of error that occurred
 	 * @param string|array      $params     OPTIONAL parameters to pass to error reporter
 	 */
 	public function stopAjax($error = false, $params = false) {
@@ -862,7 +862,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	
 	/**
 	 * Prepares a box of details about the given item
-	 * @param   WP_LIB_ITEM $item   Item to generate meta box for
+	 * @param   WP_Lib_Item $item   Item to generate meta box for
 	 * @return  array               Meta box, as a Dash page element
 	 */
 	private function prepItemMetaBox($item) {
@@ -925,7 +925,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 	
 	/**
 	 * Prepares a box of details about the given member
-	 * @param   WP_LIB_MEMBER   $member Member to generate meta box for
+	 * @param   WP_Lib_Member   $member Member to generate meta box for
 	 * @return  array                   Meta box, as a Dash page element
 	 */
 	private function prepMemberMetaBox($member) {
@@ -953,7 +953,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 
 	/**
 	 * Prepares a box of details about the given loan
-	 * @param   WP_LIB_LOAN $loan   Loan to generate meta box for
+	 * @param   WP_Lib_Loan $loan   Loan to generate meta box for
 	 * @return  array               Meta box, as a Dash page element
 	 */
 	private function prepLoanMetaBox($loan) {
@@ -987,7 +987,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 
 	/**
 	 * Prepares a box of details about the given fine
-	 * @param   WP_LIB_FINE $fine   Fine to generate meta box for
+	 * @param   WP_Lib_Fine $fine   Fine to generate meta box for
 	 * @return  array               Meta box, as a Dash page element
 	 */
 	private function prepFineMetaBox($fine) {
@@ -1021,7 +1021,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		$this->wp_librarian->loadHelper('dynatable');
 		
 		// Queries WP for all loans of item
-		$dynatable = new WP_LIB_DYNATABLE_LOANS($this, 'wp_lib_item', $item_id);
+		$dynatable = new WP_Lib_Dynatable_Loans($this, 'wp_lib_item', $item_id);
 		
 		// Generates Dynatable table of query results
 		return $dynatable->generateTable(
@@ -1163,7 +1163,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 				$query->the_post();
 				
 				// Creates item object from post ID
-				$item = WP_LIB_ITEM::create($this->wp_librarian, get_the_ID());
+				$item = WP_Lib_Item::create($this->wp_librarian, get_the_ID());
 				
 				// Sets up basic item parameters
 				$item_details = array(
@@ -1445,7 +1445,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		$this->wp_librarian->loadHelper('dynatable');
 		
 		// Queries database for loans made by member
-		$dynatable = new WP_LIB_DYNATABLE_LOANS($this, 'wp_lib_member', $member->ID);
+		$dynatable = new WP_Lib_Dynatable_Loans($this, 'wp_lib_member', $member->ID);
 		
 		// Generates table of query results
 		$page[] = $dynatable->generateTable(
@@ -1801,7 +1801,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		if (isset($_POST['item_id'])) {
 			$item = $this->getItem();
 			
-			$loan = WP_LIB_LOAN::create($this->wp_librarian, get_post_meta($item->ID, 'wp_lib_loan', true));
+			$loan = WP_Lib_Loan::create($this->wp_librarian, get_post_meta($item->ID, 'wp_lib_loan', true));
 			
 			// If loan ID was invalid (e.g. if item was not on loan) call error
 			if (wp_lib_is_error($loan))
@@ -1809,7 +1809,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		} else {
 			$loan = $this->getLoan();
 			
-			$item = WP_LIB_ITEM::create($this->wp_librarian, get_post_meta($loan->ID, 'wp_lib_item', true));
+			$item = WP_Lib_Item::create($this->wp_librarian, get_post_meta($loan->ID, 'wp_lib_item', true));
 		}
 		
 		// Counts number of times item has already been renewed
@@ -2122,7 +2122,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 		switch(get_post_type($post_id)) {
 			case 'wp_lib_items':
 				// Creates item instance from item ID
-				$item = WP_LIB_ITEM::create($this->wp_librarian, $post_id);
+				$item = WP_Lib_Item::create($this->wp_librarian, $post_id);
 			
 				// If item is on loan, call error
 				if ($item->onLoan())
@@ -2147,7 +2147,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			
 			case 'wp_lib_members':
 				// Creates member instance from member ID
-				$member = WP_LIB_MEMBER::create($this->wp_librarian, $post_id);
+				$member = WP_Lib_Member::create($this->wp_librarian, $post_id);
 			
 				// Renders meta box, displaying useful information about the member
 				$page[] = $this->prepMemberMetaBox($member);
@@ -2168,7 +2168,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			
 			case 'wp_lib_loans':
 				// Creates loan instance from loan ID
-				$loan = WP_LIB_LOAN::create($this->wp_librarian, $post_id);
+				$loan = WP_Lib_Loan::create($this->wp_librarian, $post_id);
 				
 				// If loan is open (item is outside Library), call error
 				if (get_post_meta($post_id, 'wp_lib_status', true) == 1)
@@ -2193,7 +2193,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 			
 			case 'wp_lib_fines':
 				// Creates fine instance from fine ID
-				$fine = WP_LIB_FINE::create($this->wp_librarian, $post_id);
+				$fine = WP_Lib_Fine::create($this->wp_librarian, $post_id);
 			
 				// Renders meta box, displaying useful information about the fine
 				$page[] = $this->prepFineMetaBox($fine);
@@ -2302,7 +2302,7 @@ class WP_LIB_AJAX_PAGE extends WP_LIB_AJAX {
 /**
  * Handles Dashboard API requests, providing useful information to dynamically enhance Dash pages
  */
-class WP_LIB_AJAX_API extends WP_LIB_AJAX {
+class WP_Lib_AJAX_API extends WP_Lib_AJAX {
 	/**
 	 * Adds result of API request to content buffer, to be returned to user, then triggers AJAX request closure
 	 * @param mixed $data Content to be returned to client
@@ -2317,7 +2317,7 @@ class WP_LIB_AJAX_API extends WP_LIB_AJAX {
 	/**
 	 * Performs API request and returns relevant information to client
 	 */
-	function __construct(WP_LIBRARIAN $wp_librarian) {
+	function __construct(WP_Librarian $wp_librarian) {
 		parent::__construct($wp_librarian);
 		
 		// If no request has been given, return error
@@ -2390,7 +2390,7 @@ class WP_LIB_AJAX_API extends WP_LIB_AJAX {
 		// Otherwise sends settings to user
 		if ($settings === false) {
 			$this->wp_librarian->loadHelper('settings');
-			WP_LIB_SETTINGS::checkPluginSettingsIntegrity();
+			WP_Lib_Settings::checkPluginSettingsIntegrity();
 			
 			$this->stopAjax();
 		} else {

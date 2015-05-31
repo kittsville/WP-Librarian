@@ -6,16 +6,16 @@ defined('ABSPATH') OR die('No');
  * Creates, removes and manages the columns of admin post tables for WP-Librarian's post types
  * @todo Add option to sort appropriate admin post table columns
  */
-class WP_LIB_ADMIN_TABLES {
+class WP_Lib_Admin_Tables {
 	/**
 	 * Single instance of core plugin class
-	 * @var WP_LIBRARIAN
+	 * @var WP_Librarian
 	 */
 	private $wp_librarian;
 	
 	/**
 	 * Buffer of current table row's post object
-	 * @var array Array containing current row's post item and a WP_LIB_ITEM|WP_LIB_MEMBER|WP_LIB_LOAN|WP_LIB_FINE instance
+	 * @var array Array containing current row's post item and a WP_Lib_Item|WP_Lib_Member|WP_Lib_Loan|WP_Lib_Fine instance
 	 */
 	protected $row_buffer = array();
 	
@@ -23,7 +23,7 @@ class WP_LIB_ADMIN_TABLES {
 	/**
 	 * Adds WordPress hooks to add custom columns, remove unneeded default columns and add content to the custom columns
 	 */
-	function __construct(WP_LIBRARIAN $wp_librarian) {
+	function __construct(WP_Librarian $wp_librarian) {
 		$this->wp_librarian = $wp_librarian;
 		
 		// Stops admin post table logic interfering elsewhere
@@ -201,7 +201,7 @@ class WP_LIB_ADMIN_TABLES {
 		if (!isset($this->row_buffer[0]) || $this->row_buffer[0] !== $item_id) {
 			$this->row_buffer = array(
 				$item_id,
-				WP_LIB_ITEM::create($this->wp_librarian, $item_id)
+				WP_Lib_Item::create($this->wp_librarian, $item_id)
 			);
 		}
 		
@@ -229,7 +229,7 @@ class WP_LIB_ADMIN_TABLES {
 		if (!isset($this->row_buffer[0]) || $this->row_buffer[0] !== $member_id) {
 			$this->row_buffer = array(
 				$member_id,
-				WP_LIB_MEMBER::create($this->wp_librarian, $member_id)
+				WP_Lib_Member::create($this->wp_librarian, $member_id)
 			);
 		}
 		

@@ -7,7 +7,7 @@ defined('ABSPATH') OR die('No');
  * Loaded Automatically: YES
  * @todo Add injective dependencies and reap the relevant benefits
  */
-class WP_LIB_ERROR {
+class WP_Lib_Error {
 	/**
 	 * Error code, must be a valid code from $error_codes
 	 * @var int
@@ -104,7 +104,7 @@ class WP_LIB_ERROR {
 		 * Allows developers to add their own error codes
 		 * @link https://github.com/kittsville/WP-Librarian/wiki/wp_lib_error_codes
 		 */
-		$error_codes = apply_filters('wp_lib_error_codes', WP_LIB_ERROR::$error_codes);
+		$error_codes = apply_filters('wp_lib_error_codes', WP_Lib_Error::$error_codes);
 	
 		// If given error code does not exist, calls 'undefined error code' error
 		if (!array_key_exists($error_code, $error_codes))

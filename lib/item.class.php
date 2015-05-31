@@ -6,14 +6,14 @@ defined('ABSPATH') OR die('No');
  * Represents a single library item, with methods to loan/return/etc. said item
  * Loaded Automatically: NO
  */
-class WP_LIB_ITEM extends WP_LIB_OBJECT {
+class WP_Lib_Item extends WP_Lib_Object {
 	/**
 	 * Creates new instance of an item from its post ID
-	 * @param   WP_LIBRARIAN            $wp_librarian   Single instance of core plugin class
+	 * @param   WP_Librarian            $wp_librarian   Single instance of core plugin class
 	 * @param   int                     $item_id        Post ID of an item
-	 * @return  WP_LIB_ITEM|WP_LIB_ERROR                Instance of class or, if error occurred, error class
+	 * @return  WP_Lib_Item|WP_Lib_Error                Instance of class or, if error occurred, error class
 	 */
-	public static function create(WP_LIBRARIAN $wp_librarian, $item_id) {
+	public static function create(WP_Librarian $wp_librarian, $item_id) {
 		return parent::initObject($wp_librarian, $item_id, __class__, 'wp_lib_items', 'Item');
 	}
 	
@@ -189,7 +189,7 @@ class WP_LIB_ITEM extends WP_LIB_OBJECT {
 	/**
 	 * Fetches loan ID of current loan item is on, or loan that was in progress on a given date
 	 * @param   int|bool         $date  OPTIONAL Date (as UNIX timestamp) to check for loan on. Uses current time if unspecified
-	 * @return  int|WP_LIB_ERROR        Loan ID on success, error on failure
+	 * @return  int|WP_Lib_Error        Loan ID on success, error on failure
 	 */
 	public function getLoanId($date = false) {
 		// If a date hasn't been given, assume loan is in progress
@@ -217,14 +217,14 @@ class WP_LIB_ITEM extends WP_LIB_OBJECT {
 	/**
 	 * Fetches loan ID of current loan item is on, or 
 	 * @param   int|bool                    $date   OPTIONAL Date (as UNIX timestamp) to check for loan on. Uses current time if unspecified
-	 * @return  WP_LIB_LOAN|WP_LIB_ERROR            Item's current loan as object on success, library error on failure
+	 * @return  WP_Lib_Loan|WP_Lib_Error            Item's current loan as object on success, library error on failure
 	 */
 	public function getLoan($date = false) {
 		// Fetches loan ID
 		$loan_id = $this->getLoanId($date);
 		
 		// Attempts to create loan object from loan ID
-		$loan = WP_LIB_LOAN::create($this->wp_librarian, $loan_id);
+		$loan = WP_Lib_Loan::create($this->wp_librarian, $loan_id);
 		
 		// If loan ID was invalid, attempt to repair item and return error
 		if (wp_lib_is_error($loan)) {
@@ -240,7 +240,7 @@ class WP_LIB_ITEM extends WP_LIB_OBJECT {
 	 * Uses schedule_loan() and give_item() to achieve most functionality
 	 * @param   int                 $member_id      Post ID of member who is loaning the item
 	 * @param   int|bool            $loan_length    OPTIONAL Number of days loan should last, uses default loan length is unspecified
-	 * @return  bool|WP_LIB_ERROR                   True on success, an error on failure
+	 * @return  bool|WP_Lib_Error                   True on success, an error on failure
 	 */
 	function loanItem($member_id, $loan_length = false) {
 		// Sets start date to current date
@@ -264,7 +264,7 @@ class WP_LIB_ITEM extends WP_LIB_OBJECT {
 			return $loan_id;
 		
 		// Creates loan object
-		$loan = WP_LIB_LOAN::create($this->wp_librarian, $loan_id);
+		$loan = WP_Lib_Loan::create($this->wp_librarian, $loan_id);
 		
 		// Attempts to pass item to member and returns success/failure
 		return $loan->giveItem() === true ?: wp_lib_error(411);
@@ -276,7 +276,7 @@ class WP_LIB_ITEM extends WP_LIB_OBJECT {
 	 * @param   int                 $member_id  Post ID of member to whom the loan will be
 	 * @param   int                 $start_date Date proposed loan will start
 	 * @param   int                 $end_date   Date proposed loan will end
-	 * @return  int|WP_LIB_ERROR                New loan's post ID on success, error on failure
+	 * @return  int|WP_Lib_Error                New loan's post ID on success, error on failure
 	 */
 	public function scheduleLoan($member_id, $start_date, $end_date) {
 		// Checks if member is allowed to be loaned items

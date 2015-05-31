@@ -6,7 +6,7 @@ defined('ABSPATH') OR die('No');
  * Core plugin class. Registers post types, creates pages and manages all central plugin functionality
  * @todo Define custom post type/taxonomy names as class constants
  */
-class WP_LIBRARIAN {
+class WP_Librarian {
 	/**
 	 * Path to plugin folder, without trailing slash
 	 * @var string
@@ -193,7 +193,7 @@ class WP_LIBRARIAN {
 			
 			// Creates all settings plugin needs to run
 			$this->loadHelper('settings');
-			WP_LIB_SETTINGS::addPluginSettings();
+			WP_Lib_Settings::addPluginSettings();
 			
 			// Registers default media types
 			foreach ([
@@ -235,7 +235,7 @@ class WP_LIBRARIAN {
 		if (!current_user_can('edit_users'))
 			return;
 
-		$roles = WP_LIBRARIAN::getUserRoles();
+		$roles = WP_Librarian::getUserRoles();
 
 		// Fetches user's current roles
 		$status = get_user_meta($user->ID, 'wp_lib_role', true);
@@ -641,7 +641,7 @@ class WP_LIBRARIAN {
 		);
 		
 		// Loads class to manage post tables of the post types registered above
-		new WP_LIB_ADMIN_TABLES($this);
+		new WP_Lib_Admin_Tables($this);
 		
 		/**
 		 * Registers custom taxonomy authors
@@ -730,12 +730,12 @@ class WP_LIBRARIAN {
 		// Loads file with settings classes
 		$this->loadHelper('settings');
 		
-		WP_LIB_SETTINGS::$plugin_settings = apply_filters('wp_lib_plugin_settings', WP_LIB_SETTINGS::$plugin_settings);
+		WP_Lib_Settings::$plugin_settings = apply_filters('wp_lib_plugin_settings', WP_Lib_Settings::$plugin_settings);
 	
 		/* -- General Library Settings -- */
 		
 		// Registers general settings section, settings and fields with sanitization callbacks
-		WP_LIB_SETTINGS_SECTION::registerSection(array(
+		WP_Lib_Settings_Section::registerSection(array(
 			'name'      => 'wp_lib_library_group',
 			'title'     => 'General Settings',
 			'settings'  => array(
@@ -823,7 +823,7 @@ class WP_LIBRARIAN {
 		/* -- Slug Settings -- */
 
 		// Registers settings groups and their sanitization callbacks for the slugs used on the front-end of the plugin
-		WP_LIB_SETTINGS_SECTION::registerSection(array(
+		WP_Lib_Settings_Section::registerSection(array(
 			'name'      => 'wp_lib_slug_group',
 			'title'     => 'Front-end Slugs',
 			'callback'  => function(){
@@ -900,7 +900,7 @@ class WP_LIBRARIAN {
 		/* -- Dashboard Settings -- */
 		
 		// Registers Dashboard Settings section with all relevant settings/fields
-		WP_LIB_SETTINGS_SECTION::registerSection(array(
+		WP_Lib_Settings_Section::registerSection(array(
 			'name'      => 'wp_lib_dash_group',
 			'title'     => 'Dashboard',
 			'callback'  =>
@@ -1032,7 +1032,7 @@ class WP_LIBRARIAN {
 					$this->loadHelper('settings');
 					
 					// Checks that all plugin settings are valid, resets any settings that aren't
-					WP_LIB_SETTINGS::checkPluginSettingsIntegrity();
+					WP_Lib_Settings::checkPluginSettingsIntegrity();
 				}
 				
 				// Flushes permalinks, causing any new slugs to be propagated to the rewrite rules
@@ -1051,7 +1051,7 @@ class WP_LIBRARIAN {
 	 */
 	public function ajaxLoadPage() {
 		$this->loadHelper('ajax');
-		new WP_LIB_AJAX_PAGE($this);
+		new WP_Lib_AJAX_Page($this);
 		die(0);
 	}
 	
@@ -1060,7 +1060,7 @@ class WP_LIBRARIAN {
 	 */
 	public function ajaxDoAction() {
 		$this->loadHelper('ajax');
-		new WP_LIB_AJAX_ACTION($this);
+		new WP_Lib_AJAX_Action($this);
 		die(0);
 	}
 	
@@ -1069,7 +1069,7 @@ class WP_LIBRARIAN {
 	 */
 	public function ajaxDoApiRequest() {
 		$this->loadHelper('ajax');
-		new WP_LIB_AJAX_API($this);
+		new WP_Lib_AJAX_API($this);
 		die(0);
 	}
 	
@@ -1167,7 +1167,7 @@ class WP_LIBRARIAN {
 	/*
 	 * If given ID belongs to a valid library object, returns formatted object type
 	 * @param   int                 $post_id    Post ID of library object (item/member/etc.)
-	 * @return  string|WP_LIB_ERROR             Formatted object type or instance of error
+	 * @return  string|WP_Lib_Error             Formatted object type or instance of error
 	 */
 	public function getObjectType($post_id) {
 		// Returns Library object type
@@ -1309,7 +1309,7 @@ class WP_LIBRARIAN {
 			
 			// Loads template hook class
 			$this->loadClass('template-hooks');
-			new WP_LIB_TEMPLATE_HOOKS($this);
+			new WP_Lib_Template_Hooks($this);
 			
 			// If page is archive of multiple items
 			if (is_archive()) {

@@ -15,7 +15,7 @@ defined('ABSPATH') OR die('No');
  * @param string|array  $param      OPTIONAL Relevant parameters to error to enhance error message (not optional for certain error messages)
  */
 function wp_lib_error($error_id, $param = null) {
-	return new WP_LIB_ERROR($error_id, $param);
+	return new WP_Lib_Error($error_id, $param);
 }
 
 /*
@@ -24,7 +24,7 @@ function wp_lib_error($error_id, $param = null) {
  * @return  bool            Whether given data is a library error
  */
 function wp_lib_is_error($object) {
-	return ($object instanceof WP_LIB_ERROR);
+	return ($object instanceof WP_Lib_Error);
 }
 
 	/* -- Permissions -- */
@@ -461,7 +461,7 @@ function wp_lib_format_fine_status($status) {
 // Turns numeric user status into readable string e.g. 5 -> Librarian
 function wp_lib_format_user_permission_status($status) {
 	// Array of all possible user permissions
-	$strings = WP_LIBRARIAN::getUserRoles();
+	$strings = WP_Librarian::getUserRoles();
 	
 	// If given number refers to a status that doesn't exist, throw error
 	if (!array_key_exists($status, $strings)) {

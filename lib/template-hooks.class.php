@@ -5,18 +5,18 @@ defined('ABSPATH') OR die('No');
 /**
  * Manages item post template functionality
  */
-class WP_LIB_TEMPLATE_HOOKS {
+class WP_Lib_Template_Hooks {
 	/**
 	 * Single instance of core plugin class
-	 * @var WP_LIBRARIAN
+	 * @var WP_Librarian
 	 */
 	public $wp_librarian;
 	
 	/**
 	 * Registers hooks that allow templates to access functions of relevant classes
-	 * @param   WP_LIBRARIAN    $wp_librarian   Single instance of core plugin class
+	 * @param   WP_Librarian    $wp_librarian   Single instance of core plugin class
 	 */
-	public function __construct(WP_LIBRARIAN $wp_librarian) {
+	public function __construct(WP_Librarian $wp_librarian) {
 		$this->wp_librarian = $wp_librarian;
 		
 		$wp_librarian->loadClass('library-object');
@@ -42,7 +42,7 @@ class WP_LIB_TEMPLATE_HOOKS {
 		$post = get_post();
 		
 		// Creates instance of library item from post ID
-		$item = WP_LIB_ITEM::create($this->wp_librarian, $post->ID);
+		$item = WP_Lib_Item::create($this->wp_librarian, $post->ID);
 		
 		// If user is librarian (or higher), or if the donor is set to be displayed, fetches item donor
 		// If user isn't a librarian, or there is no listed donor, returns false

@@ -8,10 +8,10 @@ defined('ABSPATH') OR die('No');
  * As this is an abstract class, don't look directly at the class. Only extend this class
  * Loaded Automatically: NO
  */
-abstract class WP_LIB_OBJECT {
+abstract class WP_Lib_Object {
 	/**
 	 * Single instance of core plugin class
-	 * @var WP_LIBRARIAN
+	 * @var WP_Librarian
 	 */
 	protected $wp_librarian;
 	
@@ -23,9 +23,9 @@ abstract class WP_LIB_OBJECT {
 	
 	/**
 	 * Adds instance of main plugin class to class properties
-	 * @param WP_LIBRARIAN $wp_librarian Instance of core plugin class
+	 * @param WP_Librarian $wp_librarian Instance of core plugin class
 	 */
-	private function __construct(WP_LIBRARIAN $wp_librarian, $post_id) {
+	private function __construct(WP_Librarian $wp_librarian, $post_id) {
 		$this->wp_librarian = $wp_librarian;
 		$this->ID           = $post_id;
 	}

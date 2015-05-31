@@ -32,7 +32,7 @@ define('WP_LIB_MAINTAIN_INTEGRITY', true);
 
 require_once (dirname(__FILE__) . '/lib/wp-librarian.class.php');
 
-$wp_librarian = new WP_LIBRARIAN;
+$wp_librarian = new WP_Librarian;
 
 register_activation_hook(__FILE__, array($wp_librarian, 'runOnActivation'));
 

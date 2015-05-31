@@ -5,7 +5,7 @@ defined('ABSPATH') OR die('No');
 /**
  * Holds basic properties/functions relating the plugin's settings
  */
-class WP_LIB_SETTINGS {
+class WP_Lib_Settings {
 	/**
 	 * All settings WP-Librarian is responsible for
 	 * @var array
@@ -95,7 +95,7 @@ class WP_LIB_SETTINGS {
 /**
  * A helper class for registering settings, generating settings sections and rendering settings fields
  */
-class WP_LIB_SETTINGS_SECTION extends WP_LIB_SETTINGS {
+class WP_Lib_Settings_Section extends WP_Lib_Settings {
 	/**
 	 * Registers settings section and all child settings and their child settings fields
 	 * @param array         $section        Settings section to be registered
