@@ -33,4 +33,5 @@ get_header();
 		<div class="navigation"><p><?php posts_nav_link(); ?></p></div>
 	</div>
 </div>
-<?php get_footer(); ?>
+<?php
+get_footer();

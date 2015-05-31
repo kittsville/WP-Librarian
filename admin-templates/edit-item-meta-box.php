@@ -149,3 +149,4 @@ if ($GLOBALS['hook_suffix'] === 'post-new.php')
 	</div>
 </div>
 <div id="item-meta"></div>
+<?php

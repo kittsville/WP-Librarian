@@ -68,3 +68,4 @@ $settings_tab = isset($tabs[$selected_tab]) ? $tabs[$selected_tab][0] : $tabs[''
 		</form>
 	</div>
 </div>
+<?php

@@ -18,3 +18,4 @@ defined('ABSPATH') OR die('No');
 	<div id="wp-lib-notifications"></div>
 	<div id="wp-lib-workspace"></div>
 </div>
+<?php

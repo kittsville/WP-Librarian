@@ -58,3 +58,4 @@ $meta = wp_lib_prep_admin_meta($member->ID, $meta_formatting);
 	</div>
 </div>
 <div id="item-meta"></div>
+<?php
