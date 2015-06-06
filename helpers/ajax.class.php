@@ -1257,7 +1257,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 			$loan = $item->getLoan();
 			
 			// If item can be renewed, provided link to renew item
-			if ($loan->isRenewable) {
+			if ($loan->isRenewable()) {
 				$form[] = array(
 					'type'  => 'button',
 					'link'  => 'page',
