@@ -300,9 +300,15 @@ div.item-no-thumbnail {
 	color: 5F5F5F;
 }
 
-li.single-item a {
+li.single-item  a.dash-button {
 	position: absolute;
 	top: 320px;
+}
+
+a.item-cover-link {
+	color: inherit;
+	text-decoration: none;
+	box-shadow: none;
 }
 
 div.item-meta {
