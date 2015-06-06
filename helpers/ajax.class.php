@@ -88,7 +88,7 @@ class WP_Lib_AJAX {
 	 * @param   callback    $filter OPTIONAL Callback to process the meta field
 	 * @return  string              Post meta value or '-'
 	 */
-	protected function getMetaField(Array $meta, $key, $error = false, $filter = false) {
+	public function getMetaField(Array $meta, $key, $error = false, $filter = false) {
 		if (isset($meta[$key]))
 			// Returns meta value, filtered via a callback if there is a valid one
 			if ($filter && is_callable($filter))
