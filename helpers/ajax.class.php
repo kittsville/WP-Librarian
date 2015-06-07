@@ -356,9 +356,12 @@ class WP_Lib_AJAX_Action extends WP_Lib_AJAX {
 		if ($start_date > $end_date || $end_date < current_time('timestamp'))
 			$this->stopAjax(307);
 		
+		// Loan ID is returned on success, WP_Lib_Error on false
+		$success = $item->scheduleLoan($member->ID, $start_date, $end_date);
+		
 		// Returns success/failure
 		$this->endAction(
-			is_int($item->scheduleLoan($member->ID, $start_date, $end_date)),
+			is_int($success) ? true : $success,
 			'A loan of ' . get_the_title($item->ID) . ' has been scheduled'
 		);
 	}
