@@ -39,12 +39,8 @@ class WP_Lib_Item extends WP_Lib_Object {
 		// Fetches all loans assigned to item
 		$loans = $this::createLoanIndex($this->ID);
 		
-		// If item has no loans, it'll be available regardless of date
-		if (!$loans)
-			return false;
-		
-		// Runs scheduling engine to check for conflicts. If engine returns true, no conflicts exist.
-		return !wp_lib_recursive_scheduling_engine($start_date, $end_date, $loans);
+		// Runs scheduling engine to check for conflicts
+		return !wp_lib_no_loan_conflict($start_date, $end_date, $loans);
 	}
 	
 	/**

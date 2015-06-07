@@ -479,50 +479,13 @@ function wp_lib_format_item_condition($number) {
 	/* -- Miscellaneous -- */
 
 /**
- * Given an array of loans, checks if a proposed loan would be viable
- * Use create_loan_index to generate and sort the ordered loan index necessary for the function
- * @param   int     $proposed_start Proposed start of new loan as a UNIX timestamp
- * @param   int     $proposed_end   Proposed end of new loan as a UNIX timestamp
- * @param   array   $loans          List of existing loans, ordered chronologically. Can't be empty array
- * @param   int     $current        Current position in array being checked by recursive_scheduling_engine()
- * @return  bool                    Whether the proposed loan would be viable
- * @todo                            Move to dedicated class or create wrapper than handles empty $loans cases
- */
-function wp_lib_recursive_scheduling_engine($proposed_start, $proposed_end, $loans, $current = 0) {
-	// Creates key for previous and next loans, regardless of if they exist
-	$previous = $current - 1;
-	$next = $current + 1;
-	
-	// Checks if a loan exists before current loan, if so then there is a gap to be checked for suitability
-	if (isset($loans[$previous])) {
-		// If the proposed loan starts after the $previous loan ends and ends before the $current loan starts, then the proposed loan would work
-		if ($proposed_start > $loans[$previous]['end'] && $proposed_end < $loans[$current]['start'])
-			return true;
-	}
-	// Otherwise $current loan is earliest loan, so if proposed loan ends before $current loan starts, proposed loan would work
-	elseif ($proposed_end < $loans[$current]['start'])
-		return true;
-	
-	// Checks if a loan exists after the $current loan, if so then function calls itself on the next loan
-	if (isset($loans[$next]))
-		return wp_lib_recursive_scheduling_engine($proposed_start, $proposed_end, $loans, $next);
-	
-	// Otherwise $current loan is last loan, so if proposed loan starts after $current loan ends, proposed loan would work
-	elseif ($proposed_start > $loans[$current]['end'])
-		return true;
-	
-	// If this statement is reached, all loans have been checked and no viable gap has been found, so proposed loan will not work
-	return false;
-}
-
-/**
- * Checks if a proposed loan conflicts with the item's existing loans
+ * Checks if a proposed loan conflicts with an item's existing loans
  * @param	int		$loan_start		Proposed start of new loan as a UNIX timestamp
  * @param	int		$loan_end		Proposed end of new loan as a UNIX timestamp
  * @param	Array	$existing_loans	Item's existing loans, ordered by starting date
  * @return	bool					Whether the proposed loan would work
  */
-function wp_lib_conflict_free_loan($loan_start, $loan_end, Array $existing_loans) {
+function wp_lib_no_loan_conflict($loan_start, $loan_end, Array $existing_loans) {
 	if (0 === count($existing_loans))
 		return true;
 	
@@ -530,19 +493,26 @@ function wp_lib_conflict_free_loan($loan_start, $loan_end, Array $existing_loans
 	if ($loan_end < $existing_loans[0]['start'])
 		return true;
 	
-	end($array);
+	end($existing_loans);
 	
 	// If new loan starts after last existing loan ends
-	if ($loan_start > $existing_loans[key($array)]['end'])
+	if ($loan_start > $existing_loans[key($existing_loans)]['end'])
 		return true;
 	
 	/**
 	 * Traverses array from last to first because typically loan will concern last (most recent chronologically) loans
 	 * For the new loan to work it must start after the last loan ends and end before the next one starts
 	 */
-	for ($i = count($existing_loans); $i > 1; --$i) {
-		// GGGG
+	for ($i = count($existing_loans) - 1; $i > 0; --$i) {
+		if ($loan_start > $existing_loans[$i - 1]['end']) {
+			if ($loan_end < $existing_loans[$i]['start'])
+				return true;
+			else
+				return false;
+		}
 	}
+	
+	return false;
 }
 
 function wp_lib_prep_member_options($default_option = true) {
