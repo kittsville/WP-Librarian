@@ -37,7 +37,7 @@ class WP_Lib_Item extends WP_Lib_Object {
 		}
 		
 		// Fetches all loans assigned to item
-		$loans = $this::createLoanIndex($this->ID);
+		$loans = $this::createLoanIndex();
 		
 		// Runs scheduling engine to check for conflicts
 		return !wp_lib_no_loan_conflict($start_date, $end_date, $loans);
