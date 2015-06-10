@@ -23,13 +23,6 @@ class WP_Lib_Template_Hooks {
 		$wp_librarian->loadClass('item');
 		$wp_librarian->loadClass('loan');
 		
-		$this->registerHooks();
-	}
-	
-	/**
-	 * Registers hooks that templates can call
-	 */
-	protected function registerHooks() {
 		add_action('wp_lib_display_item_meta', array($this, 'DisplayItemMeta'));
 	}
 	
