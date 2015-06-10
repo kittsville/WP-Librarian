@@ -725,8 +725,8 @@ class WP_Lib_AJAX_Action extends WP_Lib_AJAX {
 	
 	/**
 	 * Allows checked items/members/loans/fines to be deleted without WP-Librarian's integrity checks causing a problem
-	 * @param	int	$post_id	WP Post ID of post being deleted
-	 * @return	bool			Whether post can be deleted
+	 * @param   int $post_id    WP Post ID of post being deleted
+	 * @return  bool            Whether post can be deleted
 	 */
 	public function allowPostDeletion($allow_deletion, $post_id) {
 		if (in_array(array($post_id, get_post_type($post_id)), $this->deletion_authorised_objects)) {
@@ -2262,7 +2262,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 				array(
 					'type'  => 'button',
 					'link'  => 'page',
-					'value'	=> 'dashboard',
+					'value' => 'dashboard',
 					'html'  => 'Cancel',
 					'title' => 'Cancel deletion and return to Dashboard home'
 				)
