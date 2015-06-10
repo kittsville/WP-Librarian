@@ -2262,6 +2262,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 				array(
 					'type'  => 'button',
 					'link'  => 'page',
+					'value'	=> 'dashboard',
 					'html'  => 'Cancel',
 					'title' => 'Cancel deletion and return to Dashboard home'
 				)
