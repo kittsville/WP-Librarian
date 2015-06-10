@@ -1339,31 +1339,12 @@ class WP_Librarian {
 	 */
 	public function checkPostPreTrash($post_id) {
 		// If object doesn't belong to the Library, is an autosave or integrity checking is turned off, pre-deletion checking is skipped
-		if (!in_array($GLOBALS['post_type'], ['wp_lib_items', 'wp_lib_members', 'wp_lib_loans', 'wp_lib_fines']) || wp_is_post_autosave($post_id) || !WP_LIB_MAINTAIN_INTEGRITY || apply_filters('wp_lib_bypass_deletion_checks', false, $post_id))
+		if (!in_array(get_post_type($post_id), ['wp_lib_items', 'wp_lib_members', 'wp_lib_loans', 'wp_lib_fines']) || wp_is_post_autosave($post_id) || !WP_LIB_MAINTAIN_INTEGRITY || apply_filters('wp_lib_bypass_deletion_checks', false, $post_id))
 			return;
 		
 		// If object is being deleted via an AJAX request
-		if (defined('DOING_AJAX') && DOING_AJAX && isset($GLOBALS['wp_lib_ajax'])) {
-			$ajax = $GLOBALS['wp_lib_ajax'];
-			
-			// If authorisation array doesn't exist, item can't be in it and can't have been authorised for deletion
-			if (!property_exists($ajax, 'deletion_authed_objects'))
-				$ajax->stopAjax(505);
-			
-			// Iterates over all objects authorised for deletion
-			foreach($ajax->deletion_authed_objects as $key => $object) {
-				// If current object's ID in the loop matches the $post_id then the object has been authorised for deletion
-				if ($object[0] === $post_id) {
-					// Removes object from authorisation array
-					unset($ajax->deletion_authed_objects[$key]);
-					
-					// Allow WordPress to delete object
-					return;
-				}
-			}
-			
-			// If this point is reached, object was never authorised for deletion
-			$ajax->stopAjax(505);
+		if (defined('DOING_AJAX') && DOING_AJAX) {
+			die();
 		} else {
 			// Redirects user to page to confirm object deletion properly (with connected objects being deleted as well)
 			wp_redirect(wp_lib_format_dash_url(

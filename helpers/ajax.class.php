@@ -222,13 +222,20 @@ class WP_Lib_AJAX {
  * such as loaning/returning an item or fining a member
  */
 class WP_Lib_AJAX_Action extends WP_Lib_AJAX {
-	// Contains array of posts authorised for deletion
-	public $deletion_authed_objects = [];
+	/**
+	 * Post IDs/post types of library objects that have been checked and can be deleted
+	 * without breaking the library, provided that ALL posts in the array are deleted
+	 * @todo Find a better way than this to allow object deletion
+	 * @var Array
+	 */
+	public $deletion_authorised_objects = array();
 	
 	/**
 	 * Performs Dashboard based on requested action
 	 */
 	function __construct(WP_Librarian $wp_librarian) {
+		add_action('wp_lib_bypass_deletion_checks', array($this, 'allowPostDeletion'), 2, 10);
+		
 		parent::__construct($wp_librarian);
 		// If no action has been specified, call error
 		if (!isset($_POST['dash_action']))
@@ -659,7 +666,7 @@ class WP_Lib_AJAX_Action extends WP_Lib_AJAX {
 		$object_count = count($connected_objects);
 		
 		// Adds current object
-		$connected_objects[] = array($post_id);
+		$connected_objects[] = array($post_id, get_post_type($post_id));
 		
 		// Iterates over objects, checking for any items currently on loan
 		// If an item is on loan then it is physically outside the Library and should not be deleted from Library records
@@ -682,7 +689,7 @@ class WP_Lib_AJAX_Action extends WP_Lib_AJAX {
 		}
 		
 		// Adds objects authorised for deletion to class buffer
-		$this->deletion_authed_objects = $connected_objects;
+		$this->deletion_authorised_objects = $connected_objects;
 		
 		// Iterates over objects, deleting them
 		foreach($connected_objects as $object) {
@@ -714,6 +721,19 @@ class WP_Lib_AJAX_Action extends WP_Lib_AJAX {
 			$item->repair(),
 			'Attempted repair of '.get_the_title($item->ID).' completed'
 		);
+	}
+	
+	/**
+	 * Allows checked items/members/loans/fines to be deleted without WP-Librarian's integrity checks causing a problem
+	 * @param	int	$post_id	WP Post ID of post being deleted
+	 * @return	bool			Whether post can be deleted
+	 */
+	public function allowPostDeletion($allow_deletion, $post_id) {
+		if (in_array(array($post_id, get_post_type($post_id)), $this->deletion_authorised_objects)) {
+			return true;
+		} else {
+			return $allow_deletion;
+		}
 	}
 }
 
