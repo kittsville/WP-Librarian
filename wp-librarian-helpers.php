@@ -529,7 +529,8 @@ function wp_lib_prep_member_options($default_option = true) {
 	
 	$args = array(
 		'post_type'     => 'wp_lib_members',
-		'post_status'   => 'publish'
+		'post_status'   => 'publish',
+		'nopaging'		=> true,
 	);
 	
 	// Fetches all, if any, members
