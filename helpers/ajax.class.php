@@ -962,7 +962,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 			array('Phone',      $this->getMetaField($meta, 'wp_lib_member_phone')),
 			array('Mobile', $this->getMetaField($meta, 'wp_lib_member_mobile')),
 			array('Owed',       wp_lib_format_money($member->getMoneyOwed())),
-			array('On Loan',    wp_lib_prep_members_items_out($member->ID))
+			array('On Loan',    wp_lib_prep_members_items_out($member->ID)),
 		);
 		
 		// Finalises and returns management header
@@ -970,7 +970,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 			'type'      => 'metabox',
 			'title'     => 'Details',
 			'classes'   => 'member-man',
-			'fields'    => $meta_fields
+			'fields'    => $meta_fields,
 		);
 	}
 
@@ -988,15 +988,15 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 		
 		// Adds basic loan meta fields
 		$meta_fields = array(
-			array('Loan ID',            $loan->ID),
-			array('Item',               $this->getMetaField($meta, 'wp_lib_item', true, 'wp_lib_manage_item_dash_hyperlink')),
+			array('Loan ID',        $loan->ID),
+			array('Item',           $this->getMetaField($meta, 'wp_lib_item', true, 'wp_lib_manage_item_dash_hyperlink')),
 			array('Member',         $this->getMetaField($meta, 'wp_lib_member', true, 'wp_lib_manage_member_dash_hyperlink')),
-			array('Creator',            $this->getUserName(get_post_field('post_author', $loan->ID))),
+			array('Creator',        $this->getUserName(get_post_field('post_author', $loan->ID))),
 			array('Expected Start', $this->getMetaField($meta, 'wp_lib_start_date', true, 'wp_lib_format_unix_timestamp')),
-			array('Expected End',       $this->getMetaField($meta, 'wp_lib_end_date', true, 'wp_lib_format_unix_timestamp')),
-			array('Actual Start',       $this->getMetaField($meta, 'wp_lib_give_date', false, 'wp_lib_format_unix_timestamp')),
+			array('Expected End',   $this->getMetaField($meta, 'wp_lib_end_date', true, 'wp_lib_format_unix_timestamp')),
+			array('Actual Start',   $this->getMetaField($meta, 'wp_lib_give_date', false, 'wp_lib_format_unix_timestamp')),
 			array('Actual End',     $this->getMetaField($meta, 'wp_lib_return_date', false, 'wp_lib_format_unix_timestamp')),
-			array('Status',         $meta['wp_lib_status'][0] === '4' ? wp_lib_prep_dash_hyperlink($status, $this->getMetaField($meta, 'wp_lib_fine', true, 'wp_lib_prep_manage_fine_params')) : $status) // If loan incurred fine, status is link to manage fine
+			array('Status',         $meta['wp_lib_status'][0] === '4' ? wp_lib_prep_dash_hyperlink($status, $this->getMetaField($meta, 'wp_lib_fine', true, 'wp_lib_prep_manage_fine_params')) : $status), // If loan incurred fine, status is link to manage fine
 		);
 		
 		// Finalises and returns management header
@@ -1004,7 +1004,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 			'type'      => 'metabox',
 			'title'     => 'Details',
 			'classes'   => 'loan-man',
-			'fields'    => $meta_fields
+			'fields'    => $meta_fields,
 		);
 	}
 
@@ -1026,11 +1026,11 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 				array('Fine ID',    $fine->ID),
 				array('Loan ID',    wp_lib_prep_dash_hyperlink($this->getMetaField($meta, 'wp_lib_loan', true), $this->getMetaField($meta, 'wp_lib_loan', true, 'wp_lib_prep_manage_loan_params'))),
 				array('Item',       $this->getMetaField($meta, 'wp_lib_item', true, 'wp_lib_manage_item_dash_hyperlink')),
-				array('Member', $this->getMetaField($meta, 'wp_lib_member', true, 'wp_lib_manage_member_dash_hyperlink')),
+				array('Member',     $this->getMetaField($meta, 'wp_lib_member', true, 'wp_lib_manage_member_dash_hyperlink')),
 				array('Creator',    $this->getUserName(get_post_field('post_author', $fine->ID))),
-				array('Amount', $this->getMetaField($meta, 'wp_lib_owed', true, 'wp_lib_format_money')),
-				array('Status', $this->getMetaField($meta, 'wp_lib_status', true, 'wp_lib_format_fine_status')),
-				array('Created',    get_the_date('', $fine->ID))
+				array('Amount',     $this->getMetaField($meta, 'wp_lib_owed', true, 'wp_lib_format_money')),
+				array('Status',     $this->getMetaField($meta, 'wp_lib_status', true, 'wp_lib_format_fine_status')),
+				array('Created',    get_the_date('', $fine->ID)),
 			)
 		);
 	}
@@ -1050,17 +1050,17 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 		return $dynatable->generateTable(
 			array(
 				array('Loan',       'loan',     'genColumnManageLoan'),
-				array('Member', 'member',   'genColumnManageMember'),
-				array('Status', 'status',   'genColumnLoanStatus'),
-				array('Loaned', 'loaned',   'genColumnLoanStart'),
+				array('Member',     'member',   'genColumnManageMember'),
+				array('Status',     'status',   'genColumnLoanStatus'),
+				array('Loaned',     'loaned',   'genColumnLoanStart'),
 				array('Expected',   'expected', 'genColumnLoanEnd'),
 				array('Returned',   'returned', 'genColumnReturned')
 			),
 			array(
 				'id'            => 'member-loans',
 				'labels'        => array(
-					'records'   => 'loans'
-				)
+					'records'   => 'loans',
+				),
 			),
 			get_the_title($item_id) . ' has never been loaned'
 		);
@@ -1086,49 +1086,49 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 				'icon'  => 'search',
 				'link'  => 'dash-page',
 				'value' => 'scan-item',
-				'title' => 'Enter item barcode or ISBN'
+				'title' => 'Enter item barcode or ISBN',
 			),
 			array(
 				'bName' => 'Manage Items',
 				'icon'  => 'book-alt',
 				'link'  => 'dash-page',
 				'value' => 'view-items',
-				'title' => 'View list of all items'
+				'title' => 'View list of all items',
 			),
 			array(
 				'bName' => 'Manage Members',
 				'icon'  => 'admin-users',
 				'link'  => 'post-type',
 				'cpt'   => 'wp_lib_members',
-				'title' => 'View list of all members'
+				'title' => 'View list of all members',
 			),
 			array(
 				'bName' => 'Manage Loans',
 				'icon'  => 'upload',
 				'link'  => 'post-type',
 				'cpt'   => 'wp_lib_loans',
-				'title' => 'View list of all loans'
+				'title' => 'View list of all loans',
 			),
 			array(
 				'bName' => 'Manage Fines',
 				'icon'  => 'carrot', // Placeholder carrot
 				'link'  => 'post-type',
 				'cpt'   => 'wp_lib_fines',
-				'title' => 'View list of all fines'
+				'title' => 'View list of all fines',
 			),
 			array(
 				'bName' => 'Settings',
 				'icon'  => 'admin-generic',
 				'link'  => 'admin-url',
 				'url'   => 'edit.php?post_type=wp_lib_items&page=wp-lib-settings',
-				'title' => 'Change WP-Librarian\'s settings'
+				'title' => 'Change WP-Librarian\'s settings',
 			),
 			array(
 				'bName' => 'Help',
 				'icon'  => 'editor-help',
 				'link'  => 'url',
 				'url'   => 'https://github.com/kittsville/WP-Librarian/wiki',
-				'title' => 'Read plugin documentation'
+				'title' => 'Read plugin documentation',
 			)
 		));
 
@@ -1141,12 +1141,12 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 		$page = array(
 			array(
 				'type'      => 'paras',
-				'content'   => 'Use the options below to manage your Library'
+				'content'   => 'Use the options below to manage your Library',
 			),
 			array(
 				'type'      => 'div',
 				'classes'   => 'dashboard-buttons-wrap',
-				'inner'     => $buttons
+				'inner'     => $buttons,
 			)
 		);
 		
@@ -1170,7 +1170,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 			array(
 				'post_type'         => 'wp_lib_items',
 				'post_status'       => 'publish',
-				'nopaging'          => true
+				'nopaging'          => true,
 			)
 		);
 		
@@ -1178,7 +1178,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 		if ($query->have_posts()){
 			$page[] = array(
 				'type'      => 'paras',
-				'content'   => 'Select an item to manage it. Late items are highlighted in red.'
+				'content'   => 'Select an item to manage it. Late items are highlighted in red.',
 			);
 			
 			// Iterates through items
@@ -1191,7 +1191,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 				// Sets up basic item parameters
 				$item_details = array(
 					'title' => get_the_title($item->ID),
-					'link'  => get_permalink($item->ID)
+					'link'  => get_permalink($item->ID),
 				);
 				
 				// If item has a cover image, fetch url and add to item array
@@ -1228,12 +1228,12 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 			$page[] = array(
 				'type'      => 'item-list',
 				'data'      => $items,
-				'records'   => 'items'
+				'records'   => 'items',
 			);
 		} else {
 			$page[] = array(
 				'type'      => 'paras',
-				'content'   => 'No items found.'
+				'content'   => 'No items found.',
 			);
 		}
 		
@@ -1258,7 +1258,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 		$form[] = array(
 			'type'  => 'hidden',
 			'name'  => 'item_id',
-			'value' => $item->ID
+			'value' => $item->ID,
 		);
 		
 		// If debugging is enabled, add test loan creation button to every loan's page
@@ -1268,7 +1268,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 				'link'  => 'action',
 				'value' => 'run-test-loan',
 				'html'  => 'Create Debug Entry',
-				'title' => 'Create loan that is automatically late to test site functionality'
+				'title' => 'Create loan that is automatically late to test site functionality',
 			);
 		}
 		
@@ -1285,7 +1285,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 					'type'  => 'button',
 					'link'  => 'page',
 					'value' => 'renew-item',
-					'html'  => 'Renew'
+					'html'  => 'Renew',
 				);
 			}
 			
@@ -1306,7 +1306,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 					'link'  => 'page',
 					'html'  => 'Resolve',
 					'value' => 'resolve-loan',
-					'title' => 'Choose whether or not to fine the user for the late return'
+					'title' => 'Choose whether or not to fine the user for the late return',
 				);
 			
 			} else {
@@ -1316,7 +1316,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 					'link'  => 'action',
 					'html'  => 'Return',
 					'value' => 'return-item',
-					'title' => 'Return item to the library'
+					'title' => 'Return item to the library',
 				);
 			}
 		}
@@ -1324,14 +1324,14 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 			// Creates options for loan length
 			$length_options[] = array(
 				'value' => '',
-				'html'  => '0 Days'
+				'html'  => '0 Days',
 			);
 			
 			// Creates loan length options from 1-12
 			for ($i = 1; $i < 13; $i++){
 				$length_options[] = array(
 					'value' => $i,
-					'html'  => $i . ' Days'
+					'html'  => $i . ' Days',
 				);
 			}
 			
@@ -1344,7 +1344,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 						'options'       => wp_lib_prep_member_options(),
 						'optionClass'   => 'member-choice-option',
 						'classes'       => 'member-select',
-						'name'          => 'member_id'
+						'name'          => 'member_id',
 					),
 					// Dropdown menu of loan lengths
 					array(
@@ -1352,14 +1352,14 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 						'options'       => $length_options,
 						'optionClass'   => 'loan-length-option',
 						'classes'       => array('loan-length'),
-						'name'          => 'loan_length'
+						'name'          => 'loan_length',
 					),
 					// Button to loan item to selected member for selected number of days
 					array(
 						'type'  => 'button',
 						'link'  => 'action',
 						'value' => 'loan',
-						'html'  => 'Loan Item'
+						'html'  => 'Loan Item',
 					),
 					// To schedule a loan, where the item is given to the member at a later date
 					array(
@@ -1367,7 +1367,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 						'link'  => 'page',
 						'html'  => 'Schedule Loan',
 						'value' => 'scheduling-page',
-						'title' => 'Schedule a loan to be fulfilled later'
+						'title' => 'Schedule a loan to be fulfilled later',
 					)
 				)
 			);
@@ -1378,7 +1378,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 			'type'  => 'button',
 			'link'  => 'edit',
 			'icon'  => 'edit',
-			'title' => 'Edit Item'
+			'title' => 'Edit Item',
 		);
 		
 		// Only show item deletion button if item isn't on loan
@@ -1388,14 +1388,14 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 				'link'  => 'page',
 				'value' => 'object-deletion',
 				'icon'  => 'trash',
-				'title' => 'Delete Item'
+				'title' => 'Delete Item',
 			);
 		}
 		
 		// Adds Dash form elements to page
 		$page[] = array(
 			'type'      => 'form',
-			'content'   => $form
+			'content'   => $form,
 		);
 		
 		// Fetches list of loans of item
@@ -1425,7 +1425,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 		$form[] = array(
 			'type'  => 'hidden',
 			'name'  => 'member_id',
-			'value' => $member->ID
+			'value' => $member->ID,
 		);
 		
 		// Fetches amount owed by member to Library
@@ -1438,7 +1438,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 				'link'  => 'page',
 				'value' => 'pay-fines',
 				'html'  => 'Pay Fines',
-				'title' => 'Subtract money from amount owed by member'
+				'title' => 'Subtract money from amount owed by member',
 			);
 		}
 		
@@ -1447,7 +1447,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 			'type'  => 'button',
 			'link'  => 'edit',
 			'icon'  => 'edit',
-			'title' => 'Edit member details'
+			'title' => 'Edit member details',
 		);
 		
 		// Button to delete member
@@ -1456,13 +1456,13 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 			'link'  => 'page',
 			'value' => 'object-deletion',
 			'icon'  => 'trash',
-			'title' => 'Delete member and all their loans/fines'
+			'title' => 'Delete member and all their loans/fines',
 		);
 		
 		// Adds form elements to Dash page
 		$page[] = array(
 			'type'      => 'form',
-			'content'   => $form
+			'content'   => $form,
 		);
 		
 		$this->wp_librarian->loadHelper('dynatable');
@@ -1475,16 +1475,16 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 			array(
 				array('Loan',       'loan',     'genColumnManageLoan'),
 				array('Item',       'item',     'genColumnManageItem'),
-				array('Status', 'status',   'genColumnLoanStatus'),
-				array('Loaned', 'loaned',   'genColumnLoanStart'),
+				array('Status',     'status',   'genColumnLoanStatus'),
+				array('Loaned',     'loaned',   'genColumnLoanStart'),
 				array('Expected',   'expected', 'genColumnLoanEnd'),
-				array('Returned',   'returned', 'genColumnReturned')
+				array('Returned',   'returned', 'genColumnReturned'),
 			),
 			array(
 				'id'        => 'member-loans',
 				'labels'    => array(
-					'records'   => 'loans'
-				)
+					'records'   => 'loans',
+				),
 			),
 			get_the_title($member->ID) . ' has never borrowed an item'
 		);
@@ -1512,7 +1512,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 			array(
 				'type'  => 'hidden',
 				'name'  => 'loan_id',
-				'value' => $loan->ID
+				'value' => $loan->ID,
 			)
 		);
 		
@@ -1522,7 +1522,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 				'type'  => 'button',
 				'link'  => 'page',
 				'value' => 'renew-item',
-				'html'  => 'Renew Item'
+				'html'  => 'Renew Item',
 			);
 		}
 		
@@ -1541,7 +1541,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 					'type'  => 'button',
 					'link'  => 'action',
 					'value' => 'give-item',
-					'html'  => 'Loan Item'
+					'html'  => 'Loan Item',
 				);
 			}
 			
@@ -1551,7 +1551,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 				'link'  => 'page',
 				'value' => 'give-item-past',
 				'html'  => 'Loan at a Past Date',
-				'title' => 'Mark item as having been given to the member at a past date'
+				'title' => 'Mark item as having been given to the member at a past date',
 			);
 		
 		// If item is currently on loan, provides button to return item
@@ -1560,7 +1560,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 			$form[] = array(
 				'type'  => 'hidden',
 				'name'  => 'item_id',
-				'value' => get_post_meta($loan->ID, 'wp_lib_item', true)
+				'value' => get_post_meta($loan->ID, 'wp_lib_item', true),
 			);
 			
 			// Adds button to return item (redirects to item management page)
@@ -1569,7 +1569,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 				'link'  => 'page',
 				'value' => 'manage-item',
 				'html'  => 'Return Item',
-				'title' => 'Return item to the library'
+				'title' => 'Return item to the library',
 			);
 		}
 		
@@ -1580,14 +1580,14 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 				'link'  => 'page',
 				'value' => 'object-deletion',
 				'icon'  => 'trash',
-				'title' => 'Delete loan and any connected fine'
+				'title' => 'Delete loan and any connected fine',
 			);
 		}
 		
 		// Adds form to page
 		$page[] = array(
 			'type'      => 'form',
-			'content'   => $form
+			'content'   => $form,
 		);
 		
 		// If loan has ever been renewed, generates table listing all times loan has been renewed
@@ -1605,7 +1605,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 				$renewings[] = array(
 					'renewedOn'     => wp_lib_format_unix_timestamp($renew_event[0]),
 					'renewedUntil'  => wp_lib_format_unix_timestamp(isset($meta['wp_lib_renew'][$count]) ? $meta['wp_lib_renew'][$count][1] : $meta['wp_lib_end_date'][0]),
-					'librarian'     => $this->getUserName($renew_event[2])
+					'librarian'     => $this->getUserName($renew_event[2]),
 				);
 			}
 			
@@ -1616,8 +1616,8 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 				'headers'   => ['Renewed On', 'Renewed Until', 'Librarian'],
 				'data'      => $renewings,
 				'labels'    => array(
-					'records'   => 'times renewed'
-				)
+					'records'   => 'times renewed',
+				),
 			);
 		}
 		
@@ -1643,11 +1643,11 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 			array(
 			'type'  => 'hidden',
 			'name'  => 'fine_id',
-			'value' => $fine->ID
+			'value' => $fine->ID,
 			),
 			array(
 				'type'      => 'paras',
-				'content'   => 'Fines can be paid from the member\'s management page.'
+				'content'   => 'Fines can be paid from the member\'s management page.',
 			)
 		);
 		
@@ -1658,7 +1658,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 				'link'  => 'action',
 				'value' => 'cancel-fine',
 				'html'  => 'Cancel Fine',
-				'title' => 'Mark fine as cancelled. This stops the member owing the fine\'s charge'
+				'title' => 'Mark fine as cancelled. This stops the member owing the fine\'s charge',
 			);
 		}
 		
@@ -1668,13 +1668,13 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 			'link'  => 'page',
 			'value' => 'object-deletion',
 			'icon'  => 'trash',
-			'title' => 'Delete fine. Does not cancel money owed by member'
+			'title' => 'Delete fine. Does not cancel money owed by member',
 		);
 		
 		// Adds form to Dash page
 		$page[] = array(
 			'type'      => 'form',
-			'content'   => $form
+			'content'   => $form,
 		);
 		
 		// Sends entire page to be encoded in JSON
@@ -1701,18 +1701,18 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 						'name'      => 'item_barcode',
 						'attr'      => array(
 							'autofocus' => true,
-							'type'      => 'text'
-						)
+							'type'      => 'text',
+						),
 					),
 					array(
 						'type'  => 'button',
 						'link'  => 'none',
 						'id'    => 'barcode-submit',
 						'value' => 'scan-barcode',
-						'html'  => 'Scan'
-					)
-				)
-			)
+						'html'  => 'Scan',
+					),
+				),
+			),
 		);
 		
 		// Script to handle dynamic barcode lookup
@@ -1746,7 +1746,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 				array(
 					'type'  => 'hidden',
 					'name'  => 'item_id',
-					'value' => $item->ID
+					'value' => $item->ID,
 				),
 				array(
 					'type'      => 'div',
@@ -1755,16 +1755,16 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 						array(
 							'type'  => 'strong',
 							'html'  => 'Member:',
-							'label' => 'member-select'
+							'label' => 'member-select',
 						),
 						array(
 							'type'          => 'select',
 							'name'          => 'member_id',
 							'options'       => wp_lib_prep_member_options(),
 							'optionClass'   => 'member-select-option',
-							'classes'       => 'member-select'
-						)
-					)
+							'classes'       => 'member-select',
+						),
+					),
 				),
 				array(
 					'type'  => 'div',
@@ -1772,15 +1772,15 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 						array(
 							'type'  => 'strong',
 							'html'  => 'Start Date:',
-							'label' => 'loan-start'
+							'label' => 'loan-start',
 						),
 						array(
 							'type'  => 'date',
 							'name'  => 'start_date',
 							'id'    => 'loan-start',
-							'value' => Date('Y-m-d', $current_time)
-						)
-					)
+							'value' => Date('Y-m-d', $current_time),
+						),
+					),
 				),
 				array(
 					'type'  => 'div',
@@ -1788,23 +1788,23 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 						array(
 							'type'  => 'strong',
 							'html'  => 'End Date:',
-							'label' => 'loan-end'
+							'label' => 'loan-end',
 						),
 						array(
 							'type'  => 'date',
 							'name'  => 'end_date',
 							'id'    => 'loan-end',
-							'value' => Date('Y-m-d', $current_time + (get_option('wp_lib_loan_length', array(12))[0] * 24 * 60 * 60))
-						)
-					)
+							'value' => Date('Y-m-d', $current_time + (get_option('wp_lib_loan_length', array(12))[0] * 24 * 60 * 60)),
+						),
+					),
 				),
 				array(
 					'type'  => 'button',
 					'html'  => 'Schedule Loan',
 					'link'  => 'action',
-					'value' => 'schedule'
-				)
-			)
+					'value' => 'schedule',
+				),
+			),
 		);
 		
 		// Fetches list of loans of item
@@ -1857,7 +1857,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 			'type'      => 'paras',
 			'content'   => array(
 				$renewals_left,
-				'Select when the item should now be due back:'
+				'Select when the item should now be due back:',
 			)
 		);
 		
@@ -1867,19 +1867,19 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 				array(
 					'type'  => 'hidden',
 					'name'  => 'loan_id',
-					'value' => $loan->ID
+					'value' => $loan->ID,
 				),
 				array(
 					'type'  => 'date',
 					'name'  => 'renewal_date',
 					'id'    => 'item-renew-date',
-					'value' => Date('Y-m-d', current_time('timestamp'))
+					'value' => Date('Y-m-d', current_time('timestamp')),
 				),
 				array(
 					'type'  => 'button',
 					'link'  => 'action',
 					'value' => 'renew-item',
-					'html'  => 'Renew Item'
+					'html'  => 'Renew Item',
 				)
 			)
 		);
@@ -1921,26 +1921,26 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 						array(
 							'type'  => 'hidden',
 							'name'  => 'loan_id',
-							'value' => $loan->ID
+							'value' => $loan->ID,
 						),
 						array(
 							'type'      => 'paras',
-							'content'   => 'Enter date that item was given to member. In future do not release the item from the Library without recording it first.'
+							'content'   => 'Enter date that item was given to member. In future do not release the item from the Library without recording it first.',
 						),
 						array(
 							'type'  => 'date',
 							'name'  => 'give_date',
 							'id'    => 'loan-give-date',
-							'value' => Date('Y-m-d', $meta['wp_lib_start_date'][0])
+							'value' => Date('Y-m-d', $meta['wp_lib_start_date'][0]),
 						),
 						array(
 							'type'  => 'button',
 							'link'  => 'action',
 							'value' => 'give-item',
-							'html'  => 'Loan Item'
-						)
-					)
-				)
+							'html'  => 'Loan Item',
+						),
+					),
+				),
 			)
 		);
 	}
@@ -1969,7 +1969,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 						array(
 							'type'  => 'hidden',
 							'name'  => 'item_id',
-							'value' => $item->ID
+							'value' => $item->ID,
 						),
 						array(
 							'type'  => 'div',
@@ -1977,24 +1977,24 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 								array(
 									'type'  => 'strong',
 									'html'  => 'Date:',
-									'label' => 'loan-end-date'
+									'label' => 'loan-end-date',
 								),
 								array(
 									'type'  => 'date',
 									'name'  => 'end_date',
 									'id'    => 'loan-end-date',
-									'value' => Date('Y-m-d', current_time('timestamp'))
-								)
-							)
+									'value' => Date('Y-m-d', current_time('timestamp')),
+								),
+							),
 						),
 						array(
 							'type'  => 'button',
 							'link'  => 'action',
 							'value' => 'return-item',
-							'html'  => 'Return'
-						)
-					)
-				)
+							'html'  => 'Return',
+						),
+					),
+				),
 			)
 		);
 	}
@@ -2023,8 +2023,8 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 		$title                  = get_the_title($item->ID);                                         // Item's title
 		$fine_per_day           = get_option('wp_lib_fine_daily', array(0))[0];                     // Librarian set charge for each day an item is late
 		$late                   = -$loan->cherryPie($date);                                         // Days item is late
-		$fine                   = wp_lib_format_money($fine_per_day * $late);                           // Total fine member member is facing, if charged
-		$fine_per_day_formatted = wp_lib_format_money($fine_per_day);                                   // Fine per day formatted
+		$fine                   = wp_lib_format_money($fine_per_day * $late);                       // Total fine member member is facing, if charged
+		$fine_per_day_formatted = wp_lib_format_money($fine_per_day);                               // Fine per day formatted
 		$member_name            = get_the_title(get_post_meta($item->ID, 'wp_lib_member', true));   // Member's name
 		
 		$this->sendPage(
@@ -2040,34 +2040,34 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 						array(
 							'type'  => 'hidden',
 							'name'  => 'item_id',
-							'value' => $item->ID
+							'value' => $item->ID,
 						),
 						array(
 							'type'      => 'paras',
-							'content'   => "{$title} is late by {$days_late}. If fined, {$member_name} would incur a fine of {$fine} ({$fine_per_day_formatted} per day x {$days_late})."
+							'content'   => "{$title} is late by {$days_late}. If fined, {$member_name} would incur a fine of {$fine} ({$fine_per_day_formatted} per day x {$days_late}).",
 						),
 						array(
 							'type'  => 'button',
 							'link'  => 'action',
 							'value' => 'fine-member',
 							'html'  => 'Fine',
-							'title' => 'Charge member given fine amount and return item'
+							'title' => 'Charge member given fine amount and return item',
 						),
 						array(
 							'type'  => 'button',
 							'link'  => 'action',
 							'value' => 'return-item-no-fine',
 							'html'  => 'Return with no Fine',
-							'title' => 'Return item without fining user'
+							'title' => 'Return item without fining user',
 						),
 						array(
 							'type'  => 'button',
 							'link'  => 'page',
 							'value' => 'manage-item',
 							'html'  => 'Cancel',
-							'title' => 'Go back to item management page'
-						)
-					)
+							'title' => 'Go back to item management page',
+						),
+					),
 				),
 				$this->prepLoansTable($item->ID)
 			)
@@ -2094,12 +2094,12 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 					array(
 						array(
 							'type'      => 'paras',
-							'content'   => 'Enter an amount to reduce the member\'s total owed to the Library'
+							'content'   => 'Enter an amount to reduce the member\'s total owed to the Library',
 						),
 						array(
 							'type'  => 'hidden',
 							'name'  => 'member_id',
-							'value' => $member->ID
+							'value' => $member->ID,
 						),
 						$this->prepNonce('Pay Member Fines ' . $member->ID),
 						array(
@@ -2108,14 +2108,14 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 							'attr'          => array(
 								'type'          => 'number',
 								'placeholder'   => wp_lib_format_money(0, false),
-								'step'          => '0.05'
+								'step'          => '0.05',
 							)
 						),
 						array(
 							'type'  => 'button',
 							'link'  => 'action',
 							'value' => 'pay-fine',
-							'html'  => 'Pay'
+							'html'  => 'Pay',
 						)
 					)
 				)
@@ -2163,7 +2163,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 					'type'      => 'paras',
 					'content'   => array(
 						'Deleting items is a permanent action. Any loans or fines dependant on this member will be deleted as well.',
-						'If you want to delete items in bulk, without this prompt, allow bulk deletion via WP-Librarian\'s settings'
+						'If you want to delete items in bulk, without this prompt, allow bulk deletion via WP-Librarian\'s settings',
 					)
 				);
 			break;
@@ -2184,7 +2184,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 					'type'      => 'paras',
 					'content'   => array(
 						'Deleting a member is a permanent action. You can choose to also delete all loans/fines dependant on this member',
-						'If you want to delete members in bulk, without this prompt, allow bulk deletion via WP-Librarian\'s settings'
+						'If you want to delete members in bulk, without this prompt, allow bulk deletion via WP-Librarian\'s settings',
 					)
 				);
 			break;
@@ -2209,7 +2209,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 					'type'      => 'paras',
 					'content'   => array(
 						'Deleting a loan is a permanent action. Any fines dependant on this loan will also be deleted.',
-						'If you want to delete loans in bulk, without this prompt, allow bulk deletion via WP-Librarian\'s settings'
+						'If you want to delete loans in bulk, without this prompt, allow bulk deletion via WP-Librarian\'s settings',
 					)
 				);
 			break;
@@ -2231,8 +2231,8 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 					'content'   => array(
 						'Deleting a fine is a permanent action and will result in the deletion of any loan dependant on this fine',
 						'To remove any money owed by the member because of this fine, cancel the fine first',
-						'If you want to delete fines in bulk, without this prompt, allow bulk deletion via WP-Librarian\'s settings'
-					)
+						'If you want to delete fines in bulk, without this prompt, allow bulk deletion via WP-Librarian\'s settings',
+					),
 				);
 			break;
 			
@@ -2250,22 +2250,22 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 				array(
 					'type'  => 'hidden',
 					'name'  => 'post_id',
-					'value' => $post_id
+					'value' => $post_id,
 				),
 				array(
 					'type'      => 'button',
 					'link'      => 'action',
 					'value'     => 'delete-object',
 					'classes'   => 'dash-button-danger',
-					'html'      => 'Delete'
+					'html'      => 'Delete',
 				),
 				array(
 					'type'  => 'button',
 					'link'  => 'page',
 					'value' => 'dashboard',
 					'html'  => 'Cancel',
-					'title' => 'Cancel deletion and return to Dashboard home'
-				)
+					'title' => 'Cancel deletion and return to Dashboard home',
+				),
 			)
 		);
 		
@@ -2276,7 +2276,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 			$page[] = array(
 				'type'  => 'header',
 				'size'  => 4,
-				'html'  => wp_lib_plural(count($connected_objects), 'Dependant object\p:')
+				'html'  => wp_lib_plural(count($connected_objects), 'Dependant object\p:'),
 			);
 			
 			// Iterates over connected objects, creating table rows for each object
@@ -2286,14 +2286,14 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 					case 'wp_lib_loans':
 						$objects[] = array(
 							'id'    => wp_lib_manage_loan_dash_hyperlink($connected_object[0]),
-							'type'  => 'Loan'
+							'type'  => 'Loan',
 						);
 					break;
 					
 					case 'wp_lib_fines':
 						$objects[] = array(
 							'id'    => wp_lib_manage_fine_dash_hyperlink($connected_object[0]),
-							'type'  => 'Fine'
+							'type'  => 'Fine',
 						);
 					break;
 				}
@@ -2305,17 +2305,17 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 				'id'        => 'connected-objects',
 				'headers'   => array(
 					'ID',
-					'Type'
+					'Type',
 				),
 				'data'      => $objects,
 				'labels'    => array(
-					'records'   => 'dependant objects'
+					'records'   => 'dependant objects',
 				)
 			);
 		} else {
 			$page[] = array(
 				'type'      => 'paras',
-				'content'   => 'No other objects in the Library are dependant on this object'
+				'content'   => 'No other objects in the Library are dependant on this object',
 			);
 		}
 		
@@ -2392,7 +2392,7 @@ class WP_Lib_AJAX_API extends WP_Lib_AJAX {
 			array('Name',       get_the_title($member->ID)),
 			array('Email',      $this->getMetaField($meta, 'wp_lib_member_email')),
 			array('On Loan',    wp_lib_prep_members_items_out($member->ID)),
-			array('Owed',       wp_lib_format_money($member->getMoneyOwed()))
+			array('Owed',       wp_lib_format_money($member->getMoneyOwed())),
 		);
 		
 		// Finalises and returns member meta box
@@ -2400,7 +2400,7 @@ class WP_Lib_AJAX_API extends WP_Lib_AJAX {
 			'type'      => 'metabox',
 			'title'     => 'Member Details',
 			'classes'   => 'member-man',
-			'fields'    => $meta_fields
+			'fields'    => $meta_fields,
 		));
 	}
 	
@@ -2443,13 +2443,13 @@ class WP_Lib_AJAX_API extends WP_Lib_AJAX {
 			$meta_query = array(
 				'key'       => 'wp_lib_item_barcode',
 				'value'     => $barcode,
-				'compare'   => 'IN'
+				'compare'   => 'IN',
 			);
 		} else {
 			$meta_query = array(
 				'key'       => 'wp_lib_item_isbn',
 				'value'     => $isbn,
-				'compare'   => 'IN'
+				'compare'   => 'IN',
 			);
 		}
 
@@ -2459,8 +2459,8 @@ class WP_Lib_AJAX_API extends WP_Lib_AJAX {
 			'post_status'   => 'publish',
 			'nopaging'      => true,
 			'meta_query'    => array(
-				$meta_query
-			)
+				$meta_query,
+			),
 		));
 		
 		// Checks number of posts found
