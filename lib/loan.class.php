@@ -309,7 +309,7 @@ class WP_Lib_Loan extends WP_Lib_Object {
 					// Saves fine ID to loan meta
 					add_post_meta($this->ID, 'wp_lib_fine', $fine_id);
 					
-					do_action('wp_lib_fine_created', $fine_id, $item_id, $member_id, $loan),
+					do_action('wp_lib_fine_created', $fine_id, $item_id, $member_id, $loan);
 				break;
 				
 				// If fine has been wavered, allow late return with no fine
