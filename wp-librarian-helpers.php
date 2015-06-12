@@ -372,6 +372,8 @@ function wp_lib_render_plugin_version() {
 					</span>
 				<?php
 			}
+		
+		do_action('wp_lib_display_plugin_version', $version);
 		?>
 	</div>
 	<?php
