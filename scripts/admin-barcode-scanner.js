@@ -1,4 +1,4 @@
-jQuery( document ).ready(function($) {
+jQuery(function($){
 	// Workaround for IE9 and older (God I hate IE so much...)
 	$('[autofocus]:not(:focus)').eq(0).focus();
 	

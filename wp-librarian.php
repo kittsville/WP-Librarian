@@ -25,17 +25,15 @@
  */
 
 // Whether to display additional debugging information along with errors
-define( 'WP_LIB_DEBUG_MODE', true );
+define('WP_LIB_DEBUG_MODE', true);
 
 // Whether to ensure connected objects can't be deleted individually (e.g. deleting a loan but not its fine). Turning this off is a great way to break your Library!
-define( 'WP_LIB_MAINTAIN_INTEGRITY', true );
+define('WP_LIB_MAINTAIN_INTEGRITY', true);
 
-require_once (dirname( __FILE__ ) . '/lib/wp-librarian.class.php');
+require_once (dirname(__FILE__) . '/lib/wp-librarian.class.php');
 
-$plugin = new WP_LIBRARIAN;
+$wp_librarian = new WP_Librarian;
 
-register_activation_hook( __FILE__, array( $plugin, 'runOnActivation' ) );
+register_activation_hook(__FILE__, array($wp_librarian, 'runOnActivation'));
 
-register_deactivation_hook( __FILE__, 'flush_rewrite_rules' );
-
-?>
+register_deactivation_hook(__FILE__, 'flush_rewrite_rules');

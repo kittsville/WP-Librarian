@@ -77,6 +77,13 @@ table.lib-metabox td {
 
 .dash-button:hover {
 	cursor: pointer;
+	color: white;
+	background-color: #2D7190;
+}
+
+.dash-button:active {
+	color: gray;
+	background-color: #28607A;
 }
 
 .dash-button-large {
@@ -94,6 +101,21 @@ table.lib-metabox td {
 	vertical-align: top;
 	margin: 1px;
 	height: 28px;
+}
+
+/* For hazardous actions like deleting stuff */
+.dash-button-danger {
+	background-color: #D00;
+}
+
+.dash-button-danger:hover {
+	color: white;
+	background-color: #B00;
+}
+
+.dash-button-danger:active {
+	color: gray;
+	background-color: #A00;
 }
 
 /* Dash Home Buttons */
@@ -278,9 +300,15 @@ div.item-no-thumbnail {
 	color: 5F5F5F;
 }
 
-li.single-item a {
+li.single-item  a.dash-button {
 	position: absolute;
 	top: 320px;
+}
+
+a.item-cover-link {
+	color: inherit;
+	text-decoration: none;
+	box-shadow: none;
 }
 
 div.item-meta {

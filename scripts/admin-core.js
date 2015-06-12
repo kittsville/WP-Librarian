@@ -9,12 +9,6 @@ wp_lib_vars.onClick = 'wp_lib_click_button( this )';
 jQuery(function($){
 	// Selects the notification holder
 	window.notificationHolder = jQuery( '#wp-lib-notifications' );
-	
-	// Adds useful jQuery function to check for selector's success
-	// Thanks to Eleotlecram's (http://stackoverflow.com/users/578435) answer about checking for null objects (http://stackoverflow.com/questions/477667)
-	jQuery.fn['any'] = function() {
-		return (this.length > 0);
-	};
 });
 
 // Collects of a submitted form's parameters, removes the blank ones, then returns the result as an object
@@ -228,7 +222,11 @@ function wp_lib_send_ajax( ajaxData, postCallFunction ) {
 			}
 		}
 	})
-	.fail( function() {
+	.fail( function(data) {
+		if (wp_lib_vars.debugMode) {
+			console.log(data.responseText);
+		}
+		
 		wp_lib_local_error( 'Unable to contact ' + wp_lib_vars.siteName + '. The website may be down or you may be having connection issues.' );
 		
 		// Sets output status

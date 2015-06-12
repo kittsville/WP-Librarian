@@ -235,15 +235,34 @@ function wp_lib_render_page( pageArray ) {
 		wp_lib_render_page_element( e, libWorkspace );
 	});
 	
-	// If any scripts are required by the page, loads them
+	// Loads any scripts required by the page
 	if ( pageArray[3] instanceof Array ) {
 		$( pageArray[3] ).each( function( i, scriptURL ) {
-			$.getScript( wp_lib_vars.pluginsUrl + '/scripts/' + scriptURL + '.js' )
-			.fail( function( jqxhr, settings, exception ) {
-				wp_lib_local_error( "Failed to load JavaScript needed for this page" );
-			});
+			wp_lib_get_script( scriptURL );
 		});
+	} else if (typeof pageArray[3] === 'string') {
+		wp_lib_get_script( pageArray[3] );
 	}
+}
+
+function wp_lib_get_script( scriptURL ) {
+	jQuery.ajax({
+	    dataType	: 'script',
+		cache		: !wp_lib_vars.debugMode, // Only caches JS if debugging mode isn't on
+		url			: scriptURL
+	}).fail(function(jqxhr, settings, exception) {
+		wp_lib_local_error( "Failed to load JavaScript needed for this page" );
+		console.log('Script URL: ' + scriptURL);
+		console.log(exception);
+	}).success(function() {
+		// Gets module name from script URL
+		var moduleName = scriptURL.match(/.*\/(.+?)\./)[1];
+		
+		// Initialises module if script contained a module named after the script
+		if (window[moduleName] instanceof Object && window[moduleName].init instanceof Object) {
+			window[moduleName].init();
+		}
+	});
 }
 
 // Renders a page element to the specified parent
@@ -399,7 +418,7 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 				
 				case 'post-type':
 					theElement.attr({
-						href	: wp_lib_vars.adminUrl + 'edit.php?post_type=' + pageItem.pType,
+						href	: wp_lib_vars.adminUrl + 'edit.php?post_type=' + pageItem.cpt,
 						onclick	: wp_lib_vars.onClick
 					});
 				break;
@@ -747,26 +766,32 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 						name	: 'item_id',
 						value	: record.item_id
 					})
-				];
+				],
+				manageItemURL = wp_lib_vars.dashUrl+'&dash_page=manage-item&item_id='+record.item_id,
+				coverLink = $('<a/>',{
+					'href'	: manageItemURL,
+					'class'	: 'item-cover-link',
+				});
+				
+				listItemElements.push(coverLink);
 				
 				// If item has a cover image, use. Otherwise use placeholder div that will be filled with book icon
 				if ( record.cover !== false ) {
-					listItemElements.push($('<div/>', {
+					coverLink.append($('<div/>', {
 							'class'	: 'item-thumbnail',
-							'html'	:
-								$('<div/>',{
-									'class'	: 'item-thumbnail-centrefix',
-									'html'	:
-										$('<img/>',{
-											'src'	: record.cover[0],
-											'class'	: 'item-thumbnail'
-										})
+							'html'	: $('<div/>',{
+								'class'	: 'item-thumbnail-centrefix',
+								'html'	: $('<img/>',{
+									'src'	: record.cover[0],
+									'class'	: 'item-thumbnail',
 								})
+							})
 						})
 					);
 				} else {
-					listItemElements.push( $('<div/>', {
-						'class'	: 'item-no-thumbnail'
+					coverLink.append($('<div/>', {
+						'class'	: 'item-no-thumbnail',
+						'href'	: manageItemURL,
 					}));
 				}
 				
@@ -837,7 +862,7 @@ function wp_lib_render_page_element( pageItem, theParent ) {
 						value	: 'manage-item',
 						html	: 'Manage',
 						classes	: 'item-manage',
-						href	: wp_lib_vars.dashUrl+'&dash_page=manage-item&item_id='+record.item_id
+						href	: manageItemURL,
 					},
 					localParent
 				);
@@ -962,7 +987,7 @@ jQuery(function($){
 	});
 	
 	// Loads dash page when a dash page button or dash URL is clicked
-	jQuery('#wp-lib-workspace').on('click', 'a[name="dash_page"], a.dash-url', function ( e ){
+	jQuery('#wp-lib-workspace').on('click', 'a[name="dash_page"], a.dash-url', function(e) {
 		// Fetches form parameters that have been set
 		var params = wp_lib_collect_form_params(e.target);
 		
@@ -976,11 +1001,10 @@ jQuery(function($){
 		}
 		
 		// Loads page in current or new tab, depending on whether control was pressed
-		if ( e.ctrlKey ) {
+		if (e.ctrlKey) {
 			// Allows default behaviour, resulting in pseudo-URL being opened in new tab
 			return true;
 		} else {
-			// Dynamically loads page
 			wp_lib_load_page( params );
 			
 			// Prevents default behaviour
@@ -989,16 +1013,19 @@ jQuery(function($){
 	});
 	
 	// Adds listener for Item thumbnail being clicked
-	jQuery('#wp-lib-workspace').on('click', 'img.item-thumbnail, div.item-no-thumbnail', function ( e ){
+	jQuery('#wp-lib-workspace').on('click', 'a.item-cover-link', function(e) {
 		// Fetches form parameters that have been set
 		var params = wp_lib_collect_form_params(e.target);
 		
 		// Sets page to load
 		params.dash_page = 'manage-item';
 		
-		// Loads page
-		wp_lib_load_page( params );
-		
-		return false;
+		if (e.ctrlKey) {
+			return true;
+		} else {
+			wp_lib_load_page(params);
+			
+			return false;
+		}
 	});
 });
