@@ -305,7 +305,7 @@ class WP_Lib_Item extends WP_Lib_Object {
 			)
 		);
 		
-		do_action('wp_lib_loan_created', $loan_id, $member_id, $this);
+		do_action('wp_lib_loan_created', $loan_id, $this, $member_id);
 		
 		return $loan_id;
 	}
