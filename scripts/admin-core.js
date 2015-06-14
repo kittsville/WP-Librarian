@@ -186,11 +186,6 @@ function wp_lib_parse_json( rawJSON ) {
  * Passes result to postCallFunction, if one was specified
  */
 function wp_lib_send_ajax( ajaxData, postCallFunction ) {
-	// Sets notification default settings, if function parameter wasn't specified
-	if ( typeof noNotificationFetch === 'undefined' ) {
-		var noNotificationFetch = false;
-	}
-	
 	// Queries server with AJAX data
 	var outputBuffer = [];
 	
