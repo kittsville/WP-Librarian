@@ -193,7 +193,7 @@ function wp_lib_send_ajax( ajaxData, postCallFunction ) {
 	.done( function( response ) {
 		// Checks if WP_AJAX hook does not exist
 		if ( response === '0' ) {
-			wp_lib_local_error( "WordPress AJAX action invalid, most likely a permissions issue." );
+			wp_lib_local_error( "WordPress rejected AJAX request. This is likely a permissions issue." );
 			
 			// Sets output status
 			outputBuffer[0] = 1;
