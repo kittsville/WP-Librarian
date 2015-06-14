@@ -1693,7 +1693,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 					$this->prepNonce('Lookup Item Barcode'),
 					array(
 						'type'      => 'paras',
-						'content'   => 'Once the barcode is scanned the item will be retried automatically'
+						'content'   => 'Once the barcode is scanned the item will be retrieved automatically'
 					),
 					array(
 						'type'      => 'input',
