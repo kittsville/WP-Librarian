@@ -1,6 +1,6 @@
 jQuery(function($){
 	// Selects member select field
-	var memberSelect = $( 'form.lib-form select.member-select' );
+	var memberSelect = $('form.lib-form select.member-select');
 	
 	// Fetches select field's current value
 	var currentMemberID = memberSelect.val();
@@ -35,25 +35,25 @@ jQuery(function($){
 	 * @param int|NaN newMemberID		ID to new member selected, or NaN if default has been selected
 	 * @param int|NaN currentMemberID	ID of member last selected, or NaN if default was last selected
 	 */
-	function update_displayed_member( newMemberID, currentMemberID ) {
+	function update_displayed_member(newMemberID, currentMemberID) {
 		// If member selected hasn't changed, no action is necessary
-		if ( currentMemberID === newMemberID ) {
+		if (currentMemberID === newMemberID) {
 			return currentMemberID;
 		}
 		
 		// Hides previous meta box, if one exists
-		if ( metaBoxCache.hasOwnProperty(currentMemberID)) {
+		if (metaBoxCache.hasOwnProperty(currentMemberID)) {
 			metaBoxCache[currentMemberID].hide();
 		}
 		
 		// If given newMemberID isn't a member ID (if 'Select' is chosen), no meta needs to be fetched
-		if ( isNaN(newMemberID) ) {
+		if (isNaN(newMemberID)) {
 			return NaN;
 		}
 		
 		// If member's meta box exists in cache, fetch and use
 		// Otherwise fetch from server, then cache
-		if ( metaBoxCache.hasOwnProperty(newMemberID)) {
+		if (metaBoxCache.hasOwnProperty(newMemberID)) {
 			// Displays cached member's meta box
 			metaBoxCache[newMemberID].show();
 		} else {
@@ -62,9 +62,9 @@ jQuery(function($){
 				'api_request'	: 'member-metabox',
 				'member_id'		: newMemberID
 			},
-			function( serverResponse ) {
+			function(serverResponse) {
 				// If server responded successfully
-				if ( serverResponse[0] === 4 ) {
+				if (serverResponse[0] === 4) {
 					// Renders meta box to header, labels with member's ID then fades in then caches meta box at a position in the array based on the member ID
 					metaBoxCache[newMemberID] = wp_lib_render_page_element(serverResponse[1][2]).insertAfter('div#wp-lib-workspace > div.item-man').addClass('member-man').hide().fadeIn(30);
 				}

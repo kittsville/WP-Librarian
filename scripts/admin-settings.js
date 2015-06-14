@@ -1,24 +1,24 @@
 jQuery(function($){
-	if ( wp_lib_vars.getParams.hasOwnProperty( 'settings-updated' ) ) {
-		switch ( wp_lib_vars.getParams['settings-updated'] ) {
+	if (wp_lib_vars.getParams.hasOwnProperty('settings-updated')) {
+		switch (wp_lib_vars.getParams['settings-updated']) {
 			case 'true':
-				wp_lib_local_notification( 'Settings updated successfully' );
+				wp_lib_local_notification('Settings updated successfully');
 			break;
 			
 			case 'false':
-				wp_lib_local_notification( 'Settings failed to update' );
+				wp_lib_local_notification('Settings failed to update');
 			break;
 		}
 	}
 	
 	// Updates slug previews based on changed input field
-	function wp_lib_update_slug_previews( slugInput ) {
+	function wp_lib_update_slug_previews(slugInput) {
 		// Fetches and sanitizes current slug input
 		var inputValue = string_to_slug(slugInput.val());
 		
 		// If slug input is main slug, update all previews that use the main slug
 		// Otherwise updates only preview for that input
-		if ( slugInput.attr('name') === 'wp_lib_slugs[0]' ) {
+		if (slugInput.attr('name') === 'wp_lib_slugs[0]') {
 			$('span[name="main-slug-text"]').each(function(i,element){
 				$(element).text(inputValue);
 			});
@@ -31,10 +31,10 @@ jQuery(function($){
 	$('input.slug-input').each(function(index,element){
 		var slugInput = $(element);
 		
-		wp_lib_update_slug_previews( slugInput );
+		wp_lib_update_slug_previews(slugInput);
 		
-		slugInput.on( 'input', function(e) {
-			wp_lib_update_slug_previews( slugInput );
+		slugInput.on('input', function(e) {
+			wp_lib_update_slug_previews(slugInput);
 		});
 	});
 });

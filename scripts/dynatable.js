@@ -444,7 +444,7 @@
           sorts = dataSorts ? $.map(dataSorts.split(','), function(text) { return $.trim(text); }) : [id];
 
       // If the column id is blank, generate an id for it
-      if ( !id ) {
+      if (!id) {
         this.generate($column);
         id = $column.data('dynatable-column');
       }
@@ -765,7 +765,7 @@
         .width(width)
         .height(height)
       $span
-        .offset({left: offset.left + ( (width - spanWidth) / 2 ), top: offset.top + ( (height - spanHeight) / 2 )});
+        .offset({left: offset.left + ((width - spanWidth) / 2), top: offset.top + ((height - spanHeight) / 2)});
 
       return $processing;
     };
@@ -855,7 +855,7 @@
       if (data.scrollTop) { $(window).scrollTop(data.scrollTop); }
 
       // If dataset.records is cached from pushState
-      if ( data.dataset.records ) {
+      if (data.dataset.records) {
         obj.dom.update();
       } else {
         obj.process(true);
@@ -1342,7 +1342,7 @@
       pageLinks += '<li><span>Pages: </span></li>';
 
       for (var i = 1; i <= pages; i++) {
-        if ( (i > breaks[0] && i < breaks[1]) || (i > breaks[2] && i < breaks[3])) {
+        if ((i > breaks[0] && i < breaks[1]) || (i > breaks[2] && i < breaks[3])) {
           // skip to next iteration in loop
           continue;
         } else {
@@ -1515,7 +1515,7 @@
           if (
             (!settings.features.sort && attr == "sorts") ||
               (!settings.features.paginate && _this.anyMatch(attr, ["page", "perPage", "offset"], function(attr, param) { return attr == param; }))
-          ) {
+         ) {
             continue;
           }
 
@@ -1649,7 +1649,7 @@
   //-----------------------------------------------------------------
 
   // Object.create support test, and fallback for browsers without it
-  if ( typeof Object.create !== "function" ) {
+  if (typeof Object.create !== "function") {
     Object.create = function (o) {
       function F() {}
       F.prototype = o;
@@ -1666,11 +1666,11 @@
   };
 
   // Create dynatable plugin based on a defined object
-  $.dynatable = function( object ) {
-    $.fn['dynatable'] = function( options ) {
+  $.dynatable = function(object) {
+    $.fn['dynatable'] = function(options) {
       return this.each(function() {
-        if ( ! $.data( this, 'dynatable' ) ) {
-          $.data( this, 'dynatable', Object.create(object).init(this, options) );
+        if (! $.data(this, 'dynatable')) {
+          $.data(this, 'dynatable', Object.create(object).init(this, options));
         }
       });
     };
