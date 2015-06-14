@@ -227,7 +227,7 @@ function wp_lib_send_ajax(ajaxData, postCallFunction) {
 		// Sets output status
 		outputBuffer[0] = 0;
 	})
-	.always(function(thing) {
+	.always(function() {
 		// Regardless of AJAX success/failure, passes output buffer to post AJAX function, if send_ajax was called with one defined
 		if (typeof postCallFunction === 'function') {
 			postCallFunction(outputBuffer);
