@@ -286,8 +286,8 @@ class WP_Lib_Loan extends WP_Lib_Object {
 					// Due in -5 days == 5 days late
 					$days_late = -$due_in;
 					
-					// Fetches daily charge for a late item
-					$daily_fine = get_option('wp_lib_fine_daily', array(0))[0];
+					// Fetches daily charge for a late item (as an int)
+					$daily_fine = intval(get_option('wp_lib_fine_daily', array(0))[0] * 100);
 					
 					// Calculates fine based off days late * charge per day
 					$fine_amount = $days_late * $daily_fine;
@@ -309,7 +309,7 @@ class WP_Lib_Loan extends WP_Lib_Object {
 					// Saves fine ID to loan meta
 					add_post_meta($this->ID, 'wp_lib_fine', $fine_id);
 					
-					do_action('wp_lib_fine_created', $fine_id, $item_id, $member_id, $loan);
+					do_action('wp_lib_fine_created', $fine_id, $meta['wp_lib_item'][0], $member_id, $this);
 				break;
 				
 				// If fine has been wavered, allow late return with no fine

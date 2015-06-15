@@ -134,7 +134,9 @@ $meta_formatting = array(
 $meta = wp_lib_prep_admin_meta($item->ID, $meta_formatting);
 
 // Adds media type meta to meta array
-$meta['wp_lib_media_type'] = wp_get_object_terms($item->ID, 'wp_lib_media_type', array("fields" => "slugs"))[0];
+$media_type = wp_get_object_terms($item->ID, 'wp_lib_media_type', array("fields" => "slugs"));
+
+$meta['wp_lib_media_type'] = count($media_type) > 0 ? $media_type[0] : false;
 
 // If item is a new item, set item to be allowed to be loaned by default
 if ($GLOBALS['hook_suffix'] === 'post-new.php')
