@@ -226,9 +226,9 @@ class WP_Librarian {
 					$fine_ids = wp_list_pluck($fines->posts, 'ID');
 					
 					foreach ($fine_ids as $fine_id) {
-						$fine_amount = get_post_meta($fine_id, 'wp_lib_owed', true);
+						$fine_amount = floatval(get_post_meta($fine_id, 'wp_lib_owed', true));
 						
-						update_post_meta($fine_id, intval($fine_amount * 100));
+						update_post_meta($fine_id, 'wp_lib_owed', intval($fine_amount * 100));
 					}
 				}
 			}
