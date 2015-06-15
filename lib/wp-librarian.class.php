@@ -992,6 +992,8 @@ class WP_Librarian {
 	 * Registers all scripts and styles used on the front-end
 	 */
 	public function registerScripts() {
+		do_action('wp_lib_enqueue_scripts');
+		
 		if (get_post_type() === 'wp_lib_items')
 			wp_enqueue_style('wp_lib_frontend', $this->getStyleUrl('front-end-core'), array(), '0.2');
 	}
@@ -1002,6 +1004,8 @@ class WP_Librarian {
 	 * @see                 http://codex.wordpress.org/Plugin_API/Action_Reference/admin_enqueue_scripts
 	 */
 	public function registerAdminScripts($hook) {
+		do_action('wp_lib_admin_enqueue_scripts');
+		
 		// Registers core JavaScript file for WP-Librarian, a collection of various essential functions
 		wp_register_script('wp_lib_core', $this->getScriptUrl('admin-core'), array('jquery', 'jquery-ui-datepicker'), '0.2');
 		
