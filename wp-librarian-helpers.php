@@ -334,6 +334,9 @@ function wp_lib_format_money($value, $html_ent = true) {
 	// For the silly event that a fine of nothing managed to get charged
 	$value = $value == '' ? 0 : $value;
 	
+	// Converts to float (currency is handled as an int)
+	$value = $value / 100;
+	
 	// Ensures number has correct number of decimal places
 	$value = number_format($value, 2);
 	

@@ -140,7 +140,7 @@ class WP_Librarian {
 		
 		// If plugin has been previously installed
 		if (is_array($version)) {
-			// If previous plugin version is version 0.1 or older, remove depreciated data
+			// If previous plugin version is version 0.1 or earlier, remove depreciated data
 			if (version_compare($version['version'], '0.1', '<=')) {
 				delete_option('wp_lib_default_media_types');
 				delete_option('wp_lib_taxonomy_spacer');
@@ -184,6 +184,51 @@ class WP_Librarian {
 						delete_post_meta($fine_id, 'wp_lib_fine');
 						
 						update_post_meta($fine_id, 'wp_lib_owed', $fine_amount);
+					}
+				}
+			}
+			
+			/**
+			 * If previous plugin version is version 0.2 or earlier, update handling of currency by:
+			 * 1. Updating fine payments stored in member meta
+			 * 2. Updating fine amounts stored in fine meta
+			 */
+			if (version_compare($version['version'], '0.2', '<=')) {
+				$members = new WP_Query(array(
+					'post_type'     => 'wp_lib_members',
+					'post_status'   => 'publish',
+					'nopaging'      => true
+				));
+				
+				if ($members->have_posts()) {
+					$member_ids = wp_list_pluck($members->posts, 'ID');
+					
+					foreach ($member_ids as $member_id) {
+						$fine_payments = get_post_meta($member_id, 'wp_lib_payments');
+						
+						delete_post_meta($member_id, 'wp_lib_payments');
+						
+						foreach ($fine_payments as $fine_payment) {
+							$fine_payment[1] = intval($fine_payment[1] * 100);
+							
+							add_post_meta($member_id, 'wp_lib_payments', $fine_payment);
+						}
+					}
+				}
+				
+				$fines = new WP_Query(array(
+					'post_type'     => 'wp_lib_fines',
+					'post_status'   => 'publish',
+					'nopaging'      => true
+				));
+				
+				if ($fines->have_posts()) {
+					$fine_ids = wp_list_pluck($fines->posts, 'ID');
+					
+					foreach ($fine_ids as $fine_id) {
+						$fine_amount = get_post_meta($fine_id, 'wp_lib_owed', true);
+						
+						update_post_meta($fine_id, intval($fine_amount * 100));
 					}
 				}
 			}

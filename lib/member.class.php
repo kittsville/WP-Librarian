@@ -19,8 +19,8 @@ class WP_Lib_Member extends WP_Lib_Object {
 	}
 	
 	/**
-	 * Calculates amount currently owed by member in late fines
-	 * @return  float|int   Amount currently owed by member without currency symbol
+	 * Calculates amount currently owed by member in late fines * 100
+	 * @return  int   Amount currently owed by member without currency symbol
 	 */
 	public function getMoneyOwed() {
 		// Queries WP for all loans to current member where a fine was incurred
@@ -73,8 +73,8 @@ class WP_Lib_Member extends WP_Lib_Object {
 	/**
 	 * Adds fine payment to member records
 	 * Fine payments that result in a negative amount owed are allowed
-	 * @param   float|int           $payment    Amount to be paid
-	 * @return  bool|WP_Lib_Error               True on success, error on failure
+	 * @param   int           		$payment	Amount to be paid x 100 e.g. £1.20 == 120
+	 * @return  bool|WP_Lib_Error   	     	True on success, error on failure
 	 */
 	public function payMoneyOwed($payment) {
 		// If fine payment is negative or failed to validate (resulting in 0), call error

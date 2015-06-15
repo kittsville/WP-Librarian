@@ -598,9 +598,9 @@ class WP_Lib_AJAX_Action extends WP_Lib_AJAX {
 	 * @todo Move payment functionality to functions.php, actions should only prepare data and call functions
 	 */
 	private function doPayFine() {
-		// Fetches member and fine amount
+		// Fetches member and fine amount, converting fine amount to an integer
 		$member         = $this->getMember();
-		$fine_payment   = floatval(isset($_POST['fine_payment']) ? $_POST['fine_payment'] : 0);
+		$fine_payment   = intval((isset($_POST['fine_payment']) ? $_POST['fine_payment'] : 0) * 100);
 		
 		// Validates Nonce
 		$this->checkNonce('Pay Member Fines ' . $member->ID);
@@ -619,7 +619,7 @@ class WP_Lib_AJAX_Action extends WP_Lib_AJAX {
 		$owed = $member->getMoneyOwed();
 		
 		// If money is still owed by the member, inform librarian
-		if ($owed != 0)
+		if ($owed > 0)
 			$notification .= ' ' . wp_lib_format_money($owed) . ' is still owed.';
 		
 		$this->endAction(true, $notification);
