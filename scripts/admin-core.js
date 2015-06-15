@@ -217,12 +217,21 @@ function wp_lib_send_ajax(ajaxData, postCallFunction) {
 			}
 		}
 	})
-	.fail(function(data) {
-		if (wp_lib_vars.debugMode) {
-			console.log(data.responseText);
+	.fail(function(data, a, message) {
+		if (data.status === 0) {
+			wp_lib_local_error('Unable to connect to ' + wp_lib_vars.siteName + '. Check your internet connection.');
+		} else {
+			wp_lib_local_error('HTTP Error ' + data.status + ': ' + message);
 		}
 		
-		wp_lib_local_error('Unable to contact ' + wp_lib_vars.siteName + '. The website may be down or you may be having connection issues.');
+		if (wp_lib_vars.debugMode) {
+			if (data.responseText != '') {
+				console.log(jQuery(data.responseText).text());
+			}
+		} else {
+			console.log('Please temporarily enable debugging mode to investigate the error https://github.com/kittsville/WP-Librarian/wiki/wp_lib_debug_mode');
+			console.log("Unless it's an HTTP error that has nothing to do with WP-Librarian");
+		}
 		
 		// Sets output status
 		outputBuffer[0] = 0;
