@@ -339,13 +339,13 @@ function wp_lib_format_money($value, $html_ent = true) {
 	
 	// Formats $value with currency symbol at preferred position
 	if ($position) {
-		return $value . $symbol;                        // 0.40EUR
+		return $value . $symbol;                         // 0.40EUR
 	} else {
 		// If currency is negative, display negation symbol before currency symbol
 		if ($value < 0)
-			return '-' . $symbol . substr($value, 1); // -£0.40
+			return '-' . $symbol . substr($value, 1);    // -£0.40
 		else
-			return $symbol . $value;                    // £0.40
+			return $symbol . $value;                     // £0.40
 	}
 }
 
@@ -482,10 +482,10 @@ function wp_lib_format_item_condition($number) {
 
 /**
  * Checks if a proposed loan conflicts with an item's existing loans
- * @param	int		$loan_start		Proposed start of new loan as a UNIX timestamp
- * @param	int		$loan_end		Proposed end of new loan as a UNIX timestamp
- * @param	Array	$existing_loans	Item's existing loans, ordered by starting date
- * @return	bool					Whether the proposed loan would work
+ * @param   int     $loan_start     Proposed start of new loan as a UNIX timestamp
+ * @param   int     $loan_end       Proposed end of new loan as a UNIX timestamp
+ * @param   Array   $existing_loans Item's existing loans, ordered by starting date
+ * @return  bool                    Whether the proposed loan would work
  */
 function wp_lib_no_loan_conflict($loan_start, $loan_end, Array $existing_loans) {
 	if (0 === count($existing_loans))
@@ -532,7 +532,7 @@ function wp_lib_prep_member_options($default_option = true) {
 	$args = array(
 		'post_type'     => 'wp_lib_members',
 		'post_status'   => 'publish',
-		'nopaging'		=> true,
+		'nopaging'      => true,
 	);
 	
 	// Fetches all, if any, members
