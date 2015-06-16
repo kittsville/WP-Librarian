@@ -854,9 +854,9 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 	 */
 	public function sendPage($page_title, $tab_title, $page, $scripts = null) {
 		$this->output_buffer[2] = array(
-			apply_filters('wp_lib_dash_page_title', $page_title, $_POST['dash_page']),
-			apply_filters('wp_lib_dash_tab_title',  $tab_title, $_POST['dash_page']),
-			apply_filters('wp_lib_dash_page_content',       $page, $_POST['dash_page'])
+			apply_filters('wp_lib_dash_page_title',     $page_title, $_POST['dash_page']),
+			apply_filters('wp_lib_dash_page_tab_title', $tab_title, $_POST['dash_page']),
+			apply_filters('wp_lib_dash_page_content',   $page, $_POST['dash_page'])
 		);
 		
 		if (is_array($scripts) || is_string($scripts))
