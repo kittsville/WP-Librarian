@@ -44,6 +44,9 @@ class WP_Librarian {
 	 * @see http://codex.wordpress.org/Plugin_API/Hooks
 	 */
 	private function registerHooks() {
+		// Allows plugins to access this class
+		add_action('plugins_loaded',					function(){do_action('wp_lib_loaded', $this);});
+		
 		// Registers custom post types, taxonomies and settings sections used by the plugin
 		add_action('init',                              array($this, 'registerPostAndTax'));
 		add_action('admin_init',                        array($this, 'registerSettings'));
