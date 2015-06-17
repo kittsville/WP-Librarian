@@ -8,6 +8,18 @@ defined('ABSPATH') OR die('No');
  */
 class WP_Librarian {
 	/**
+	 * Paths to plugin's subdirectories
+	 * USe these rather than hard-coding subdirectory names
+	 */
+	const SCRIPT_DIR        = 'scripts';
+	const STYLE_DIR         = 'styles';
+	const MINIFIED_DIR      = 'data';
+	const CLASS_DIR         = 'lib';
+	const HELPER_DIR        = 'helpers';
+	const TEMPLATE_DIR      = 'templates';
+	const ADMIN_TEMPLATE_DIR= 'admin-templates';
+	
+	/**
 	 * Path to plugin folder, without trailing slash
 	 * @var string
 	 */
@@ -107,7 +119,7 @@ class WP_Librarian {
 	 * @param   string  $helper Name of helper file, excluding .class.php
 	 */
 	public function loadHelper($helper) {
-		require_once($this->plugin_path . '/helpers/' . $helper . '.class.php');
+		require_once($this->plugin_path . '/' . self::HELPER_DIR . '/' . $helper . '.class.php');
 	}
 	
 	/**
@@ -115,7 +127,7 @@ class WP_Librarian {
 	 * @param   string  $helper Name of library to be loaded, excluding .class.php
 	 */
 	public function loadClass($library) {
-		require_once($this->plugin_path . '/lib/' . $library . '.class.php');
+		require_once($this->plugin_path . '/' . self::CLASS_DIR . '/' . $library . '.class.php');
 	}
 	
 	/**
@@ -132,7 +144,7 @@ class WP_Librarian {
 	 * @param   array   $params OPTIONAL Associative array of parameters for the template
 	 */
 	public function loadAdminTemplate($name, Array $params = array()) {
-		require_once($this->plugin_path . '/admin-templates/' . $name . '.php');
+		require_once($this->plugin_path . '/' . self::ADMIN_TEMPLATE_DIR . '/' . $name . '.php');
 	}
 	
 	/**
@@ -1191,9 +1203,9 @@ class WP_Librarian {
 	public function getStyleUrl($name) {
 		// Loads minified assets in production. Regular for dev/debugging
 		if ((defined('SCRIPT_DEBUG') && SCRIPT_DEBUG) || WP_LIB_DEBUG_MODE) {
-			return $this->plugin_url . '/styles/' . $name . '.css';
+			return $this->plugin_url . '/' . self::STYLE_DIR . '/' . $name . '.css';
 		} else {
-			return $this->plugin_url . '/data/' . $name . '.min.css';
+			return $this->plugin_url . '/' . self::MINIFIED_DIR . '/' . $name . '.min.css';
 		}
 	}
 	
@@ -1205,9 +1217,9 @@ class WP_Librarian {
 	public function getScriptUrl($name) {
 		// Loads minified assets in production. Regular for dev/debugging
 		if ((defined('SCRIPT_DEBUG') && SCRIPT_DEBUG) || WP_LIB_DEBUG_MODE) {
-			return $this->plugin_url . '/scripts/' . $name . '.js';
+			return $this->plugin_url . '/' . self::SCRIPT_DIR . '/' . $name . '.js';
 		} else {
-			return $this->plugin_url . '/data/' . $name . '.min.js';
+			return $this->plugin_url . '/' . self::MINIFIED_DIR . '/' . $name . '.min.js';
 		}
 	}
 	
@@ -1217,7 +1229,7 @@ class WP_Librarian {
 	 * @return  string          Full file path e.g. '.../templates/archive-wp_lib_items.php'
 	 */
 	public function getTemplateDir($name) {
-		return $this->plugin_path . '/templates/' . $name . '.php';
+		return $this->plugin_path . '/' . self::TEMPLATE_DIR . '/' . $name . '.php';
 	}
 	
 	/*
