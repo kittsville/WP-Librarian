@@ -1,1 +1,7 @@
-#meta-dropzone{display:none}table.meta-section-fields{padding:5px}div.meta-section-title{border-bottom:1px solid #e1e1e1}div#item-meta{padding:15px}div.meta-section-title>h3{padding-left:0!important}
+/*
+ * Name:		WP-Librarian Admin Meta Box Core Styles
+ * Author:		Kit Maywood
+ * Description:	Contains all CSS rules for edit post meta boxes that apply to both item and member meta boxes.
+ * Extends:		WP-Librarian Admin Core Styles
+ * Version:		0.1
+ */#meta-dropzone{display:none}table.meta-section-fields{padding:5px}div.meta-section-title{border-bottom:1px solid #e1e1e1}div#item-meta{padding:15px}div.meta-section-title > h3{padding-left:0px !important}

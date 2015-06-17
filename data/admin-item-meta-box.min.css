@@ -1,1 +1,7 @@
-.meta-field-title{width:200px}
+/*
+ * Name:		WP-Librarian Admin Item Meta Box Styles
+ * Author:		Kit Maywood
+ * Description:	Used on pages for editing items, applies to the meta box that displays below the item description.
+ * Extends:		WP-Librarian Admin Meta Box Core Styles
+ * Version:		0.1
+ */.meta-field-title{width:200px}
