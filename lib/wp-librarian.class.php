@@ -9,7 +9,7 @@ defined('ABSPATH') OR die('No');
 class WP_Librarian {
 	/**
 	 * Paths to plugin's subdirectories
-	 * USe these rather than hard-coding subdirectory names
+	 * Use these rather than hard-coding subdirectory names
 	 */
 	const SCRIPT_DIR        = 'scripts';
 	const STYLE_DIR         = 'styles';
