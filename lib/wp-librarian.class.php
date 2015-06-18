@@ -15,7 +15,6 @@ class WP_Librarian {
 	const STYLE_DIR         = 'styles';
 	const MINIFIED_DIR      = 'data';
 	const CLASS_DIR         = 'lib';
-	const HELPER_DIR        = 'helpers';
 	const TEMPLATE_DIR      = 'templates';
 	const ADMIN_TEMPLATE_DIR= 'admin-templates';
 	
@@ -43,7 +42,7 @@ class WP_Librarian {
 		$this->registerHooks();
 		
 		// Automatically loads error class
-		$this->loadHelper('error');
+		$this->loadClass('error');
 		
 		// Loads various necessary libraries
 		require_once($this->plugin_path . '/wp-librarian-helpers.php');
@@ -112,14 +111,6 @@ class WP_Librarian {
 		add_action('wp_ajax_wp_lib_page',               array($this, 'ajaxLoadPage'));
 		add_action('wp_ajax_wp_lib_action',             array($this, 'ajaxDoAction'));
 		add_action('wp_ajax_wp_lib_api',                array($this, 'ajaxDoApiRequest'));
-	}
-	
-	/**
-	 * Loads helper file from /helper directory
-	 * @param   string  $helper Name of helper file, excluding .class.php
-	 */
-	public function loadHelper($helper) {
-		require_once($this->plugin_path . '/' . self::HELPER_DIR . '/' . $helper . '.class.php');
 	}
 	
 	/**
@@ -252,7 +243,7 @@ class WP_Librarian {
 			$this->updateUserPermissions(get_current_user_id(), 10);
 			
 			// Creates all settings plugin needs to run
-			$this->loadHelper('settings');
+			$this->loadClass('settings');
 			WP_Lib_Settings::addPluginSettings();
 			
 			// Registers default media types
@@ -788,7 +779,7 @@ class WP_Librarian {
 	 */
 	public function registerSettings() {
 		// Loads file with settings classes
-		$this->loadHelper('settings');
+		$this->loadClass('settings');
 		
 		WP_Lib_Settings::$plugin_settings = apply_filters('wp_lib_plugin_settings', WP_Lib_Settings::$plugin_settings);
 	
@@ -1093,7 +1084,7 @@ class WP_Librarian {
 				// If settings have been updated (or failed to do so)
 				if (isset($_GET['settings-updated'])) {
 					// Loads helper to manage settings sections
-					$this->loadHelper('settings');
+					$this->loadClass('settings');
 					
 					// Checks that all plugin settings are valid, resets any settings that aren't
 					WP_Lib_Settings::checkPluginSettingsIntegrity();
@@ -1114,7 +1105,7 @@ class WP_Librarian {
 	 * Generates a Dashboard page, dynamically loaded onto the Library Dashboard
 	 */
 	public function ajaxLoadPage() {
-		$this->loadHelper('ajax');
+		$this->loadClass('ajax');
 		new WP_Lib_AJAX_Page($this);
 		die(0);
 	}
@@ -1123,7 +1114,7 @@ class WP_Librarian {
 	 * Performs a Dashboard action, modifying the Library in some way (such as loaning an item)
 	 */
 	public function ajaxDoAction() {
-		$this->loadHelper('ajax');
+		$this->loadClass('ajax');
 		new WP_Lib_AJAX_Action($this);
 		die(0);
 	}
@@ -1132,7 +1123,7 @@ class WP_Librarian {
 	 * Performs an API request, fetching information for an already loaded Dashboard page
 	 */
 	public function ajaxDoApiRequest() {
-		$this->loadHelper('ajax');
+		$this->loadClass('ajax');
 		new WP_Lib_AJAX_API($this);
 		die(0);
 	}

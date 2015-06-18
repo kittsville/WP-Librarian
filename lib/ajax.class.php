@@ -1041,7 +1041,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 	 * @return  array               Dynatable of loans of given item
 	 */
 	private function prepLoansTable($item_id) {
-		$this->wp_librarian->loadHelper('dynatable');
+		$this->wp_librarian->loadClass('dynatable');
 		
 		// Queries WP for all loans of item
 		$dynatable = new WP_Lib_Dynatable_Loans($this, 'wp_lib_item', $item_id);
@@ -1465,7 +1465,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 			'content'   => $form,
 		);
 		
-		$this->wp_librarian->loadHelper('dynatable');
+		$this->wp_librarian->loadClass('dynatable');
 		
 		// Queries database for loans made by member
 		$dynatable = new WP_Lib_Dynatable_Loans($this, 'wp_lib_member', $member->ID);
@@ -2413,7 +2413,7 @@ class WP_Lib_AJAX_API extends WP_Lib_AJAX {
 		// If setting are invalid, run settings integrity check
 		// Otherwise sends settings to user
 		if ($settings === false) {
-			$this->wp_librarian->loadHelper('settings');
+			$this->wp_librarian->loadClass('settings');
 			WP_Lib_Settings::checkPluginSettingsIntegrity();
 			
 			$this->stopAjax();
