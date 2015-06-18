@@ -583,7 +583,7 @@ class WP_Librarian {
 					add_meta_box(
 						'library_items_meta_box',
 						'Item Details',
-						function($item){require_once($this->plugin_path.'/admin-templates/edit-item-meta-box.php');},
+						function($item){require_once($this->plugin_path . '/' . self::ADMIN_TEMPLATE_DIR . '/edit-item-meta-box.php');},
 						'wp_lib_items',
 						'normal',
 						'high'
@@ -624,7 +624,7 @@ class WP_Librarian {
 					add_meta_box(
 						'library_members_meta_box',
 						'Member Details',
-						function($member){require_once($this->plugin_path.'/admin-templates/edit-member-meta-box.php');},
+						function($member){require_once($this->plugin_path . '/' . self::ADMIN_TEMPLATE_DIR . '/edit-member-meta-box.php');},
 						'wp_lib_members',
 						'normal',
 						'high'
