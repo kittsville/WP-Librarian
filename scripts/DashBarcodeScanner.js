@@ -1,4 +1,4 @@
-var AdminBarcodeScanner = {
+var DashBarcodeScanner = {
 	// Settings
 	s: {
 		searchButton:	jQuery('a#barcode-submit'),
@@ -11,7 +11,7 @@ var AdminBarcodeScanner = {
 	
 	bindUIActions: function() {
 		this.s.searchButton.on('click', function() {
-			AdminBarcodeScanner.lookupBarcode(AdminBarcodeScanner.s.barcodeInput.val());
+			DashBarcodeScanner.lookupBarcode(DashBarcodeScanner.s.barcodeInput.val());
 		});
 	},
 	
@@ -19,7 +19,7 @@ var AdminBarcodeScanner = {
 	lookupBarcode: function(itemBarcode) {
 		var params = {
 			'api_request'	: 'scan-barcode',
-			'code'			: AdminBarcodeScanner.s.barcodeInput.val(),
+			'code'			: DashBarcodeScanner.s.barcodeInput.val(),
 		};
 		
 		wp_lib_api_call(params, function(serverResult) {
