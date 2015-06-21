@@ -198,6 +198,8 @@ class WP_Librarian {
 			 * If previous plugin version is version 0.2 or earlier, update handling of currency by:
 			 * 1. Updating fine payments stored in member meta
 			 * 2. Updating fine amounts stored in fine meta
+			 * Also:
+			 * Removed deprecated barcode auto-scanning
 			 */
 			if (version_compare($version['version'], '0.2', '<=')) {
 				$members = new WP_Query(array(
@@ -237,6 +239,9 @@ class WP_Librarian {
 						update_post_meta($fine_id, 'wp_lib_owed', intval($fine_amount * 100));
 					}
 				}
+				
+				// Removed deprecated barcode auto-scanning
+				delete_option('wp_lib_barcode_config');
 			}
 		} else {
 			// Sets current user as a Library Admin
@@ -943,48 +948,6 @@ class WP_Librarian {
 								'end'   => 'comic-books'
 							)
 						)
-					)
-				)
-			)
-		));
-
-		/* -- Dashboard Settings -- */
-		
-		// Registers Dashboard Settings section with all relevant settings/fields
-		WP_Lib_Settings_Section::registerSection(array(
-			'name'      => 'wp_lib_dash_group',
-			'title'     => 'Dashboard',
-			'callback'  =>
-				function(){
-					echo '<p>These settings modify how the ' . wp_lib_hyperlink(wp_lib_format_dash_url(), 'Dashboard') . ' behaves</a></p>';
-				},
-			'settings'  => array(
-				array(
-					'name'          => 'wp_lib_barcode_config',
-					'sanitize'      => function($raw){
-						// Sanitizes triggering barcode length
-						$raw[1] = wp_lib_sanitize_number($raw[1]);
-						
-						return array(
-							wp_lib_sanitize_option_checkbox($raw[0]),
-							(($raw[1] > 30) ? 30 : ($raw[1] < 1) ? 1 : $raw[1]) // Rounds barcode length to between 1 and 30
-						);
-					},
-					'fields'        => array(
-						array(
-							'name'          => 'Barcode Auto-fetch',
-							'field_type'    => 'checkboxInput',
-							'args'          => array(
-								'alt'           => 'If to automatically lookup an item when the barcode reaches a given length'
-							)
-						),
-						array(
-							'name'          => 'Auto-fetch Length',
-							'field_type'    => 'textInput',
-							'args'          => array(
-								'alt'           => 'Length at which to automatically look up an item\'s barcode'
-							)
-						),
 					)
 				)
 			)
