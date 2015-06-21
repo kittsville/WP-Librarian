@@ -1716,7 +1716,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 		);
 		
 		// Script to handle dynamic barcode lookup
-		$script = $this->wp_librarian->getScriptUrl('admin-barcode-scanner');
+		$script = $this->wp_librarian->getScriptUrl('AdminBarcodeScanner');
 		
 		// Browser tab and Dashboard page title/header
 		$title = 'Scan Item Barcode';
