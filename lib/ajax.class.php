@@ -2362,11 +2362,6 @@ class WP_Lib_AJAX_API extends WP_Lib_AJAX {
 				$this->getMemberMetaBox();
 			break;
 			
-			// Fetches parameters for barcode scanning script from database
-			case 'barcode-setup':
-				$this->getBarcodePageSettings();
-			break;
-			
 			// Looks up item based on given ISBN or barcode
 			case 'scan-barcode':
 				$this->getSearchItemByBarcode();
@@ -2403,24 +2398,6 @@ class WP_Lib_AJAX_API extends WP_Lib_AJAX {
 			'classes'   => 'member-man',
 			'fields'    => $meta_fields,
 		));
-	}
-	
-	/**
-	 * Fetches barcode field settings and returns them
-	 */
-	private function getBarcodePageSettings() {
-		$settings = get_option('wp_lib_barcode_config', false);
-		
-		// If setting are invalid, run settings integrity check
-		// Otherwise sends settings to user
-		if ($settings === false) {
-			$this->wp_librarian->loadClass('settings');
-			WP_Lib_Settings::checkPluginSettingsIntegrity();
-			
-			$this->stopAjax();
-		} else {
-			$this->sendData($settings);
-		}
 	}
 	
 	/**
