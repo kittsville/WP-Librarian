@@ -909,14 +909,14 @@ class WP_Librarian {
 					'html_filter'   =>
 						function($output, $args) {
 							// Initialises url output preview
-							$url = '<span>' . site_url() . '</span>/<span name="main-slug-text"></span>/';
+							$url = '<span>' . site_url() . '</span>/<span class="slug-preview" name="' . $args['setting_name'] . '[0]"></span>/';
 							
 							// If slug is not the main slug, add to preview
 							if (isset($args['end']))
-								$url .= '<span class="slug-preview"></span>/' . $args['end'] . '/';
+								$url .= '<span class="slug-preview" name="' . $args['setting_name'] . '[' . $args['position'] . ']"></span>/' . $args['end'] . '/';
 							
 							// Inserts preview of slug between input and description
-							array_splice($output, 1, 0, '<label class="slug-label" for="'.$args['setting_name'].'['.$args['position'].']'.'">' . $url . '</label>');
+							array_splice($output, 1, 0, '<label class="slug-label" for="' . $args['setting_name'] . '[' . $args['position'] . ']">' . $url . '</label>');
 							
 							return $output;
 						},
@@ -924,7 +924,8 @@ class WP_Librarian {
 						array(
 							'name'  => 'Main',
 							'args'  => array(
-								'alt'   => 'This forms the base of all public Library pages'
+								'alt'   	=> 'This forms the base of all public Library pages',
+								'classes'	=> array('slug-main'),
 							)
 						),
 						array(
@@ -1018,7 +1019,7 @@ class WP_Librarian {
 		switch ($hook) {
 			// Plugin settings page
 			case 'wp_lib_items_page_wp-lib-settings':
-				wp_enqueue_script('wp_lib_settings', $this->getScriptUrl('admin-settings'), array('wp_lib_core'), '0.3');
+				wp_enqueue_script('wp_lib_settings', $this->getScriptUrl('AdminSettings'), array('wp_lib_core'), '0.3');
 				wp_register_style('wp_lib_admin_settings', $this->getStyleUrl('admin-settings'), array('wp_lib_admin_core_styles'), '0.1');
 			break;
 			
