@@ -1017,7 +1017,7 @@ class WP_Librarian {
 	 * @see                 http://codex.wordpress.org/Plugin_API/Action_Reference/admin_enqueue_scripts
 	 */
 	public function enqueueAdminScripts($hook) {
-		do_action('wp_lib_admin_enqueue_scripts');
+		do_action('wp_lib_admin_enqueue_scripts', $hook);
 		
 		if ($hook == 'post-new.php' || $hook == 'post.php') {
 			switch ($GLOBALS['post_type']) {
