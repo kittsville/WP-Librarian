@@ -151,6 +151,8 @@ class WP_Librarian {
 				'getParams'     => $_GET,
 				'debugMode'     => WP_LIB_DEBUG_MODE
 		)));
+		
+		do_action('wp_lib_register_scripts');
 	}
 	
 	/**
