@@ -12,9 +12,6 @@ if (!current_user_can('wp_lib_change_settings')) {
 	wp_lib_error(112, true);
 }
 
-// Loads settings CSS
-wp_enqueue_style('wp_lib_admin_settings');
-
 $selected_tab = isset($_GET['tab']) ? $_GET['tab'] : '';
 
 do_action('wp_lib_settings_page', $selected_tab);
