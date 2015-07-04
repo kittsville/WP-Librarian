@@ -74,14 +74,7 @@ function wp_lib_render_notification(notificationText) {
 	notificationHolder.append(formattedNotification.element).hide().fadeIn(500);
 	
 	// Calculates how long to display the notification, based on its length
-	var displayTime = notificationText[1].length * 150;
-	
-	// Ensures error message display doesn't display for too little or too long
-	if (displayTime < 3500) {
-		displayTime = 3500;
-	} else if (displayTime > 7000) {
-		displayTime = 9000;
-	}
+	var displayTime = Math.min(Math.max(notificationText[1].length * 150, 3500), 9000);
 	
 	// Sets notification to fade away after 5 seconds then get deleted
 	setTimeout(function(){
