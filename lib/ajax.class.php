@@ -187,12 +187,14 @@ class WP_Lib_AJAX {
 	 * @param string|array      $params OPTIONAL Details to enhance error message
 	 */
 	protected function handleError($error, $params = false) {
-		// If error code was given, create error instance then add error to notification buffer
-		if (is_int($error))
-			$this->addNotification(wp_lib_error($error, $params)->description, $error);
-		// If error instance was given, add error to notification buffer
-		elseif (wp_lib_is_error($error))
+		if (wp_lib_is_error($error)) {
 			$this->addNotification($error->description, $error->ID);
+		} else {
+			$error_object = wp_lib_error($error, $params);
+			
+			// Can't use $error for ID as the error ID might change (see: error 902)
+			$this->addNotification($error_object->description, $error_object->ID);
+		}
 	}
 	
 	/**
