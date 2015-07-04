@@ -1,6 +1,3 @@
-// Counter used as part of simple UID for notifications
-var notificationCount = 0;
-
 // Psudo-constant
 var WP_LIB_NONCE = 'wp_lib_ajax_nonce';
 
@@ -66,18 +63,15 @@ function wp_lib_render_notifications(notificationsArray) {
 // Renders a single notification to a specified notification holder
 function wp_lib_render_notification(notificationText) {
 	// Formats notification inside div and gives notification ID (to keep track of it)
-	var result = wp_lib_format_notification(notificationText);
+	var formattedNotification = wp_lib_format_notification(notificationText);
 	
 	// Notification is an error and browser supports the browser console, logs to console as well
 	if (notificationText[0] != 0 && typeof console !== 'undefined') {
-		console.log(result[2]);
+		console.log(formattedNotification.consoleMessage);
 	}
 
 	// Adds notification to the notification holder
-	notificationHolder.append(result[1]).hide().fadeIn(500);
-	
-	// Selects the notification using its ID
-	var notification = jQuery('.' + result[0]);
+	notificationHolder.append(formattedNotification.element).hide().fadeIn(500);
 	
 	// Calculates how long to display the notification, based on its length
 	var displayTime = notificationText[1].length * 150;
@@ -91,7 +85,7 @@ function wp_lib_render_notification(notificationText) {
 	
 	// Sets notification to fade away after 5 seconds then get deleted
 	setTimeout(function(){
-		wp_lib_hide_notification(notification);
+		wp_lib_hide_notification(formattedNotification.element);
 	}, displayTime);
 }
 
@@ -107,40 +101,34 @@ function wp_lib_local_error(text) {
 
 // Formats a notification with appropriate tags to utilise WordPress and Plugin CSS
 function wp_lib_format_notification(notification) {
-	// Creates unique ID for notification (to keep track of it)
-	var uID = 'wp_lib_nid_' + notificationCount++;
-	
-	// Initialises variables
-	var classes = uID + ' ';
-	var message = '';
-	var consoleMessage = '';
+	var classes, message, consoleMessage, uID = Math.random().toString().substring(2, 8);
 	
 	// If notification has no error code (defaulted to 0)
 	if (notification[0] == 0) {
 		// Uses notification classes, which displays a green flared box
-		classes += 'wp-lib-notification updated';
+		classes = 'wp-lib-notification updated';
 		message = notification[1];
 	} else if (notification[0] == 1) {
 		// Uses error classes, which displays a red flared box
-		classes += 'wp-lib-error error';
+		classes = 'wp-lib-error error';
 		consoleMessage = 'WP-Librarian Error: ' + notification[1];
 		message = '<strong style="color: red;">' + consoleMessage + '</strong>';
 	} else {
 		// Uses error classes, which displays a red flared box
-		classes += 'wp-lib-error error';
+		classes = 'wp-lib-error error';
 		consoleMessage = 'WP-Librarian Error ' + notification[0] + ': ' + notification[1];
 		message = '<strong style="color: red;">' + consoleMessage + '</strong>';
 	}
 	
 	// Returns HTML formatted notification
-	return [ uID, '<div onclick="wp_lib_hide_notification(this)" class="' + classes + '"><p>' + message + '</p></div>', consoleMessage ];
+	return {
+		'element':			jQuery('<div id="' + uID + '" onclick="wp_lib_hide_notification(this)" class="' + classes + '"><p>' + message + '</p></div>'),
+		'consoleMessage':	consoleMessage
+	};
 }
 
 // Hides then deletes notification, called when notification is clicked or some time after it appeared
-function wp_lib_hide_notification(element) {
-	// Selects notification
-	var notification = jQuery(element);
-	
+function wp_lib_hide_notification(notification) {
 	// Removes notification, in style!
 	notification.fadeOut("fast");
 	
