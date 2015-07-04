@@ -6,7 +6,7 @@
  * Author: Kit Maywood
  * Text Domain: wp-librarian
  * Author URI: https://github.com/kittsville
- * License: GPL2
+ * License: GPL3
  */
 
 /*

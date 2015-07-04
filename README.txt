@@ -4,7 +4,7 @@ Tags: library, inventory, books, management, system, media, librarian
 Requires at least: 3.9
 Tested up to: 4.1
 Stable tag: 4.0
-License: GPL2
+License: GPL3
 License URI: http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
 Manage an extensive Library of book and other media with WP-Librarian. Loan, return or schedule items, tracking them between Library members.
