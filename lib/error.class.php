@@ -87,7 +87,7 @@ class WP_Lib_Error {
 		'600' => 'Unable to schedule debugging loan',
 		'601' => 'Unable to fulfil successfully scheduled debugging loan',
 		'901' => 'Error encountered while processing error (error code not a number)',
-		'902' => 'Error encountered while processing error ID:\p (error does not exist)'
+		'902' => 'Error encountered while processing error ID: \p (error does not exist)'
 	);
 
 	/**
@@ -107,8 +107,10 @@ class WP_Lib_Error {
 		$error_codes = apply_filters('wp_lib_error_codes', WP_Lib_Error::$error_codes);
 	
 		// If given error code does not exist, calls 'undefined error code' error
-		if (!array_key_exists($error_code, $error_codes))
-			$error_code = 902;
+		if (!array_key_exists($error_code, $error_codes)) {
+			$param		= $error_code;
+			$error_code	= 902;
+		}
 		
 		// Sets up object properties
 		$this->ID           = $error_code;
