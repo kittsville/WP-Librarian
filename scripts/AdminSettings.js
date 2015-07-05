@@ -174,5 +174,9 @@ jQuery(function($) {
 		},
 	};
 	
+	// Is not loaded by get_script so has to self-initialise
 	AdminSettings.init();
+	
+	// Allows others scripts to access this module
+	wp_lib_scripts.AdminSettings = AdminSettings;
 });

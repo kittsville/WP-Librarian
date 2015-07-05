@@ -34,8 +34,8 @@ function wp_lib_get_script(scriptURL) {
 		var moduleName = scriptURL.match(/.*\/(.+?)\./)[1];
 		
 		// Initialises module if script contained a module named after the script
-		if (window[moduleName] instanceof Object && window[moduleName].init instanceof Object) {
-			window[moduleName].init();
+		if (wp_lib_scripts.hasOwnProperty(moduleName) && wp_lib_scripts[moduleName].init instanceof Object) {
+			wp_lib_scripts[moduleName].init();
 		}
 	});
 }
