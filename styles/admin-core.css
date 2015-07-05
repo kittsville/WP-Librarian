@@ -16,3 +16,8 @@
 	overflow: auto;
 	float: right;
 }
+
+div#wp-lib-notifications {
+	max-width: 90%;
+	min-width: 300px;
+}
