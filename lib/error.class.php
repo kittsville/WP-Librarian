@@ -23,7 +23,7 @@ class WP_Lib_Error {
 	/**
 	 * All valid error codes within WP-Librarian and their descriptions
 	 * Each block of 100 codes is assigned to a category of error:
-	 * 0xx      - Reserved, see wp_lib_add_notification()
+	 * 0xx      - Reserved for errors with no code and non-error notifications
 	 * 1xx      - Core functionality failure
 	 * 2xx      - General loan/return systems error
 	 * 3xx      - Invalid loan/return parameters
