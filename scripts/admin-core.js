@@ -1,3 +1,4 @@
+// Holds all script modules
 var wp_lib_scripts = {};
 
 wp_lib_vars.onClick = 'wp_lib_click_button(this)';
