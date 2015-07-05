@@ -139,11 +139,11 @@ jQuery(function($) {
 			if (wp_lib_vars.getParams.hasOwnProperty('settings-updated')) {
 				switch (wp_lib_vars.getParams['settings-updated']) {
 					case 'true':
-						wp_lib_local_notification('Settings updated successfully');
+						wp_lib_notification('Settings updated successfully');
 					break;
 					
 					case 'false':
-						wp_lib_local_notification('Settings failed to update');
+						wp_lib_error('Settings failed to update');
 					break;
 				}
 			}
