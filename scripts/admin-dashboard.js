@@ -90,7 +90,7 @@ function wp_lib_do_action(dashAction, params) {
 	}
 	
 	// Adds nonce to params to be sent
-	data.wp_lib_ajax_nonce = params[WP_LIB_NONCE];
+	data.wp_lib_ajax_nonce = params['wp_lib_ajax_nonce'];
 	
 	// Sends dash action to server. Returns to Dashboard home on success and displays errors on failure
 	wp_lib_send_ajax(data, function(serverResponse) {
@@ -305,8 +305,8 @@ function wp_lib_render_page_element(pageItem, theParent) {
 		case 'nonce':
 			var theElement = $('<input/>', elementObject).attr({
 				'type'	: 'hidden',
-				'id'	: WP_LIB_NONCE,
-				'name'	: WP_LIB_NONCE
+				'id'	: 'wp_lib_ajax_nonce',
+				'name'	: 'wp_lib_ajax_nonce',
 			});
 		break;
 		
