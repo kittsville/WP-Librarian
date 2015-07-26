@@ -167,8 +167,9 @@ class WP_Librarian {
 	 * Loads classes that handle library's objects (items, loans, etc.)
 	 */
 	public function loadObjectClasses() {
-		foreach (['library-object', 'item', 'member', 'loan', 'fine'] as $object_class)
+		foreach (array('library-object', 'item', 'member', 'loan', 'fine') as $object_class) {
 			$this->loadClass($object_class);
+		}
 	}
 	
 	/**
@@ -294,7 +295,7 @@ class WP_Librarian {
 			WP_Lib_Settings::addPluginSettings();
 			
 			// Registers default media types
-			foreach ([
+			foreach (array(
 				array(
 					'name' => 'Book',
 					'slug' => 'books',
@@ -307,7 +308,7 @@ class WP_Librarian {
 					'name' => 'Graphic Novel',
 					'slug' => 'graphic-novels',
 				)
-			] as $type) {
+			) as $type) {
 				if (get_term_by('name', $type['name'], 'wp_lib_media_type') == false){
 					wp_insert_term(
 						$type['name'],
@@ -1381,7 +1382,7 @@ class WP_Librarian {
 	 */
 	public function checkPostPreTrash($post_id) {
 		// If object doesn't belong to the Library, is an autosave or integrity checking is turned off, pre-deletion checking is skipped
-		if (!in_array(get_post_type($post_id), ['wp_lib_items', 'wp_lib_members', 'wp_lib_loans', 'wp_lib_fines']) || wp_is_post_autosave($post_id) || !WP_LIB_MAINTAIN_INTEGRITY || apply_filters('wp_lib_bypass_deletion_checks', false, $post_id))
+		if (!in_array(get_post_type($post_id), array('wp_lib_items', 'wp_lib_members', 'wp_lib_loans', 'wp_lib_fines')) || wp_is_post_autosave($post_id) || !WP_LIB_MAINTAIN_INTEGRITY || apply_filters('wp_lib_bypass_deletion_checks', false, $post_id))
 			return;
 		
 		// If object is being deleted via an AJAX request

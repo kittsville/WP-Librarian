@@ -1616,7 +1616,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 			$page[] = array(
 				'type'      => 'dtable',
 				'id'        => 'loan-renewings',
-				'headers'   => ['Renewed On', 'Renewed Until', 'Librarian'],
+				'headers'   => array('Renewed On', 'Renewed Until', 'Librarian'),
 				'data'      => $renewings,
 				'labels'    => array(
 					'records'   => 'times renewed',

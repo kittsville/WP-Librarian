@@ -83,7 +83,7 @@ class WP_Lib_Admin_Tables {
 	private function dateColumn($post_id, $meta_key) {
 		// If there are multiple dates to choose from, chooses last given date that exists
 		if (is_array($meta_key)) {
-			$values = [];
+			$values = array();
 			
 			foreach ($meta_key as $key) {
 				$values[] = get_post_meta($post_id, $key, true);
@@ -410,7 +410,7 @@ class WP_Lib_Admin_Tables {
 	 * @return  Array               Modified array of sortable table columns
 	 */
 	public function setSortableItemsTableColumns(Array $columns) {
-		foreach(['taxonomy-wp_lib_media_type','taxonomy-wp_lib_author','item_condition'] as $sortable) {
+		foreach(array('taxonomy-wp_lib_media_type','taxonomy-wp_lib_author','item_condition') as $sortable) {
 			$columns[$sortable] = $sortable;
 		}
 		
@@ -423,7 +423,7 @@ class WP_Lib_Admin_Tables {
 	 * @return  Array               Modified array of sortable table columns
 	 */
 	public function setSortableMembersTableColumns(Array $columns) {
-		foreach(['member_name','member_loans','member_donated'] as $sortable) {
+		foreach(array('member_name','member_loans','member_donated') as $sortable) {
 			$columns[$sortable] = $sortable;
 		}
 		
@@ -436,7 +436,7 @@ class WP_Lib_Admin_Tables {
 	 * @return  Array               Modified array of sortable table columns
 	 */
 	public function setSortableLoansTableColumns(Array $columns) {
-		foreach(['loan_loan','loan_item','loan_member','loan_status','loan_start','loan_end','loan_returned'] as $sortable) {
+		foreach(array('loan_loan','loan_item','loan_member','loan_status','loan_start','loan_end','loan_returned') as $sortable) {
 			$columns[$sortable] = $sortable;
 		}
 		
@@ -449,7 +449,7 @@ class WP_Lib_Admin_Tables {
 	 * @return  Array               Modified array of sortable table columns
 	 */
 	public function setSortableFinesTableColumns(Array $columns) {
-		foreach(['fine_fine','fine_item','fine_member','fine_status','fine_amount'] as $sortable) {
+		foreach(array('fine_fine','fine_item','fine_member','fine_status','fine_amount') as $sortable) {
 			$columns[$sortable] = $sortable;
 		}
 		
