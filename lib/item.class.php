@@ -131,7 +131,7 @@ class WP_Lib_Item extends WP_Lib_Object {
 					'value'     => $this->ID,
 					'compare'   => 'IN'
 				)
-			)
+			),
 		));
 		
 		if ($query->have_posts()) {
