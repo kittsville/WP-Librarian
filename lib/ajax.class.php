@@ -1394,8 +1394,8 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 		$page = array(
 			$this->prepItemMetaBox($item),
 			array(
-				'type'		=> 'div',
-				'id'		=> 'member-metabox-wrap',
+				'type'      => 'div',
+				'id'        => 'member-metabox-wrap',
 			),
 			array(
 				'type'      => 'form',

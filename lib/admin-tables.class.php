@@ -701,7 +701,7 @@ SQL;
 						'value'     => 'bug #23268' // Allows WP-Librarian to run on pre-3.9 WP installs (bug was fixed for 3.9, text is arbitrary)
 					)
 				));
-				$wp_query->set('orderby',   'meta_value_num');
+				$wp_query->set('orderby',  'meta_value_num');
 				$wp_query->set('meta_type','NUMERIC');
 			break;
 			

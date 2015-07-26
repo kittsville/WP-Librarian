@@ -73,8 +73,8 @@ class WP_Lib_Member extends WP_Lib_Object {
 	/**
 	 * Adds fine payment to member records
 	 * Fine payments that result in a negative amount owed are allowed
-	 * @param   int           		$payment	Amount to be paid x 100 e.g. £1.20 == 120
-	 * @return  bool|WP_Lib_Error   	     	True on success, error on failure
+	 * @param   int                 $payment    Amount to be paid x 100 e.g. £1.20 == 120
+	 * @return  bool|WP_Lib_Error               True on success, error on failure
 	 */
 	public function payMoneyOwed($payment) {
 		// If fine payment is negative or failed to validate (resulting in 0), call error

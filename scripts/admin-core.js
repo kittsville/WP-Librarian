@@ -23,9 +23,9 @@ function wp_lib_collect_form_params(clickedElement) {
 
 function wp_lib_get_script(scriptURL) {
 	jQuery.ajax({
-	    dataType	: 'script',
-		cache		: !wp_lib_vars.debugMode, // Only caches JS if debugging mode isn't on
-		url			: scriptURL
+		dataType    : 'script',
+		cache       : !wp_lib_vars.debugMode, // Only caches JS if debugging mode isn't on
+		url         : scriptURL
 	}).fail(function(jqxhr, settings, exception) {
 		wp_lib_local_error("Failed to load JavaScript needed for this page");
 		console.log('Script URL: ' + scriptURL);
@@ -69,8 +69,8 @@ function wp_lib_parse_json(rawJSON) {
 		if (wp_lib_vars.debugMode === '1') {
 			// Debugging - Renders un-parse-able returned data to workspace
 			jQuery('<div/>', {
-				'style'	: 'background:grey;',
-				'html'	: '<strong style="color:red;">Server Response</strong></br/>' + rawJSON
+				'style' : 'background:grey;',
+				'html'  : '<strong style="color:red;">Server Response</strong></br/>' + rawJSON
 			}).appendTo('#wp-lib-workspace');
 		}
 		

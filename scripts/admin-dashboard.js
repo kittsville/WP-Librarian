@@ -11,8 +11,8 @@ function wp_lib_api_call(params, postCallFunction) {
 function wp_lib_do_action(dashAction, params) {
 	// Initialising AJAX object
 	var data = {
-		action		: 'wp_lib_action',
-		dash_action	: dashAction
+		action      : 'wp_lib_action',
+		dash_action : dashAction
 	};
 	
 	// Adds referrer to AJAX request, this is needed for certain actions
@@ -56,8 +56,8 @@ function wp_lib_do_action(dashAction, params) {
 		break;
 		
 		case 'renew-item':
-			data.loan_id		= params['loan_id'];
-			data.renewal_date	= params['renewal_date'];
+			data.loan_id        = params['loan_id'];
+			data.renewal_date   = params['renewal_date'];
 		break;
 		
 		case 'fine-member':
@@ -267,7 +267,7 @@ function wp_lib_render_page_element(pageItem, theParent) {
 	if (pageItem.hasOwnProperty('label')) {
 		// Creates label, appends to parent, then sets parent as label. This means the pageItem will be inside the label
 		theParent = $('<label/>', {
-			'for'	: pageItem.label
+			'for'   : pageItem.label
 		}).appendTo(theParent);
 	}
 	
@@ -284,9 +284,9 @@ function wp_lib_render_page_element(pageItem, theParent) {
 		// Nonces used to verify the source of do_action requests
 		case 'nonce':
 			var theElement = $('<input/>', elementObject).attr({
-				'type'	: 'hidden',
-				'id'	: 'wp_lib_ajax_nonce',
-				'name'	: 'wp_lib_ajax_nonce',
+				'type'  : 'hidden',
+				'id'    : 'wp_lib_ajax_nonce',
+				'name'  : 'wp_lib_ajax_nonce',
 			});
 		break;
 		
@@ -313,7 +313,7 @@ function wp_lib_render_page_element(pageItem, theParent) {
 				// Button that links to an external URL
 				case 'url':
 					theElement.attr({
-						onclick	: wp_lib_vars.onClick
+						onclick : wp_lib_vars.onClick
 					});
 				break;
 				
@@ -330,8 +330,8 @@ function wp_lib_render_page_element(pageItem, theParent) {
 					
 					// Creates link to edit item/member
 					theElement.attr({
-						href	: wp_lib_vars.adminUrl + 'post.php?action=edit&post=' + postID,
-						onclick	: wp_lib_vars.onClick
+						href    : wp_lib_vars.adminUrl + 'post.php?action=edit&post=' + postID,
+						onclick : wp_lib_vars.onClick
 					});
 				break;
 				
@@ -349,7 +349,7 @@ function wp_lib_render_page_element(pageItem, theParent) {
 			// If button has an icon overwrite button contents with icon
 			if (pageItem.hasOwnProperty('icon')) {
 				theElement.html($('<div/>',{
-					'class'	: 'dash-icon dash-icon-medium dashicons dashicons-' + pageItem.icon,
+					'class' : 'dash-icon dash-icon-medium dashicons dashicons-' + pageItem.icon,
 				}))
 				.addClass('dash-icon-medium-parent'); // Adds class to icon parent (button) as CSS3 selectors don't support selecting an element based on its children
 			}
@@ -366,9 +366,9 @@ function wp_lib_render_page_element(pageItem, theParent) {
 			$.each(pageItem.params, function(paramName, paramValue) {
 				theElement.append(
 					$('<input/>',{
-						type	: 'hidden',
-						name	: paramName,
-						value	: paramValue
+						type    : 'hidden',
+						name    : paramName,
+						value   : paramValue
 					})
 				);
 			});
@@ -398,22 +398,22 @@ function wp_lib_render_page_element(pageItem, theParent) {
 				
 				case 'post-type':
 					theElement.attr({
-						href	: wp_lib_vars.adminUrl + 'edit.php?post_type=' + pageItem.cpt,
-						onclick	: wp_lib_vars.onClick
+						href    : wp_lib_vars.adminUrl + 'edit.php?post_type=' + pageItem.cpt,
+						onclick : wp_lib_vars.onClick
 					});
 				break;
 				
 				case 'admin-url':
 					theElement.attr({
-						href	: wp_lib_vars.adminUrl + pageItem.url,
-						onclick	: wp_lib_vars.onClick
+						href    : wp_lib_vars.adminUrl + pageItem.url,
+						onclick : wp_lib_vars.onClick
 					});
 				break;
 				
 				case 'url':
 					theElement.attr({
-						href	: pageItem.url,
-						onclick	: wp_lib_vars.onClick
+						href    : pageItem.url,
+						onclick : wp_lib_vars.onClick
 					});
 				break;
 			}
@@ -427,16 +427,16 @@ function wp_lib_render_page_element(pageItem, theParent) {
 			theElement.html(
 				// Wrapper
 				$('<div/>', {
-				'class'	: 'dash-button-wrapper',
-				html	: [
+				'class' : 'dash-button-wrapper',
+				html    : [
 					// Icon
 					$('<div/>', {
-						'class'	: 'dash-icon dash-icon-large dashicons dashicons-' + pageItem.icon,
+						'class' : 'dash-icon dash-icon-large dashicons dashicons-' + pageItem.icon,
 					}),
 					// Button text
 					$('<h4/>',{
-						'class'	: 'dash-button-text',
-						html	: pageItem.bName
+						'class' : 'dash-button-text',
+						html    : pageItem.bName
 					})
 				]})
 			);
@@ -451,12 +451,12 @@ function wp_lib_render_page_element(pageItem, theParent) {
 				
 					$(pageItem.content).each(function (i, e) {
 						elementObject.html.push($('<p/>', {
-							html	: e
+							html    : e
 						}));
 					});
 				} else if (typeof pageItem.content === 'string') {
 					elementObject.html = $('<p/>', {
-						html	: pageItem.content
+						html    : pageItem.content
 					});
 				}
 			}
@@ -511,9 +511,9 @@ function wp_lib_render_page_element(pageItem, theParent) {
 			// Iterates through select element's options, adding them to the select element
 			$(pageItem.options).each(function(i, selectOption) {
 				elementSelectOptions.push($('<option/>', {
-					'value'	: selectOption.value,
-					'html'	: selectOption.html,
-					'class'	: pageItem.optionClass
+					'value' : selectOption.value,
+					'html'  : selectOption.html,
+					'class' : pageItem.optionClass
 				}));
 			});
 			
@@ -548,7 +548,7 @@ function wp_lib_render_page_element(pageItem, theParent) {
 			var theElement = $('<div/>',elementObject)
 			.addClass('lib-metabox')
 			.append($('<strong/>',{
-				html	: pageItem.title
+				html    : pageItem.title
 			}));
 			
 			// Initialises meta field output
@@ -579,8 +579,8 @@ function wp_lib_render_page_element(pageItem, theParent) {
 						
 						// Adds url to output buffer
 						multiUrlOutput.push($('<a/>',{
-							href	: taxData[1],
-							html	: taxData[0]
+							href    : taxData[1],
+							html    : taxData[0]
 						}));
 					});
 					
@@ -595,16 +595,16 @@ function wp_lib_render_page_element(pageItem, theParent) {
 				
 				// Renders meta row inside div and adds to 
 				metaFields.push($('<tr/>', {
-					'class'	: 'meta-row',
-					html	: [
+					'class' : 'meta-row',
+					html    : [
 						// Meta field's name e.g. Item ID
 						$('<th/>', {
-							'html'	: fieldName + ':'
+							'html'  : fieldName + ':'
 						}),
 						
 						// Meta field's value e.g. 42
 						$('<td/>', {
-							'html'	: fieldData
+							'html'  : fieldData
 						})
 					]
 				}));
@@ -612,8 +612,8 @@ function wp_lib_render_page_element(pageItem, theParent) {
 			
 			// Adds meta fields to meta wrapper
 			theElement.append($('<table/>',{
-				'class'	: 'lib-metabox',
-				'html'	: metaFields
+				'class' : 'lib-metabox',
+				'html'  : metaFields
 			}));
 		break;
 		
@@ -654,7 +654,7 @@ function wp_lib_render_page_element(pageItem, theParent) {
 			// Iterates through given table columns, adding them to the table head
 			$(pageItem.headers).each(function(i, header) {
 				$('<th/>', {
-					html	: header
+					html    : header
 				}).appendTo(tableHead);
 			});
 			
@@ -699,14 +699,14 @@ function wp_lib_render_page_element(pageItem, theParent) {
 			// If table does not have a custom value for '1 of 5 records', use default
 			if (!pageItem.hasOwnProperty('labels') || !pageItem.labels.hasOwnProperty('records')) {
 				pageItem.labels = {
-					records	: 'records'
+					records : 'records'
 				};
 			}
 			
 			// Wraps element in div, element remains
 			var theElement = $('<div/>',{
-				'class'	: 'dynatable-wrap',
-				html	: theTable
+				'class' : 'dynatable-wrap',
+				html    : theTable
 			}).appendTo(theParent);
 			
 			// Fills table with formatted data
@@ -742,15 +742,15 @@ function wp_lib_render_page_element(pageItem, theParent) {
 				// Initialises item's list entry elements
 				var listItemElements = [
 					$('<input/>',{
-						type	: 'hidden',
-						name	: 'item_id',
-						value	: record.item_id
+						type    : 'hidden',
+						name    : 'item_id',
+						value   : record.item_id
 					})
 				],
 				manageItemURL = wp_lib_vars.dashUrl+'&dash_page=manage-item&item_id='+record.item_id,
 				coverLink = $('<a/>',{
-					'href'	: manageItemURL,
-					'class'	: 'item-cover-link',
+					'href'  : manageItemURL,
+					'class' : 'item-cover-link',
 				});
 				
 				listItemElements.push(coverLink);
@@ -758,20 +758,20 @@ function wp_lib_render_page_element(pageItem, theParent) {
 				// If item has a cover image, use. Otherwise use placeholder div that will be filled with book icon
 				if (record.cover !== false) {
 					coverLink.append($('<div/>', {
-							'class'	: 'item-thumbnail',
-							'html'	: $('<div/>',{
-								'class'	: 'item-thumbnail-centrefix',
-								'html'	: $('<img/>',{
-									'src'	: record.cover[0],
-									'class'	: 'item-thumbnail',
+							'class' : 'item-thumbnail',
+							'html'  : $('<div/>',{
+								'class' : 'item-thumbnail-centrefix',
+								'html'  : $('<img/>',{
+									'src'   : record.cover[0],
+									'class' : 'item-thumbnail',
 								})
 							})
 						})
 					);
 				} else {
 					coverLink.append($('<div/>', {
-						'class'	: 'item-no-thumbnail',
-						'href'	: manageItemURL,
+						'class' : 'item-no-thumbnail',
+						'href'  : manageItemURL,
 					}));
 				}
 				
@@ -784,8 +784,8 @@ function wp_lib_render_page_element(pageItem, theParent) {
 				// Initialises item meta elements with item title
 				var itemMeta = [
 					$('<h4/>',{
-						'class'	: 'item-title',
-						'html'	: record.title
+						'class' : 'item-title',
+						'html'  : record.title
 					})
 				];
 				
@@ -799,8 +799,8 @@ function wp_lib_render_page_element(pageItem, theParent) {
 					}
 					itemMeta.push(
 						$('<p/>',{
-							'class'	: 'item-authors',
-							'html'	: 'Authors: ' + allAuthors
+							'class' : 'item-authors',
+							'html'  : 'Authors: ' + allAuthors
 						})
 					);
 				}
@@ -808,26 +808,26 @@ function wp_lib_render_page_element(pageItem, theParent) {
 				// Adds item status (Available/on loan/etc.) to item meta
 				itemMeta.push(
 					$('<p/>',{
-						'class'	: 'item-status',
-						'html'	: 'Status: ' + record.status
+						'class' : 'item-status',
+						'html'  : 'Status: ' + record.status
 					})
 				);
 				
 				// Adds item title and details to entry elements
 				listItemElements.push(
 					$('<div/>',{
-						'class'	: 'item-meta',
-						'html'	: itemMeta
+						'class' : 'item-meta',
+						'html'  : itemMeta
 					})
 				);
 				
 				// Creates list element
 				var singleItem = $('<li/>', {
-					'class'	: 'single-item'
+					'class' : 'single-item'
 				});
 				
 				var localParent = $('<form/>', {
-					'html'	: listItemElements
+					'html'  : listItemElements
 				}).appendTo(singleItem);
 				
 				// Adds class to colour item red if it is currently late
@@ -837,23 +837,23 @@ function wp_lib_render_page_element(pageItem, theParent) {
 				
 				// Renders manage item button to invisible form containing item's ID
 				wp_lib_render_page_element({
-						type	: 'button',
-						link	: 'page',
-						value	: 'manage-item',
-						html	: 'Manage',
-						classes	: 'item-manage',
-						href	: manageItemURL,
+						type    : 'button',
+						link    : 'page',
+						value   : 'manage-item',
+						html    : 'Manage',
+						classes : 'item-manage',
+						href    : manageItemURL,
 					},
 					localParent
 				);
 				
 				// Creates 'View' button to view items public listing
 				wp_lib_render_page_element({
-					type		: 'button',
-					link		: 'url',
-					href		: record.view,
-					html		: 'View',
-					classes		: 'item-view'
+					type        : 'button',
+					link        : 'url',
+					href        : record.view,
+					html        : 'View',
+					classes     : 'item-view'
 				}, localParent);
 				
 				// Converts to html string, as Dynatable doesn't accept DOM objects
@@ -862,8 +862,8 @@ function wp_lib_render_page_element(pageItem, theParent) {
 			
 			// Wraps table in div
 			var theElement = $('<div/>',{
-				'class'	: 'item-list-wrap',
-				html	: theTable
+				'class' : 'item-list-wrap',
+				html    : theTable
 			}).appendTo(theParent);
 			
 			// Sets up table as Dynatable
@@ -899,8 +899,8 @@ function wp_lib_render_page_element(pageItem, theParent) {
 				console.log(pageItem);
 				
 				var theElement = $('<strong/>', {
-					'html'	: 'UNKNOWN ELEMENT TYPE<br/>',
-					'style'	: 'color:red;'
+					'html'  : 'UNKNOWN ELEMENT TYPE<br/>',
+					'style' : 'color:red;'
 				});
 			} else {
 				var theElement = $('<div/>',{});

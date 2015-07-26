@@ -24,17 +24,17 @@ jQuery(document).ready(function($) {
 		// Renders section title and adds to meta section wrapper
 		metaWrapper.append(
 			$('<div/>', {
-				'class'	: 'meta-section-title',
-				'html'	:
+				'class' : 'meta-section-title',
+				'html'  :
 					$('<h3/>', {
-						'text'	: metaSection.title
+						'text'  : metaSection.title
 					})
 			})
 		);
 		
 		// Renders then selects fields wrapper
 		var metaFieldsTable = $('<table/>', {
-			'class'	: 'meta-section-fields'
+			'class' : 'meta-section-fields'
 		})
 		.appendTo(metaWrapper);
 		
@@ -62,7 +62,7 @@ jQuery(document).ready(function($) {
 						.addClass('meta-select')
 						.append(
 							$('<option/>', {
-								'html'	: 'Select'
+								'html'  : 'Select'
 							})
 						);
 						
@@ -72,8 +72,8 @@ jQuery(document).ready(function($) {
 							metaField.options.forEach(function(option) {
 								// Initialises option's properties
 								var optionObject = {
-									'value'	: option.value,
-									'html'	: option.html
+									'value' : option.value,
+									'html'  : option.html
 								};
 								
 								// If option is the current value, pre-select as that option
@@ -111,15 +111,15 @@ jQuery(document).ready(function($) {
 				
 				// Creates meta row with title and meta value (theElement)
 				metaFieldsTable.append($('<tr/>', {
-					'class'	: 'meta-field-row',
-					'html'	: [
+					'class' : 'meta-field-row',
+					'html'  : [
 						$('<td/>', {
-							'text'	: metaField.title,
-							'class'	: 'meta-field-title'
+							'text'  : metaField.title,
+							'class' : 'meta-field-title'
 						}),
 						$('<td/>', {
-							'class'	: 'meta-input-wrapper',
-							'html'	: theElement
+							'class' : 'meta-input-wrapper',
+							'html'  : theElement
 						})
 					]
 				}));

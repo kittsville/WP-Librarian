@@ -2,11 +2,11 @@ jQuery(function($) {
 	var DashManageItem = {
 		// Settings
 		s: {
-			memberSelect:		jQuery('form.lib-form select.member-select'),
-			metaBoxWrap:		jQuery('div#member-metabox-wrap'),
-			currentMemberID:	NaN,
-			metaBoxCache:		{},												// Holds member metaboxes that have already been loaded
-			navigationKeys:		[33, 34, 35, 36, 38, 40, 104, 98],				// In order: PG UP, PG Down, End, Home, Up, Down, NumPad 8, NumPad 2
+			memberSelect:       jQuery('form.lib-form select.member-select'),
+			metaBoxWrap:        jQuery('div#member-metabox-wrap'),
+			currentMemberID:    NaN,
+			metaBoxCache:       {},                                             // Holds member metaboxes that have already been loaded
+			navigationKeys:     [33, 34, 35, 36, 38, 40, 104, 98],              // In order: PG UP, PG Down, End, Home, Up, Down, NumPad 8, NumPad 2
 		},
 		
 		init: function() {
@@ -27,9 +27,9 @@ jQuery(function($) {
 		},
 		
 		updateMemberMetabox: function() {
-			var newMemberID	= parseInt(DashManageItem.s.memberSelect.val()),
-			currentMemberID	= DashManageItem.s.currentMemberID,
-			metaBoxCache	= DashManageItem.s.metaBoxCache;
+			var newMemberID = parseInt(DashManageItem.s.memberSelect.val()),
+			currentMemberID = DashManageItem.s.currentMemberID,
+			metaBoxCache    = DashManageItem.s.metaBoxCache;
 			
 			if (newMemberID === currentMemberID) {
 				return;
@@ -49,8 +49,8 @@ jQuery(function($) {
 				DashManageItem.s.metaBoxWrap.html(metaBoxCache[newMemberID]);
 			} else {
 				var params = {
-					'api_request'	: 'member-metabox',
-					'member_id'		: newMemberID,
+					'api_request'   : 'member-metabox',
+					'member_id'     : newMemberID,
 				};
 				
 				wp_lib_api_call(params, function(serverResponse) {

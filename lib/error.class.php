@@ -108,8 +108,8 @@ class WP_Lib_Error {
 	
 		// If given error code does not exist, calls 'undefined error code' error
 		if (!array_key_exists($error_code, $error_codes)) {
-			$param		= $error_code;
-			$error_code	= 902;
+			$param      = $error_code;
+			$error_code = 902;
 		}
 		
 		// Sets up object properties
