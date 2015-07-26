@@ -122,24 +122,24 @@ class WP_Librarian {
 			return;
 		}
 		
-		wp_register_script('wp_lib_meta_core',  $this->getScriptUrl('admin-meta-core'), array('jquery', 'jquery-ui-datepicker', 'wp_lib_core'), '0.2');
+		wp_register_script('wp_lib_meta_core',  $this->getScriptUrl('admin-meta-core'), array('jquery', 'jquery-ui-datepicker', 'wp_lib_core'), '0.3');
 		wp_register_script('hyphenateISBN',     $this->getScriptUrl('hyphenateISBN'),   array(),                                                '0.1');
-		wp_register_script('wp_lib_edit_item',  $this->getScriptUrl('admin-edit-item'), array('wp_lib_meta_core', 'hyphenateISBN'),             '0.2');
-		wp_register_script('wp_lib_dashboard',  $this->getScriptUrl('admin-dashboard'), array('wp_lib_core'),                                   '0.3');
+		wp_register_script('wp_lib_edit_item',  $this->getScriptUrl('admin-edit-item'), array('wp_lib_meta_core', 'hyphenateISBN'),             '0.3');
+		wp_register_script('wp_lib_dashboard',  $this->getScriptUrl('admin-dashboard'), array('wp_lib_core'),                                   '0.4');
 		wp_register_script('dynatable',         $this->getScriptUrl('dynatable'),       array(),                                                '0.3.1');
-		wp_register_script('wp_lib_settings',   $this->getScriptUrl('AdminSettings'),   array('wp_lib_core'),                                   '0.3');
-		wp_register_script('wp_lib_core',       $this->getScriptUrl('admin-core'),      array('jquery', 'jquery-ui-datepicker'),                '0.2');
+		wp_register_script('wp_lib_settings',   $this->getScriptUrl('AdminSettings'),   array('wp_lib_core'),                                   '0.4');
+		wp_register_script('wp_lib_core',       $this->getScriptUrl('admin-core'),      array('jquery', 'jquery-ui-datepicker'),                '0.3');
 		
-		wp_register_style('wp_lib_admin_post_table',    $this->getStyleUrl('admin-post-table'), array(),                    '0.1');
-		wp_register_style('wp_lib_admin_settings',      $this->getStyleUrl('admin-settings'),   array('wp_lib_core'),       '0.1');
-		wp_register_style('wp_lib_dashboard',           $this->getStyleUrl('admin-dashboard'),  array('wp_lib_core'),       '0.3');
+		wp_register_style('wp_lib_admin_post_table',    $this->getStyleUrl('admin-post-table'), array(),                    '0.2');
+		wp_register_style('wp_lib_admin_settings',      $this->getStyleUrl('admin-settings'),   array('wp_lib_core'),       '0.2');
+		wp_register_style('wp_lib_dashboard',           $this->getStyleUrl('admin-dashboard'),  array('wp_lib_core'),       '0.4');
 		wp_register_style('wp_lib_mellon_datepicker',   $this->getStyleUrl('mellon-datepicker'),array(),                    '0.1'); // Styles Datepicker
 		wp_register_style('jquery-ui',                  $this->getStyleUrl('jquery-ui'),        array(),                    '1.10.1'); // Core Datepicker Styles
 		wp_register_style('dynatable',                  $this->getStyleUrl('dynatable'),        array('jquery-ui'),         '0.3.1');
-		wp_register_style('wp_lib_meta_core',           $this->getStyleUrl('admin-meta-core'),  array(),                    '0.1');
-		wp_register_style('wp_lib_core',                $this->getStyleUrl('admin-core'),       array(),                    '0.2');
-		wp_register_style('wp_lib_admin_edit_item',     $this->getStyleUrl('admin-edit-item'),  array('wp_lib_meta_core'),  '0.1');
-		wp_register_style('wp_lib_frontend',            $this->getStyleUrl('front-end-core'),   array(),                    '0.2');
+		wp_register_style('wp_lib_meta_core',           $this->getStyleUrl('admin-meta-core'),  array(),                    '0.2');
+		wp_register_style('wp_lib_core',                $this->getStyleUrl('admin-core'),       array(),                    '0.3');
+		wp_register_style('wp_lib_admin_edit_item',     $this->getStyleUrl('admin-edit-item'),  array('wp_lib_meta_core'),  '0.2');
+		wp_register_style('wp_lib_frontend',            $this->getStyleUrl('front-end-core'),   array(),                    '0.3');
 		
 		// Sends array of useful variables to client-side
 		wp_localize_script('wp_lib_core', 'wp_lib_vars', apply_filters('wp_lib_script_vars', array(
