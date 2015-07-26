@@ -890,7 +890,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 	 * @param   WP_Lib_Item $item   Item to generate meta box for
 	 * @return  array               Meta box, as a Dash page element
 	 */
-	private function prepItemMetaBox($item) {
+	private function prepItemMetaBox(WP_Lib_Item $item) {
 		// Fetches post meta
 		$meta = get_post_meta($item->ID);
 		
@@ -953,7 +953,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 	 * @param   WP_Lib_Member   $member Member to generate meta box for
 	 * @return  array                   Meta box, as a Dash page element
 	 */
-	private function prepMemberMetaBox($member) {
+	private function prepMemberMetaBox(WP_Lib_Member $member) {
 		// Fetches member meta
 		$meta = get_post_meta($member->ID);
 		
@@ -981,7 +981,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 	 * @param   WP_Lib_Loan $loan   Loan to generate meta box for
 	 * @return  array               Meta box, as a Dash page element
 	 */
-	private function prepLoanMetaBox($loan) {
+	private function prepLoanMetaBox(WP_Lib_Loan $loan) {
 		// Fetches loan meta
 		$meta = get_post_meta($loan->ID);
 		
@@ -1015,7 +1015,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 	 * @param   WP_Lib_Fine $fine   Fine to generate meta box for
 	 * @return  array               Meta box, as a Dash page element
 	 */
-	private function prepFineMetaBox($fine) {
+	private function prepFineMetaBox(WP_Lib_Fine $fine) {
 		// Fetches fine meta
 		$meta = get_post_meta($fine->ID);
 		
