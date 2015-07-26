@@ -38,12 +38,6 @@ class WP_Lib_Settings {
 		
 		// Currency Symbol and position relative to the numerical value (2 - Before: £20, 3 - After: 20£)
 		'wp_lib_currency'   => array('&pound;', 2),
-		
-		/* -- Dashboard -- */
-		/* Settings relating to the Library Dashboard */
-		
-		// Whether to automatically search for an item with the given barcode when the given length is reached
-		'wp_lib_barcode_config' => array(false, 8),
 	);
 	
 	/**

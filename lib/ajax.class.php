@@ -1250,9 +1250,6 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 		// Fetches item using item ID in AJAX request
 		$item = $this->getItem();
 		
-		// Prepares the meta box
-		$page[] = $this->prepItemMetaBox($item);
-		
 		// Adds page nonce
 		$form = array($this->prepNonce('Managing Item: ' . $item->ID));
 		
@@ -1394,17 +1391,21 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 			);
 		}
 		
-		// Adds Dash form elements to page
-		$page[] = array(
-			'type'      => 'form',
-			'content'   => $form,
+		$page = array(
+			$this->prepItemMetaBox($item),
+			array(
+				'type'		=> 'div',
+				'id'		=> 'member-metabox-wrap',
+			),
+			array(
+				'type'      => 'form',
+				'content'   => $form,
+			),
+			$this->prepLoansTable($item->ID),
 		);
 		
-		// Fetches list of loans of item
-		$page[] = $this->prepLoansTable($item->ID);
-		
 		// Script to display currently selected member's meta box
-		$script = $this->wp_librarian->getScriptUrl('admin-dashboard-manage-item');
+		$script = $this->wp_librarian->getScriptUrl('DashManageItem');
 		
 		// Encodes page as an array to be rendered client-side
 		$this->sendPage('Managing: ' . get_the_title($item->ID), 'Managing Item #' . $item->ID, $page, $script);
@@ -1718,7 +1719,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 		);
 		
 		// Script to handle dynamic barcode lookup
-		$script = $this->wp_librarian->getScriptUrl('admin-barcode-scanner');
+		$script = $this->wp_librarian->getScriptUrl('DashBarcodeScanner');
 		
 		// Browser tab and Dashboard page title/header
 		$title = 'Scan Item Barcode';
@@ -2363,11 +2364,6 @@ class WP_Lib_AJAX_API extends WP_Lib_AJAX {
 				$this->getMemberMetaBox();
 			break;
 			
-			// Fetches parameters for barcode scanning script from database
-			case 'barcode-setup':
-				$this->getBarcodePageSettings();
-			break;
-			
 			// Looks up item based on given ISBN or barcode
 			case 'scan-barcode':
 				$this->getSearchItemByBarcode();
@@ -2404,24 +2400,6 @@ class WP_Lib_AJAX_API extends WP_Lib_AJAX {
 			'classes'   => 'member-man',
 			'fields'    => $meta_fields,
 		));
-	}
-	
-	/**
-	 * Fetches barcode field settings and returns them
-	 */
-	private function getBarcodePageSettings() {
-		$settings = get_option('wp_lib_barcode_config', false);
-		
-		// If setting are invalid, run settings integrity check
-		// Otherwise sends settings to user
-		if ($settings === false) {
-			$this->wp_librarian->loadClass('settings');
-			WP_Lib_Settings::checkPluginSettingsIntegrity();
-			
-			$this->stopAjax();
-		} else {
-			$this->sendData($settings);
-		}
 	}
 	
 	/**
