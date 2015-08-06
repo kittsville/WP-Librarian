@@ -1,0 +1,6 @@
+/*
+ * Name:		WP-Librarian Template Styles
+ * Author:		Kit Maywood
+ * Description:	Used on the front-end Library templates, for viewing item archives and single items
+ * Version:		0.2
+ */.item-meta-wrap,.wp-lib-item-description{min-width:250px}.item-meta-wrap{max-width:500px}.wp-lib-item-cover{float:right;padding:0px 0px 0px 5px}article.wp_lib_items{display:block;overflow:auto;margin-top:10px}article.wp_lib_items:not(:last-of-type){border-bottom:1px solid #CCC}div.item-meta-wrap *{padding:0px;margin:0px;border:none;background:transparent}div.item-meta-wrap{display:inline-block}.meta-row{overflow:auto}table.item-metabox th{white-space:nowrap;font-weight:bold;vertical-align:text-top;text-align:left}table.item-metabox td{padding-left:5px}

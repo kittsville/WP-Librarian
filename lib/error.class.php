@@ -23,7 +23,7 @@ class WP_Lib_Error {
 	/**
 	 * All valid error codes within WP-Librarian and their descriptions
 	 * Each block of 100 codes is assigned to a category of error:
-	 * 0xx      - Reserved, see wp_lib_add_notification()
+	 * 0xx      - Reserved for errors with no code and non-error notifications
 	 * 1xx      - Core functionality failure
 	 * 2xx      - General loan/return systems error
 	 * 3xx      - Invalid loan/return parameters
@@ -87,7 +87,7 @@ class WP_Lib_Error {
 		'600' => 'Unable to schedule debugging loan',
 		'601' => 'Unable to fulfil successfully scheduled debugging loan',
 		'901' => 'Error encountered while processing error (error code not a number)',
-		'902' => 'Error encountered while processing error ID:\p (error does not exist)'
+		'902' => 'Error encountered while processing error ID: \p (error does not exist)'
 	);
 
 	/**
@@ -107,8 +107,10 @@ class WP_Lib_Error {
 		$error_codes = apply_filters('wp_lib_error_codes', WP_Lib_Error::$error_codes);
 	
 		// If given error code does not exist, calls 'undefined error code' error
-		if (!array_key_exists($error_code, $error_codes))
+		if (!array_key_exists($error_code, $error_codes)) {
+			$param      = $error_code;
 			$error_code = 902;
+		}
 		
 		// Sets up object properties
 		$this->ID           = $error_code;

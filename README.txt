@@ -2,7 +2,7 @@
 Contributors: kittsville
 Tags: library, inventory, books, management, system, media, librarian
 Requires at least: 3.9
-Tested up to: 4.1
+Tested up to: 4.2.3
 Stable tag: 4.0
 License: GPL3
 License URI: http://www.gnu.org/licenses/old-licenses/gpl-2.0.html

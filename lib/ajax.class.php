@@ -187,12 +187,14 @@ class WP_Lib_AJAX {
 	 * @param string|array      $params OPTIONAL Details to enhance error message
 	 */
 	protected function handleError($error, $params = false) {
-		// If error code was given, create error instance then add error to notification buffer
-		if (is_int($error))
-			$this->addNotification(wp_lib_error($error, $params)->description, $error);
-		// If error instance was given, add error to notification buffer
-		elseif (wp_lib_is_error($error))
+		if (wp_lib_is_error($error)) {
 			$this->addNotification($error->description, $error->ID);
+		} else {
+			$error_object = wp_lib_error($error, $params);
+			
+			// Can't use $error for ID as the error ID might change (see: error 902)
+			$this->addNotification($error_object->description, $error_object->ID);
+		}
 	}
 	
 	/**
@@ -854,9 +856,9 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 	 */
 	public function sendPage($page_title, $tab_title, $page, $scripts = null) {
 		$this->output_buffer[2] = array(
-			apply_filters('wp_lib_dash_page_title', $page_title, $_POST['dash_page']),
-			apply_filters('wp_lib_dash_tab_title',  $tab_title, $_POST['dash_page']),
-			apply_filters('wp_lib_dash_page_content',       $page, $_POST['dash_page'])
+			apply_filters('wp_lib_dash_page_title',     $page_title, $_POST['dash_page']),
+			apply_filters('wp_lib_dash_page_tab_title', $tab_title, $_POST['dash_page']),
+			apply_filters('wp_lib_dash_page_content',   $page, $_POST['dash_page'])
 		);
 		
 		if (is_array($scripts) || is_string($scripts))
@@ -888,7 +890,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 	 * @param   WP_Lib_Item $item   Item to generate meta box for
 	 * @return  array               Meta box, as a Dash page element
 	 */
-	private function prepItemMetaBox($item) {
+	private function prepItemMetaBox(WP_Lib_Item $item) {
 		// Fetches post meta
 		$meta = get_post_meta($item->ID);
 		
@@ -951,7 +953,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 	 * @param   WP_Lib_Member   $member Member to generate meta box for
 	 * @return  array                   Meta box, as a Dash page element
 	 */
-	private function prepMemberMetaBox($member) {
+	private function prepMemberMetaBox(WP_Lib_Member $member) {
 		// Fetches member meta
 		$meta = get_post_meta($member->ID);
 		
@@ -979,7 +981,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 	 * @param   WP_Lib_Loan $loan   Loan to generate meta box for
 	 * @return  array               Meta box, as a Dash page element
 	 */
-	private function prepLoanMetaBox($loan) {
+	private function prepLoanMetaBox(WP_Lib_Loan $loan) {
 		// Fetches loan meta
 		$meta = get_post_meta($loan->ID);
 		
@@ -1013,7 +1015,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 	 * @param   WP_Lib_Fine $fine   Fine to generate meta box for
 	 * @return  array               Meta box, as a Dash page element
 	 */
-	private function prepFineMetaBox($fine) {
+	private function prepFineMetaBox(WP_Lib_Fine $fine) {
 		// Fetches fine meta
 		$meta = get_post_meta($fine->ID);
 		
@@ -1041,7 +1043,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 	 * @return  array               Dynatable of loans of given item
 	 */
 	private function prepLoansTable($item_id) {
-		$this->wp_librarian->loadHelper('dynatable');
+		$this->wp_librarian->loadClass('dynatable');
 		
 		// Queries WP for all loans of item
 		$dynatable = new WP_Lib_Dynatable_Loans($this, 'wp_lib_item', $item_id);
@@ -1248,9 +1250,6 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 		// Fetches item using item ID in AJAX request
 		$item = $this->getItem();
 		
-		// Prepares the meta box
-		$page[] = $this->prepItemMetaBox($item);
-		
 		// Adds page nonce
 		$form = array($this->prepNonce('Managing Item: ' . $item->ID));
 		
@@ -1392,17 +1391,21 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 			);
 		}
 		
-		// Adds Dash form elements to page
-		$page[] = array(
-			'type'      => 'form',
-			'content'   => $form,
+		$page = array(
+			$this->prepItemMetaBox($item),
+			array(
+				'type'      => 'div',
+				'id'        => 'member-metabox-wrap',
+			),
+			array(
+				'type'      => 'form',
+				'content'   => $form,
+			),
+			$this->prepLoansTable($item->ID),
 		);
 		
-		// Fetches list of loans of item
-		$page[] = $this->prepLoansTable($item->ID);
-		
 		// Script to display currently selected member's meta box
-		$script = $this->wp_librarian->getScriptUrl('admin-dashboard-manage-item');
+		$script = $this->wp_librarian->getScriptUrl('DashManageItem');
 		
 		// Encodes page as an array to be rendered client-side
 		$this->sendPage('Managing: ' . get_the_title($item->ID), 'Managing Item #' . $item->ID, $page, $script);
@@ -1465,7 +1468,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 			'content'   => $form,
 		);
 		
-		$this->wp_librarian->loadHelper('dynatable');
+		$this->wp_librarian->loadClass('dynatable');
 		
 		// Queries database for loans made by member
 		$dynatable = new WP_Lib_Dynatable_Loans($this, 'wp_lib_member', $member->ID);
@@ -1613,7 +1616,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 			$page[] = array(
 				'type'      => 'dtable',
 				'id'        => 'loan-renewings',
-				'headers'   => ['Renewed On', 'Renewed Until', 'Librarian'],
+				'headers'   => array('Renewed On', 'Renewed Until', 'Librarian'),
 				'data'      => $renewings,
 				'labels'    => array(
 					'records'   => 'times renewed',
@@ -1716,7 +1719,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 		);
 		
 		// Script to handle dynamic barcode lookup
-		$script = $this->wp_librarian->getScriptUrl('admin-barcode-scanner');
+		$script = $this->wp_librarian->getScriptUrl('DashBarcodeScanner');
 		
 		// Browser tab and Dashboard page title/header
 		$title = 'Scan Item Barcode';
@@ -2361,11 +2364,6 @@ class WP_Lib_AJAX_API extends WP_Lib_AJAX {
 				$this->getMemberMetaBox();
 			break;
 			
-			// Fetches parameters for barcode scanning script from database
-			case 'barcode-setup':
-				$this->getBarcodePageSettings();
-			break;
-			
 			// Looks up item based on given ISBN or barcode
 			case 'scan-barcode':
 				$this->getSearchItemByBarcode();
@@ -2402,24 +2400,6 @@ class WP_Lib_AJAX_API extends WP_Lib_AJAX {
 			'classes'   => 'member-man',
 			'fields'    => $meta_fields,
 		));
-	}
-	
-	/**
-	 * Fetches barcode field settings and returns them
-	 */
-	private function getBarcodePageSettings() {
-		$settings = get_option('wp_lib_barcode_config', false);
-		
-		// If setting are invalid, run settings integrity check
-		// Otherwise sends settings to user
-		if ($settings === false) {
-			$this->wp_librarian->loadHelper('settings');
-			WP_Lib_Settings::checkPluginSettingsIntegrity();
-			
-			$this->stopAjax();
-		} else {
-			$this->sendData($settings);
-		}
 	}
 	
 	/**

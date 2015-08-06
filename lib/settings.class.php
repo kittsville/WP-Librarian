@@ -38,12 +38,6 @@ class WP_Lib_Settings {
 		
 		// Currency Symbol and position relative to the numerical value (2 - Before: £20, 3 - After: 20£)
 		'wp_lib_currency'   => array('&pound;', 2),
-		
-		/* -- Dashboard -- */
-		/* Settings relating to the Library Dashboard */
-		
-		// Whether to automatically search for an item with the given barcode when the given length is reached
-		'wp_lib_barcode_config' => array(false, 8),
 	);
 	
 	/**
@@ -131,21 +125,18 @@ class WP_Lib_Settings_Section extends WP_Lib_Settings {
 				// Adds setting name to arguments to be passed to field rendering callback
 				$field['args']['setting_name'] = $setting['name'];
 				
-				// Iterates over field parameters which can be defined at a setting or field level, applying setting level prams to fields
-				// Setting level param will only be inherited if the field hasn't its own specified param
-				foreach (['field_type'] as $param) {
-					if (!isset($field[$param]) && isset($setting[$param]))
-						$field[$param] = $setting[$param];
+				// Applies setting to field property inheritance (if applicable)
+				if (!isset($field['field_type']) && isset($setting['field_type'])) {
+					$field['field_type'] = $setting['field_type'];
 				}
 				
-				// Iterates over field args which can be defined at a setting or field level, applying setting level prams to fields
-				foreach (['html_filter'] as $arg) {
-					if (isset($setting[$arg]))
-						$field['args'][$arg] = $setting[$arg];
+				if (isset($setting['html_filter'])) {
+					$field['args']['html_filter'] = $setting['html_filter'];
 				}
 				
-				// Initialises if necessary
-				$field['args']['classes'] = isset($field['args']['classes']) ? $field['args']['classes'] : array();
+				if (!isset($field['args']['classes'])) {
+					$field['args']['classes'] = array();
+				}
 				
 				// Merges parent (setting) classes into child (field)
 				$field['args']['classes'] = array_merge($field['args']['classes'], $setting['classes']);

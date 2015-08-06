@@ -1,0 +1,6 @@
+/*
+ * Name:		WP-Librarian Admin Core Styles
+ * Author:		Kit Maywood
+ * Description:	Contains CSS rules that can be applied to all wp-admin pages WP-Librarian controls.
+ * Version:		0.2
+ */#version-wrap span{float:right;clear:right;font-size:11px;font-style:italic}#version-wrap{overflow:auto;float:right}
