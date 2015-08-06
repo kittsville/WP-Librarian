@@ -5,7 +5,7 @@ Requires at least: 3.9
 Tested up to: 4.2.3
 Stable tag: 4.0
 License: GPL3
-License URI: http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+License URI: http://www.gnu.org/licenses/gpl-3.0.en.html
 
 Manage an extensive Library of book and other media with WP-Librarian. Loan, return or schedule items, tracking them between Library members.
 
