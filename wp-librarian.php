@@ -25,7 +25,7 @@
  */
 
 // Whether to display additional debugging information along with errors
-define('WP_LIB_DEBUG_MODE', true);
+define('WP_LIB_DEBUG_MODE', false);
 
 // Whether to ensure connected objects can't be deleted individually (e.g. deleting a loan but not its fine). Turning this off is a great way to break your Library!
 define('WP_LIB_MAINTAIN_INTEGRITY', true);
