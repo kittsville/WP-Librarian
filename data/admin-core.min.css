@@ -3,4 +3,4 @@
  * Author:		Kit Maywood
  * Description:	Contains CSS rules that can be applied to all wp-admin pages WP-Librarian controls.
  * Version:		0.2
- */#version-wrap span{float:right;clear:right;font-size:11px;font-style:italic}#version-wrap{overflow:auto;float:right}
+ */#version-wrap span{float:right;clear:right;font-size:11px;font-style:italic}#version-wrap{overflow:auto;float:right}div#wp-lib-notifications{max-width:90%;min-width:300px}
