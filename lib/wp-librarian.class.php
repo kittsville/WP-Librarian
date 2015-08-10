@@ -128,7 +128,7 @@ class WP_Librarian {
 		wp_register_script('wp_lib_dashboard',  $this->getScriptUrl('admin-dashboard'), array('wp_lib_core'),                                   '0.4');
 		wp_register_script('dynatable',         $this->getScriptUrl('dynatable'),       array(),                                                '0.3.1');
 		wp_register_script('wp_lib_settings',   $this->getScriptUrl('AdminSettings'),   array('wp_lib_core'),                                   '0.4');
-		wp_register_script('wp_lib_core',       $this->getScriptUrl('admin-core'),      array('jquery', 'jquery-ui-datepicker'),                '0.3');
+		wp_register_script('wp_lib_core',       $this->getScriptUrl('admin-core'),      array('jquery', 'jquery-ui-datepicker'),                '0.4');
 		
 		wp_register_style('wp_lib_admin_post_table',    $this->getStyleUrl('admin-post-table'), array(),                    '0.2');
 		wp_register_style('wp_lib_admin_settings',      $this->getStyleUrl('admin-settings'),   array('wp_lib_core'),       '0.2');
@@ -137,7 +137,7 @@ class WP_Librarian {
 		wp_register_style('jquery-ui',                  $this->getStyleUrl('jquery-ui'),        array(),                    '1.10.1'); // Core Datepicker Styles
 		wp_register_style('dynatable',                  $this->getStyleUrl('dynatable'),        array('jquery-ui'),         '0.3.1');
 		wp_register_style('wp_lib_meta_core',           $this->getStyleUrl('admin-meta-core'),  array(),                    '0.2');
-		wp_register_style('wp_lib_core',                $this->getStyleUrl('admin-core'),       array(),                    '0.3');
+		wp_register_style('wp_lib_core',                $this->getStyleUrl('admin-core'),       array(),                    '0.4');
 		wp_register_style('wp_lib_admin_edit_item',     $this->getStyleUrl('admin-edit-item'),  array('wp_lib_meta_core'),  '0.2');
 		wp_register_style('wp_lib_frontend',            $this->getStyleUrl('front-end-core'),   array(),                    '0.3');
 		

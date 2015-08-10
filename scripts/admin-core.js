@@ -27,7 +27,7 @@ function wp_lib_get_script(scriptURL) {
 		cache       : !wp_lib_vars.debugMode, // Only caches JS if debugging mode isn't on
 		url         : scriptURL
 	}).fail(function(jqxhr, settings, exception) {
-		wp_lib_local_error("Failed to load JavaScript needed for this page");
+		wp_lib_error("Failed to load JavaScript needed for this page");
 		console.log('Script URL: ' + scriptURL);
 		console.log(exception);
 	}).success(function() {
@@ -63,7 +63,7 @@ function wp_lib_parse_json(rawJSON) {
 		var parsedJSON = JSON.parse(rawJSON);
 	}
 	catch(e) {
-		wp_lib_local_error("Server returned invalid response");
+		wp_lib_error("Server returned invalid response");
 		
 		// If debugging is on, displays un-parse-able response
 		if (wp_lib_vars.debugMode === '1') {
@@ -96,7 +96,7 @@ function wp_lib_send_ajax(ajaxData, postCallFunction) {
 	.done(function(response) {
 		// Checks if WP_AJAX hook does not exist
 		if (response === '0') {
-			wp_lib_local_error("WordPress rejected AJAX request. This is likely a permissions issue.");
+			wp_lib_error("WordPress rejected AJAX request. This is likely a permissions issue.");
 			
 			// Sets output status
 			outputBuffer[0] = 1;
@@ -122,9 +122,9 @@ function wp_lib_send_ajax(ajaxData, postCallFunction) {
 	})
 	.fail(function(data, a, message) {
 		if (data.status === 0) {
-			wp_lib_local_error('Unable to connect to ' + wp_lib_vars.siteName + '. Check your internet connection.');
+			wp_lib_error('Unable to connect to ' + wp_lib_vars.siteName + '. Check your internet connection.');
 		} else {
-			wp_lib_local_error('HTTP Error ' + data.status + ': ' + message);
+			wp_lib_error('HTTP Error ' + data.status + ': ' + message);
 		}
 		
 		if (wp_lib_vars.debugMode) {
