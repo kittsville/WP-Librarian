@@ -895,7 +895,7 @@ class WP_Librarian {
 					'sanitize'  =>
 						function($raw) {
 							return array(
-								htmlentities(substr(iconv('UTF-8', 'ISO-8859-15', trim($raw[0])), 0, 4), ENT_QUOTES, 'ISO-8859-15'),
+								htmlentities(substr(trim($raw[0]), 0, 4)),
 								wp_lib_sanitize_option_checkbox($raw[1])
 							);
 						},

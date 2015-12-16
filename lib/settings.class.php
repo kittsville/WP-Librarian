@@ -37,7 +37,7 @@ class WP_Lib_Settings {
 		/* Settings relating to plugin presentation */
 		
 		// Currency Symbol and position relative to the numerical value (2 - Before: £20, 3 - After: 20£)
-		'wp_lib_currency'   => array('&pound;', 2),
+		'wp_lib_currency'   => array('£', 2),
 	);
 	
 	/**
