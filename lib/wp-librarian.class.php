@@ -1167,7 +1167,7 @@ class WP_Librarian {
 		return array(
 			'channel'   => 'Alpha',
 			'version'   => '0.3.1',
-			'subversion'=> '010',
+			'subversion'=> '011',
 			'nickname'  => 'Badger Claw'
 		);
 	}
