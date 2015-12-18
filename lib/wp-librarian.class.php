@@ -185,12 +185,18 @@ class WP_Librarian {
 	 * Sets up plugin on first activation or after an update
 	 */
 	public function runOnActivation() {
-		$version = get_option('wp_lib_version', false);
+		$old_version = get_option('wp_lib_version', false);
+		$version     = $this->getPluginVersion();
 		
 		// If plugin has been previously installed
-		if (is_array($version)) {
+		if (is_array($old_version)) {
+			// Stops older version than last version installed being installed
+			if (version_compare($version['version'], $old_version['version'], '<')) {
+				wp_lib_activation_error("Can't activate WP-Librarian version " . $version['version'] . " because more recent version " . $old_version['version'] . " has previously been installed");
+			}
+			
 			// If previous plugin version is version 0.1 or earlier, remove depreciated data
-			if (version_compare($version['version'], '0.1', '<=')) {
+			if (version_compare($old_version['version'], '0.1', '<=')) {
 				delete_option('wp_lib_default_media_types');
 				delete_option('wp_lib_taxonomy_spacer');
 				
@@ -244,7 +250,7 @@ class WP_Librarian {
 			 * Also:
 			 * Removed deprecated barcode auto-scanning
 			 */
-			if (version_compare($version['version'], '0.2', '<=')) {
+			if (version_compare($old_version['version'], '0.2', '<=')) {
 				$members = new WP_Query(array(
 					'post_type'     => 'wp_lib_members',
 					'post_status'   => 'publish',
@@ -320,7 +326,7 @@ class WP_Librarian {
 		}
 		
 		// Adds or updates plugins current version
-		update_option('wp_lib_version', $this->getPluginVersion());
+		update_option('wp_lib_version', $version);
 		
 		// Registers plugin post types then flushes permalinks, adding them to rewrite rules
 		$this->flushPermalinks();

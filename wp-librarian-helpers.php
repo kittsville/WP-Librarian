@@ -27,6 +27,15 @@ function wp_lib_is_error($object) {
 	return ($object instanceof WP_Lib_Error);
 }
 
+/*
+ * Stops plugin activation with page displaying error message
+ * Also turns all instances of 'WP-Librarian' bold
+ * @param   string  $error_text Error message to display. No <p> tags needed.
+ */
+function wp_lib_activation_error($error_text) {
+	wp_die('<p>' . str_replace('WP-Librarian', '<strong>WP-Librarian</strong>', $error_text) . '</p>', 'Plugin Activation Error', array('response'=>200, 'back_link'=>TRUE));
+}
+
 	/* -- Permissions -- */
 
 /**
