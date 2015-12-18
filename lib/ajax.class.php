@@ -182,6 +182,15 @@ class WP_Lib_AJAX {
 	}
 	
 	/**
+	 * Removes invalid characters from a WordPress Hook
+	 * @param	string $hook Raw dash action/page/API request
+	 * @return	string		 Sanitized dash action/page/API request
+	 */
+	protected function sanitizeHook($hook) {
+		return preg_replace('/[^A-Za-z0-9_\-]/', '', $hook);
+	}
+	
+	/**
 	 * Adds error to notification buffer
 	 * @param int|WP_Lib_Error  $error  ID or instance of an error that occurred within WP-Librarian
 	 * @param string|array      $params OPTIONAL Details to enhance error message
@@ -243,13 +252,15 @@ class WP_Lib_AJAX_Action extends WP_Lib_AJAX {
 		if (!isset($_POST['dash_action']))
 			$this->stopAjax(500);
 		
+		$dash_action = $this->sanitizeHook($_POST['dash_action']);
+		
 		// Allows developers to add/overwrite a specific Dash action
-		do_action('wp_lib_dash_action_'.$_POST['dash_action'], $this);
+		do_action('wp_lib_dash_action_'.$dash_action, $this);
 		
 		// Allows developers to interact with all Dash actions
-		do_action('wp_lib_dash_action', $this, $_POST['dash_action']);
+		do_action('wp_lib_dash_action', $this, $dash_action);
 		
-		switch($_POST['dash_action']) {
+		switch($dash_action) {
 			case 'loan':
 				$this->doLoanItem();
 			break;
@@ -744,24 +755,28 @@ class WP_Lib_AJAX_Action extends WP_Lib_AJAX {
  */
 class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 	/**
+	 * The requested Dashboard page
+	 * @var str
+	 */
+	private $dash_page;
+	
+	/**
 	 * Calls relevant prep function based on requested Dash page
 	 */
 	function __construct(WP_Librarian $wp_librarian) {
 		parent::__construct($wp_librarian);
-	
-		// If no dash page has been specified, load Dashboard
-		if (!isset($_POST['dash_page'])) {
-			$_POST['dash_page'] = 'dashboard';
-		}
+		
+		// If no page is specified, defaults to dashboard
+		$this->dash_page = $this->sanitizeHook(isset($_POST['dash_page']) ? $_POST['dash_page'] : 'dashboard');
 		
 		// Allows developers to add/overwrite a specific Dash page
-		do_action('wp_lib_dash_page_'.$_POST['dash_page'], $this);
+		do_action('wp_lib_dash_page_' . $this->dash_page, $this);
 		
 		// Allows developers to interact with all Dash page requests
-		do_action('wp_lib_dash_page', $this, $_POST['dash_page']);
+		do_action('wp_lib_dash_page', $this, $this->dash_page);
 		
 		// Calls relevant function to prepare requested page
-		switch($_POST['dash_page']) {
+		switch($this->dash_page) {
 			case 'dashboard':
 				$this->genDashboard();
 			break;
@@ -856,9 +871,9 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 	 */
 	public function sendPage($page_title, $tab_title, $page, $scripts = null) {
 		$this->output_buffer[2] = array(
-			apply_filters('wp_lib_dash_page_title',     $page_title, $_POST['dash_page']),
-			apply_filters('wp_lib_dash_page_tab_title', $tab_title, $_POST['dash_page']),
-			apply_filters('wp_lib_dash_page_content',   $page, $_POST['dash_page'])
+			apply_filters('wp_lib_dash_page_title',     $page_title, $this->dash_page),
+			apply_filters('wp_lib_dash_page_tab_title', $tab_title, $this->dash_page),
+			apply_filters('wp_lib_dash_page_content',   $page, $this->dash_page)
 		);
 		
 		if (is_array($scripts) || is_string($scripts))
