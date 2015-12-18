@@ -10,6 +10,11 @@ If you want to contribute to WP-Librarian feel free, just remember to fork the d
 
 The documentation is currently quite sparce, but it's being worked on. If you have questions that reading the source doesn't answer then email me at kittsville[at]gmail.com and I'll try and answer it. But bear in mind that silly questions get silly answers!
 
+####Requirements
+
+- PHP version 5.4 or higher
+- WordPress version 3.9 or higher
+
 ####Installation
 
 1. Download the latest version of WP-Librarian
