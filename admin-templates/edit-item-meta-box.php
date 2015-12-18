@@ -124,7 +124,34 @@ $meta_formatting = array(
 			),
 
 		)
-	)
+	),
+	array(
+		'title' => 'Graphic Novel Details',
+		'value' => 'graphic-novels',
+		'fields'=> array(
+			array(
+				'title'     => 'ISBN',
+				'name'      => 'wp_lib_item_isbn',
+				'type'      => 'text',
+			),
+			array(
+				'title'     => 'Cover Type',
+				'name'      => 'wp_lib_item_cover_type',
+				'type'      => 'select',
+				'options'   => array(
+					array(
+						'value' => '2',
+						'html'  => 'HardCover'
+					),
+					array(
+						'value' => '3',
+						'html'  => 'Softcover'
+					)
+				),
+			),
+
+		)
+	),
 );
 
 // Fetches all post meta then strips away any meta not needed by the meta formatting
