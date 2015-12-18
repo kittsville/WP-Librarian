@@ -25,3 +25,11 @@ Copyright © 2013  Steve Schwartz
 http://www.dynatable.com/license/
 
 Any adapted code snippets should be credited in-line
+
+== Installation ==
+
+1. Download the latest version of WP-Librarian
+2. Go to WordPress Admin Dashboard
+3. Go to Plugins->Add New->Upload Plugin
+4. Upload WP-Librarian.zip
+5. Activate plugin
