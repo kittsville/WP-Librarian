@@ -188,6 +188,14 @@ class WP_Librarian {
 		$old_version = get_option('wp_lib_version', false);
 		$version     = $this->getPluginVersion();
 		
+		global $wp_version;
+		
+		if (version_compare(PHP_VERSION, '5.4', '<')) {
+			wp_lib_activation_error("WP-Librarian can't be activated because it requires PHP version 5.4 or higher. You have version " . PHP_VERSION);
+		} else if (version_compare($wp_version, '3.9', '<')) {
+			wp_lib_activation_error("WP-Librarian can't be activated because it requires WordPress version 3.9 or higher. You have version " . $wp_version);
+		}
+		
 		// If plugin has been previously installed
 		if (is_array($old_version)) {
 			// Stops older version than last version installed being installed
