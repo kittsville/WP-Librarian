@@ -13,6 +13,8 @@ The documentation is currently quite sparse, but it's being worked on. If you ha
 
 ####Installation
 
+WP-Librarian is in Alpha release so don't go installing this on a production website unless you know what you're doing.
+
 1. Download the latest version of WP-Librarian
 2. Go to WordPress Admin Dashboard
 3. Go to Plugins->Add New->Upload Plugin
