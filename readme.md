@@ -10,6 +10,13 @@ If you want to contribute to WP-Librarian feel free, just remember to fork the d
 
 The documentation is currently quite sparce, but it's being worked on. If you have questions that reading the source doesn't answer then email me at kittsville[at]gmail.com and I'll try and answer it. But bear in mind that silly questions get silly answers!
 
+####Installation
+
+1. Download the latest version of WP-Librarian
+2. Go to WordPress Admin Dashboard
+3. Go to Plugins->Add New->Upload Plugin
+4. Upload WP-Librarian.zip
+5. Activate plugin
 
 ####3rd Party Software
 
