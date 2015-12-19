@@ -336,8 +336,20 @@ class WP_Librarian {
 		// Adds or updates plugins current version
 		update_option('wp_lib_version', $version);
 		
+		// Sets up daily ping for late/due item notification emails
+		wp_schedule_event(time(), 'daily', 'wp_lib_email_notifications');
+		
 		// Registers plugin post types then flushes permalinks, adding them to rewrite rules
 		$this->flushPermalinks();
+	}
+	
+	/**
+	 * Reschedules WP Cron job and flushes permalinks on plugin deactivation
+	 */
+	public function runOnDeactivation() {
+		flush_rewrite_rules();
+		
+		wp_clear_scheduled_hook('wp_lib_email_notifications');
 	}
 	
 	/**

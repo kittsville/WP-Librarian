@@ -36,4 +36,4 @@ $wp_librarian = new WP_Librarian;
 
 register_activation_hook(__FILE__, array($wp_librarian, 'runOnActivation'));
 
-register_deactivation_hook(__FILE__, 'flush_rewrite_rules');
+register_deactivation_hook(__FILE__, array($wp_librarian, 'runOnDeactivation'));
