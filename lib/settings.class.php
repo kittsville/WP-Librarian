@@ -255,6 +255,31 @@ class WP_Lib_Settings_Section extends WP_Lib_Settings {
 	}
 	
 	/**
+	 * Renders an HTML textarea
+	 * @param   array   $args   Settings field arguments
+	 */
+	public static function textarea(array $args) {
+		$properties = array(
+			'type' => 'text',
+		);
+		
+		// Sets field output
+		$output = array(
+			'<textarea ' . self::setupFieldProperties($args, $properties) . '>' . self::getOption($args) . '</textarea>',
+		);
+		
+		// Adds field description, if one exists
+		self::addDescription($output, $args);
+		
+		// If hook exists to add html elements to the output, apply
+		if (isset($args['html_filter']))
+			$output = $args['html_filter']($output, $args);
+		
+		// Renders output to setting field
+		self::outputLines($output);
+	}
+	
+	/**
 	 * Renders an HTML checkbox input
 	 * @param   array   $args   Settings field arguments
 	 */
