@@ -337,6 +337,7 @@ class WP_Librarian {
 		update_option('wp_lib_version', $version);
 		
 		// Sets up daily ping for late/due item notification emails
+		wp_clear_scheduled_hook('wp_lib_email_notifications');
 		wp_schedule_event(time(), 'daily', 'wp_lib_email_notifications');
 		
 		// Registers plugin post types then flushes permalinks, adding them to rewrite rules
