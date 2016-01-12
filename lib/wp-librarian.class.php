@@ -1030,7 +1030,7 @@ class WP_Librarian {
 			'title'     => 'Notification Emails',
 			'settings'  => array(
 				array(
-					'name'          => 'wp_lib_email_templates',
+					'name'          => 'wp_lib_emails',
 					'sanitize'      =>
 						function($raw) {
 							return $raw;

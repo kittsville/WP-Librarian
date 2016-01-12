@@ -33,7 +33,7 @@ class WP_Lib_Settings {
 			'type'          // The slug for viewing media types
 		),
 		
-		'wp_lib_email_templates'=> array(
+		'wp_lib_emails'=> array(
 			true,
 			'Single Title',
 			'Single Content',
