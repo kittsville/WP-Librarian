@@ -1024,6 +1024,44 @@ class WP_Librarian {
 			)
 		));
 		
+		/* -- Notification Email Settings -- */
+		WP_Lib_Settings_Section::registerSection(array(
+			'name'      => 'wp_lib_email_group',
+			'title'     => 'Notification Emails',
+			'settings'  => array(
+				array(
+					'name'          => 'wp_lib_email_templates',
+					'sanitize'      =>
+						function($raw) {
+							return $raw;
+						},
+					'fields'		=> array(
+						array(
+							'name'  	=> 'Enabled',
+							'field_type'=> 'checkboxInput',
+							'args'  	=> array(
+								'alt'   => 'Whether to send late/due reminder emails to librarians or library members',
+							)
+						),
+						array(
+							'name'  	=> 'Single Item Email Subject',
+							'field_type'=> 'textInput',
+							'args'  	=> array(
+								'alt'   => 'Email Subject Header',
+							)
+						),
+						array(
+							'name'  	=> 'Single Item Email Body',
+							'field_type'=> 'textarea',
+							'args'  	=> array(
+								'alt'   => 'Describes what item is due/late ',
+							)
+						),
+					)
+				)
+			)
+		));
+		
 		// Allows plugins to use WP-Librarian's settings class to handle their settings
 		do_action('wp_lib_register_settings');
 	}
