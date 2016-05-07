@@ -17,11 +17,11 @@ WP-Librarian is an inventory management system for WordPress. You can use it to 
 WP-Librarian uses the following 3rd Party Software, available under GNU licence:
 
 Hyphenate ISBN
-Copyright © 2013 Aurimas Vinckevicius
+Copyright Â© 2013 Aurimas Vinckevicius
 https://gist.github.com/aurimasv/6693537
 
 Dynatable
-Copyright © 2013  Steve Schwartz
+Copyright Â© 2013  Steve Schwartz
 http://www.dynatable.com/license/
 
 Any adapted code snippets should be credited in-line
@@ -33,3 +33,4 @@ Any adapted code snippets should be credited in-line
 3. Go to Plugins->Add New->Upload Plugin
 4. Upload WP-Librarian.zip
 5. Activate plugin
+ 
