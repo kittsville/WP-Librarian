@@ -2,7 +2,7 @@
 
 WP-Librarian is an inventory management system for WordPress. Loan, return and schedule items, efficiently tracking your extensive Library with ease.
 
-WP-Librarian is currently in its third Alpha release. A Beta release is [planned](https://github.com/kittsville/WP-Librarian/wiki/V1-Bowie) for early 2016.
+WP-Librarian is currently in its third Alpha release. A Beta release is [planned](https://github.com/kittsville/WP-Librarian/wiki/V1-Bowie) some time in the future.
 
 The documentation is currently quite sparse, but it's being worked on. If you have questions that reading the source doesn't answer then email me at kittsville[at]gmail.com and I'll try and answer it. But bear in mind that silly questions get silly answers!
 
