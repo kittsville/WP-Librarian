@@ -1829,7 +1829,7 @@ class WP_Lib_AJAX_Page extends WP_Lib_AJAX {
 		$page[] = $this->prepLoansTable($item->ID);
 		
 		// Script to display currently selected member's meta box
-		$script = $this->wp_librarian->getScriptUrl('admin-dashboard-manage-item');
+		$script = $this->wp_librarian->getScriptUrl('DashManageItem');
 		
 		$this->sendPage('Scheduling loan of ' . get_the_title($item->ID), 'Scheduling loan of #' . $item->ID, $page, $script);
 	}
